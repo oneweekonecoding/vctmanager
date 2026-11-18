@@ -2041,17 +2041,18 @@ function initWorld(){
   if(!G.rosters){
     G.rosters={}; G.freed=[]; G.tx=[];
     DB.teams.forEach(t=>{ if(t.key!==G.team) G.rosters[t.key]=t.roster.filter(n=>P(n).status!=="FA"); });
-    const order=DB.teams.filter(t=>t.key!==G.team).sort((a,b)=>(b.partner-a.partner)||(Math.random()-0.5));
-    let n=0;
-    for(let round=0; round<6; round++) order.forEach(t=>{ const ros=G.rosters[t.key]; if(ros.length<5){ const p=aiSign(t.key,true); if(p){ n++; if(n<=14) txNews(`${t.name}, ${p.name} 영입 (${ROLE[p.role].k}, ${p.nat})`); } } });
-    order.forEach(t=>{ if(Math.random()<0.45) aiSign(t.key,true); sortRoster(t.key); });
-    G.brief&&G.brief.splice(2,0,L(`스토브리그: 다른 구단들이 FA와 신예 ${n}명을 영입해 주전을 채웠습니다. 이적 소식은 하단 뉴스에서 확인하세요.`,`Offseason: other clubs signed ${n} free agents and prospects to fill their lineups. Check the news ticker for transfers.`,`ストーブリーグ: 他クラブがFAと新星${n}人を獲得してスタメンを埋めました。移籍情報はニュースで確認してください。`,`休赛期: 其他俱乐部签下${n}名自由球员和新秀补齐首发，转会消息请看新闻栏。`));
+    G.aiPlan={}; let need=0;
+    DB.teams.filter(t=>t.key!==G.team).forEach(t=>{ const n=Math.max(0,5-G.rosters[t.key].length)+(Math.random()<0.45?1:0); need+=n; if(n) G.aiPlan[t.key]=spreadDays(n,16); sortRoster(t.key); });
+    G.brief&&G.brief.splice(2,0,L(`스토브리그: 다른 구단들이 앞으로 약 20일 동안 FA와 신예 ${need}명 정도를 차례로 영입합니다. 먼저 움직이면 원하는 선수를 선점할 수 있습니다.`,`Offseason: over the next ~20 days, other clubs will sign about ${need} free agents and prospects one by one. Move first to grab the players you want.`,`ストーブリーグ: 他クラブは今後約20日間でFAと新星を約${need}人、順番に獲得します。先に動けば狙った選手を確保できます。`,`休赛期: 其他俱乐部将在约20天内陆续签下约${need}名自由球员和新秀。先出手就能抢到想要的选手。`));
   }
 }
 /* AI recruitment takes time: clubs place bids, players decide a few days later */
 function dayNo(){ return (G.sea?G.sea.yr:2027)*1000+(G.week||0)*7+(G.day||0); }
 function bidsOf(id){ return ((G.bids||{})[id]||[]).filter(b=>G.rosters[b.k]); }
 function topBid(id){ const bs=bidsOf(id); return bs.length?bs.slice().sort((a,b)=>b.sal-a.sal)[0]:null; }
+/* spread n signing starts over the next `win` days (absolute day numbers) */
+function spreadDays(n,win){ const now=absNow(), out=[]; for(let i=0;i<n;i++){ out.push(now+Math.min(win,Math.round((i+Math.random()*0.8)*win/n))); } return out.sort((a,b)=>a-b); }
+function planDue(k){ const pl=G.aiPlan&&G.aiPlan[k]; if(!pl||!pl.length) return null; return pl[0]<=absNow(); }
 function hasPursuit(k){ for(const id in (G.bids||{})) if(G.bids[id].some(b=>b.k===k)) return true; return false; }
 function placeBid(k,rep){ const p=aiPick(k); if(!p) return null; const t=T(k);
   const sal=Math.round(marketAsk(p)*(0.95+Math.random()*0.3)*(t.partner?1.05:0.97)/1000)*1000;
@@ -2079,7 +2080,12 @@ function aiDaily(){
   const urgent=G.sea&&G.sea.next==="match"&&G.dday<=1;
   for(const k in G.rosters){
     const ros=G.rosters[k], t=T(k);
-    if(ros.length<5){ if(urgent){ const p=aiSign(k); if(p) out.push(`${t.name}, ${p.name} 영입`); sortRoster(k); } else if(!hasPursuit(k)) placeBid(k); continue; }
+    if(ros.length<5){ if(urgent){ const p=aiSign(k); if(p) out.push(`${t.name}, ${p.name} 영입`); sortRoster(k); continue; }
+      if(hasPursuit(k)) continue;
+      G.aiPlan=G.aiPlan||{}; if(!G.aiPlan[k]||!G.aiPlan[k].length) G.aiPlan[k]=spreadDays(5-ros.length,Math.min(19,7*(5-ros.length)));
+      if(planDue(k)){ G.aiPlan[k].shift(); placeBid(k); } continue; }
+    if(G.aiPlan&&G.aiPlan[k]&&G.aiPlan[k].length&&ros.length<6){ if(!hasPursuit(k)&&planDue(k)){ G.aiPlan[k].shift(); placeBid(k); } continue; }
+    if(G.aiPlan&&G.aiPlan[k]&&ros.length>=6) delete G.aiPlan[k];
     if(!transferOpen()) continue;
     if(hasPursuit(k)) continue;
     if(ros.length<6 && Math.random()<0.03){ placeBid(k); continue; }
@@ -2262,7 +2268,6 @@ function openPlayer(id){
       <div class="mg"><h4>능력치</h4>
         ${hexBox(id)}
         ${Object.keys(ATTR).map(k=>{const v=p.A[k]??0;return `<div class="attr"><span>${ATTR[k]}</span><div class="bar"><i style="width:${v}%;background:${v>=70?'var(--mint)':v>=45?'#f5c542':'var(--red)'}"></i></div><b>${v}</b></div>`}).join("")}
-        ${G?scoutBox(id):""}
         <h4 style="margin-top:14px">${p.gen?"공식 기록":"2026 기록"} ${p.est&&!p.gen?"(추정)":""}</h4>
         ${s?`<div class="sg"><div>Rating<b>${s.r.toFixed(2)}</b></div><div>ACS<b>${Math.round(s.acs)}</b></div><div>K:D<b>${s.kd.toFixed(2)}</b></div><div>KAST<b>${Math.round(s.kast)}%</b></div>
         <div>ADR<b>${s.adr.toFixed(0)}</b></div><div>KPR<b>${s.kpr.toFixed(2)}</b></div><div>APR<b>${s.apr.toFixed(2)}</b></div><div>FK:FD<b>${s.fkfd.toFixed(2)}</b></div></div>
@@ -2272,7 +2277,8 @@ function openPlayer(id){
         ${p.gen&&G&&!p.car?(p.car=genCareer(p),""):""}${p.car&&p.car.length?`<h4 style="margin-top:14px">경력${p.gen?' <small class="mute" style="font-weight:400">(가상)</small>':""}</h4><ul class="car">${p.car.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:""}
       </div>
       <div class="mg"><h4>요원 숙련도</h4><div class="agl">${agHTML}</div>
-        <p class="mute" style="font-size:11px;margin-top:8px;line-height:1.5">요원 목록: playvalorant.com. 숙련도는 vlr.gg 2026 요원 사용 비율과 레이팅으로 산출. 허시는 10월 28일 출시라 기록이 없습니다.</p></div>
+        <p class="mute" style="font-size:11px;margin-top:8px;line-height:1.5">요원 목록: playvalorant.com. 숙련도는 vlr.gg 2026 요원 사용 비율과 레이팅으로 산출. 허시는 10월 28일 출시라 기록이 없습니다.</p>
+        ${G?`<div style="margin-top:14px">${scoutBox(id)}</div>`:""}</div>
     </div>
     <div class="mf"><span class="mute" style="font-size:12px">${signable?`희망 연봉 수준: 약 ${short(marketAsk(p))}/년${p.status==="T2"?" | 이적료 별도":""}`:""}</span>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${G?`<button class="ghost" onclick="openCompare(${mine?`'${esc(id)}',null`:`(G.roster.find(r=>P(r.id).role==='${p.role}')||G.roster[0]||{}).id,'${esc(id)}'`})">${L("선수 비교","Compare","選手比較","对比")}</button>`:""}${mine&&!(G.tBlock||{})[id]?`<button class="ghost" onclick="listBlock('${esc(id)}')">트레이드 시장에 내놓기</button>`:""}${(()=>{const tk=G&&teamOf(id); return tk&&tk!==G.team?`<button class="ghost" onclick="openRFA('${esc(id)}')">RFA 영입 제의</button><button class="ghost" onclick="openTrade('${tk}','${esc(id)}')">트레이드 문의</button>`:"";})()}${signable?`<button class="go cut" style="padding:10px 20px;font-size:14px" onclick="openNego('${esc(id)}')">협상 시작</button>`:""}<button class="ghost" onclick="closePM()">닫기</button></div></div>`;
