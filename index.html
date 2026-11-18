@@ -1024,6 +1024,9 @@ body.ui-tab .calbtn{width:32px}
 #diffTip{position:fixed;z-index:200;width:320px;max-width:calc(100vw - 16px);background:#141414;border:1px solid var(--line);border-left:3px solid #F59E0B;border-radius:4px;padding:10px 12px;font-size:12.5px;line-height:1.55;color:#e6edf3;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #diffTip.on{display:block}#diffTip b{display:block;margin-bottom:4px;color:#F59E0B}#diffTip p{margin:0}
 .difftag{font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid currentColor;margin-left:6px}
+.injtag{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;color:#fff;background:#ef4444;padding:0 6px;line-height:18px;border-radius:3px;white-space:nowrap}
+.injtag.mood{background:#7c3aed}
+.pc.out{opacity:.55}
 </style>
 </head>
 <body>
@@ -1592,13 +1595,18 @@ function trophySVG(kind,big){
   else if(kind==="M1"||kind==="M2") body=`<circle cx="60" cy="46" r="26" fill="url(#${id}a)"/><path d="M34 46h52M60 20c-10 8-10 44 0 52M60 20c10 8 10 44 0 52" stroke="#7A5A16" stroke-width="1.3" fill="none" opacity=".7"/>
      <path d="M30 60c4 18 14 26 30 28 16-2 26-10 30-28" stroke="url(#${id}a)" stroke-width="5" fill="none"/><path d="M52 88h16l6 20H46z" fill="url(#${id}a)"/><path d="M42 108h36l6 24H36z" fill="#1E1E1E" stroke="url(#${id}a)" stroke-width="2"/>
      <text x="60" y="125" text-anchor="middle" font-family="Anton,sans-serif" font-size="11" fill="#F7D774">${kind==="M1"?"MASTERS I":"MASTERS II"}</text>`;
+  else if(kind==="HG") body=`<path d="M38 22h44v8c0 30-10 46-22 50-12-4-22-20-22-50z" fill="url(#${id}s)" stroke="#5A6068" stroke-width="1.2"/>
+     <rect x="38" y="34" width="44" height="7" fill="#DC2626"/><rect x="38" y="43" width="44" height="4" fill="#1D4ED8"/>
+     <path d="M38 30c-12 0-14 20-1 24M82 30c12 0 14 20 1 24" stroke="url(#${id}s)" stroke-width="4" fill="none"/>
+     <rect x="55" y="80" width="10" height="20" fill="url(#${id}s)"/><path d="M42 100h36l6 32H36z" fill="#1E1E1E" stroke="url(#${id}s)" stroke-width="2"/>
+     <text x="60" y="114" text-anchor="middle" font-family="Anton,sans-serif" font-size="9" fill="#E6EAEF">HOME</text><text x="60" y="125" text-anchor="middle" font-family="Anton,sans-serif" font-size="9" fill="#E6EAEF">GROUND</text>`;
   else body=`<path d="M60 6l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z" fill="url(#${id}a)"/>
      <path d="M36 34h48l-6 40c-2 12-10 18-18 18s-16-6-18-18z" fill="url(#${id}a)"/><path d="M36 40c-16-2-20 24-2 30M84 40c16-2 20 24 2 30" stroke="url(#${id}a)" stroke-width="5" fill="none"/>
      <path d="M24 46l-10-8M96 46l10-8M22 58l-12 0M98 58l12 0" stroke="#F7D774" stroke-width="2.5" stroke-linecap="round"/>
      <rect x="54" y="92" width="12" height="14" fill="url(#${id}a)"/><path d="M40 106h40l6 26H34z" fill="url(#${id}a)"/><rect x="40" y="114" width="40" height="4" fill="#DC2626"/>`;
   return `<svg viewBox="0 0 120 160" class="tsvg"><defs>${gold}${silver}</defs>${body}${base}</svg>`;
 }
-const TROPHY_NAME={KO:"킥오프 우승컵",S1:"스테이지 1 우승 방패",S2:"스테이지 2 우승 방패",M1:"Masters 1 우승 구체",M2:"Masters 2 우승 구체",CH:"Champions 월드 트로피"};
+const TROPHY_NAME={KO:"킥오프 우승컵",S1:"스테이지 1 우승 방패",S2:"스테이지 2 우승 방패",M1:"Masters 1 우승 구체",M2:"Masters 2 우승 구체",CH:"Champions 월드 트로피",HG:"레드불 홈그라운드 우승컵"};
 function logEventMatch(MXo,win,score){
   G.evLog=(G.evLog||[]); G.evK=G.evK||{};
   G.evLog.push({label:MXo.st.label,opp:T(MXo.o).name,s:score,win,maps:MXo.maplog.map(m=>`${m.map} ${m.s[0]}-${m.s[1]}`)});
@@ -1621,7 +1629,7 @@ function trophyFX(id){
   el.className="on"; sfxUp();
   const close=()=>{ el.className=""; el.innerHTML=""; }; el.onclick=close; clearTimeout(el._h); el._h=setTimeout(close,5000);
 }
-const SHELF=["KO","M1","S1","M2","S2","CH"];
+const SHELF=["HG","KO","M1","S1","M2","S2","CH"];
 function trophyRoomHTML(){
   const list=G.trophies||[];
   const byKind=k=>list.filter(t=>t.kind===k);
@@ -1692,6 +1700,7 @@ function scrimPractice(mapGain,agMult){ const m=scrimMap(); G.maps[m]=Math.min(1
 function setScrimMap(m){ G.scrimMap=m; save(); toast(`스크림 맵: ${m}. ${m} 조합으로 연습합니다.`); if(curTab!=="lobby") openSheet(curTab,true); renderAll(); }
 const ROLE_ATTR={duelist:["aim","fire","entry"],initiator:["entry","util","cons"],controller:["util","cons","aim"],sentinel:["cons","util","aim"],flex:["aim","util","cons"]};
 function gainXP(id, xp, focus){
+  { const rr=G.roster&&G.roster.find(r=>r.id===id); if(rr&&isOut(rr)) return []; if(rr&&isLowMood(rr)) xp=Math.round(xp*0.7); }
   G.dev=G.dev||{}; const d=G.dev[id]=G.dev[id]||{xp:0,pts:0,A:{},ovr:0};
   const p=P(id); const gap=potOf(id)-p.ovr; xp=gap<=0?Math.round(xp*0.1):Math.round(xp*Math.min(1.3,0.3+gap/10)); xp=Math.round(xp*(isProspect(id)?DF().grow:1)*GROW*(G.co?coXPMul():1)*pcXPMul()*(p.gen?0.8:(p.s&&p.s.r>=1.05?1.4:p.s&&p.s.r>=0.98?1.2:1.05))); d.xp+=xp; const ups=[];
   while(d.xp>=100){
@@ -2363,7 +2372,7 @@ function evName(ev){ return LANG==="ko"?SCHED_K[ev]:({scrim:["Scrim","スクリ�
 function absNow(){ return (G.week||0)*7+(G.day||0); }
 function planKey(abs){ return abs; }
 /* calendar date: week 1 Monday = 2026-12-28 */
-function dateOfAbs(abs){ const d=new Date(Date.UTC(2026,11,28)); d.setUTCDate(d.getUTCDate()+(abs-7)); return d; }
+function dateOfAbs(abs){ const d=G&&G.cal===2?new Date(Date.UTC(2026,10,2)):new Date(Date.UTC(2026,11,28)); d.setUTCDate(d.getUTCDate()+(abs-7)); return d; }
 function mdOf(abs){ const d=dateOfAbs(abs); return `${d.getUTCMonth()+1}/${d.getUTCDate()}`; }
 function schedAt(abs){ const i=((abs%7)+7)%7, wk=Math.floor(abs/7), t=mediaTier(), d=SCHED[i];
   let base=d; if(t===3&&(i===1||i===4)) base="media"; else if(t===2&&i===1) base="media"; else if(t===0&&i===3&&wk%2===0) base="train";
@@ -2371,11 +2380,11 @@ function schedAt(abs){ const i=((abs%7)+7)%7, wk=Math.floor(abs/7), t=mediaTier(
 function nextMatchAbs(){ return G.sea&&G.sea.next==="match"?absNow()+G.dday:null; }
 /* projected season timeline (estimates; real dates move with results) */
 function seasonProjection(){ if(!G.sea) return []; const now=absNow(), out=[], pi=G.sea.pi, ph=G.sea.ph||{}, p0=PHASES[pi];
-  let endT; const nx=now+G.dday;
+  let endT; const hs=G.hg&&G.hg.live&&G.hg.stash; const nx=hs?hs.target:now+G.dday;
   if(p0.type==="league"){ if(G.sea.next==="phase") endT=nx; else if(!ph.po){ const left=Math.max(0,p0.rounds-(ph.round||0)-1); endT=nx+left*7+14+14; } else endT=nx+(ph.po.stage==="sf"?7:0)+14; }
   else if(p0.type==="intl"){ if(G.sea.next==="phase") endT=nx; else { const played=(ph.gw||0)+(ph.gl||0); endT=nx+(ph.stage==="group"?Math.max(0,2-played)*7+14:ph.stage==="sf"?7:0)+14; } }
   else endT=nx;
-  const curMatches=[]; if(G.sea.next==="match"){ curMatches.push(nx); if(p0.type==="league"&&!ph.po){ const left=Math.max(0,p0.rounds-(ph.round||0)-1); for(let r=1;r<=left;r++) curMatches.push(nx+7*r); } }
+  const curMatches=[]; if(hs?hs.next==="match":G.sea.next==="match"){ curMatches.push(nx); if(p0.type==="league"&&!ph.po){ const left=Math.max(0,p0.rounds-(ph.round||0)-1); for(let r=1;r<=left;r++) curMatches.push(nx+7*r); } }
   out.push({pi,n:p0.n,type:p0.type,start:null,end:endT,cur:true,matches:curMatches,in:p0.type!=="intl"||!ph.out});
   let t=endT, yr=G.sea.yr;
   for(let s=1;s<=7;s++){ const k=(pi+s)%PHASES.length, P0=PHASES[k]; if(k===0) yr++;
@@ -2394,11 +2403,13 @@ function renderCalendar(){ const now=absNow(), nm=nextMatchAbs(), proj=seasonPro
   const marks={}; const mk=(a,txt,cls)=>{ (marks[a]=marks[a]||[]).push(`<em class="${cls}">${esc(txt)}</em>`); };
   proj.forEach((p,j)=>{ if(p.start!=null&&p.start>=now) mk(p.start,trText(p.n)+(L(" 시작"," starts"," 開始"," 开始")),p.type==="intl"?"ci":"cl");
     p.matches.forEach((a,x)=>{ if(a===nm) return; if(a>=now) mk(a,(p.type==="intl"?trText(p.n):L("리그 경기","League match","リーグ戦","联赛"))+L(" (예상)"," (est.)"," (予想)"," (预计)"),"cm"); }); });
+  if(G.hg&&G.hg.stage!=="done") for(let d=0;d<4;d++){ const a=G.hg.start+d; if(a>=now&&a!==nm) mk(a,hgName()+(d<2?L(" 조별리그"," groups"," グループ"," 小组赛"):L(" 녹아웃"," knockout"," ノックアウト"," 淘汰赛")),"ci"); }
   if(nm!=null) mk(nm,trText(G.sea.fx?G.sea.fx.label:"")+(G.sea.fx?" vs "+T(G.sea.fx.opp).name:""),"cx");
   const w0=Math.floor(now/7)+CALW*5; let grid=`<div class="cgh">${[0,1,2,3,4,5,6].map(i=>`<b>${dayName(i)}</b>`).join("")}</div>`;
   for(let w=w0;w<w0+5;w++){ grid+=`<div class="cgr">`; for(let i=0;i<7;i++){ const a=w*7+i, past=a<now, ev=a===nm?"match":schedAt(a), pl=G.plan&&G.plan[planKey(a)];
       grid+=`<div class="cgc ${past?"past":""} ${a===now?"today":""}"><span class="cd">${mdOf(a)}</span>${past?"":`<span class="ev ${ev}">${evName(ev)}${pl&&ev!=="match"&&ev!=="media"?" *":""}</span>`}${(marks[a]||[]).join("")}</div>`; } grid+=`</div>`; }
-  const tl=proj.map(p=>{ const st=p.cur?L("진행 중","In progress","進行中","进行中"):`${mdOf(p.start)}~`; const part=p.type==="intl"?(p.in===true?L("출전 확정","Qualified","出場確定","已晋级"):p.in===false?L("미출전","Not qualified","不出場","未晋级"):L("출전 여부 미정","TBD","出場未定","待定")):"";
+  const hgRow=G.hg&&G.hg.stage!=="done"?`<div class="tlr intl ${G.hg.live?"cur":""}"><b>${G.hg.yr} ${esc(hgName())}</b><span>${hgDates()}</span><span class="mute">${L("초청 확정","Invited","招待確定","已受邀")}</span></div>`:"";
+  const tl=hgRow+proj.map(p=>{ const st=p.cur?L("진행 중","In progress","進行中","进行中"):`${mdOf(p.start)}~`; const part=p.type==="intl"?(p.in===true?L("출전 확정","Qualified","出場確定","已晋级"):p.in===false?L("미출전","Not qualified","不出場","未晋级"):L("출전 여부 미정","TBD","出場未定","待定")):"";
     return `<div class="tlr ${p.type==="intl"?"intl":""} ${p.cur?"cur":""}"><b>${p.yr&&p.yr!==G.sea.yr?p.yr+" ":""}${esc(trText(p.n))}</b><span>${st}</span><span class="mute">${part}${p.first&&!p.cur?` ${L("첫 경기","1st match","初戦","首场")} ${mdOf(p.first)}`:""}</span></div>`; }).join("");
   const days=[]; for(let a=now;a<now+7;a++) days.push(a);
   const planRows=days.map(a=>{ const ev=a===nm?"match":schedAt(a), locked=a===nm||ev==="media", pl=G.plan&&G.plan[planKey(a)], d=((a%7)+7)%7;
@@ -2433,6 +2444,11 @@ function cleanStart(){ const ids=G.roster.map(r=>r.id); G.roster=[]; G.freed=(G.
 function baseBrand(k){ const t=T(k); return Math.min(100,(t.partner?55:38)+Math.min(30,t.results.length*6)+(CHAMPS.includes(k)?8:0))+(POPB[k]||0); }
 function startBudget(k){ const b=baseBrand(k), top=baseBrand("t1"); const f=Math.pow(Math.max(30,b)/top,1.6)*(T(k).partner?1:0.8);
   const ff=k==="t1"?1:Math.min(0.9,f); return Math.round(1.4*Math.max(Math.round(6e8/KRW_RATE), Math.round(ff*2e9/KRW_RATE))); }
+function hgFirstSetup(){ G.cal=2; G.week=1; G.day=3;           // 2026-11-05 (Thu); kickoff opener stays on 2027-01-18
+  const target=84; G.dday=target-absNow(); G.twin=G.dday; if(G.sea&&G.sea.fx) G.sea.next="match";
+  G.brief=(G.brief||[]).map(x=>typeof x==="string"?x.replace(/D-21/g,"D-"+G.dday):x);
+  hgPlan(45,2026);
+  G.brief.push(L(`오프시즌이 시작됐습니다(11/5). 이적시장은 킥오프 첫 경기 전날(${mdOf(target-1)})까지 열려 있습니다. 12/10~12/13에는 ${hgName()} 초청전이 열리고, 우리 팀은 자동 초청됩니다.`,`The offseason has begun (11/5). The transfer window stays open until the day before the Kickoff opener (${mdOf(target-1)}). ${hgName()} runs 12/10-12/13 and we are automatically invited.`,`オフシーズン開始(11/5)。移籍市場はキックオフ初戦の前日(${mdOf(target-1)})まで開いています。12/10~12/13に${hgName()}が開催され、我々は自動招待されます。`,`休赛期开始(11/5)。转会窗口开放至开幕赛首战前一天(${mdOf(target-1)})。12/10~12/13举行${hgName()}，我们自动受邀。`)); }
 function newGame(k){
   const t=T(k);
   const kept = t.roster.filter(n=>P(n).status!=="FA");
@@ -2459,6 +2475,7 @@ function newGame(k){
   b.push(L("이적시장에서 VCT FA와 2부 리그 선수를 영입할 수 있습니다. 선수마다 원하는 연봉이 다르니 협상하세요.","You can sign VCT free agents and tier-2 players in the market. Each player asks for a different salary, so negotiate.","移籍市場でVCTのFAと2部リーグの選手を獲得できます。選手ごとに希望年俸が違うので交渉してください。","可以在转会市场签下VCT自由球员和二级联赛选手，每位选手期望薪资不同，请谈判。"));
   G.brief=b; G.bi=0;
   G.dev={}; applyDev(); initWorld();
+  hgFirstSetup();
   G.brief.push(L(`가상 신예 ${Object.keys(G.gen).length}명이 이적시장에 등장했습니다. 이 중 약 60%가 우리 구단 주력 국적(${G.myNat})이며, 나머지는 원래 국적 그대로입니다.`,`${Object.keys(G.gen).length} fictional prospects entered the market. About 60% share our main nationality (${natName(G.myNat)}); the rest keep their own.`,`架空の新星${Object.keys(G.gen).length}人が移籍市場に登場しました。約60%が当クラブの主要国籍(${natName(G.myNat)})で、残りは元の国籍のままです。`,`${Object.keys(G.gen).length}名虚构新秀进入转会市场，约60%与本队主要国籍(${natName(G.myNat)})相同，其余保持原国籍。`));
 }
 let SLOT=1; const SLOTS=3;
@@ -2763,8 +2780,8 @@ function renderRoster(){
     const cc=r.cond>=70?"var(--mint)":r.cond>=45?"#f5c542":"var(--red)";
     const fc=r.fat<=40?"var(--mint)":r.fat<=70?"#f5c542":"var(--red)";
     const fs=fatState(r.fat);
-    return `<div class="pc lk ${r.fat>=70?"tired":""}" style="--fc:${fs.c}" onclick="openPlayer('${esc(r.id)}')" data-tip="${esc(statTip(r.id))}">${avatar(p.name,`var(--${reg})`,p.nat)}
-      <div class="mid"><div class="nm2">${ricon(p.role,14)}<span class="pnm">${esc(p.name)}</span><span class="fattag">${L("피로","Fatigue","疲労","疲劳")} ${r.fat} ${fs.t}</span></div>
+    return `<div class="pc lk ${r.fat>=70?"tired":""} ${isOut(r)?"out":""}" style="--fc:${fs.c}" onclick="openPlayer('${esc(r.id)}')" data-tip="${esc(statTip(r.id))}">${avatar(p.name,`var(--${reg})`,p.nat)}
+      <div class="mid"><div class="nm2">${ricon(p.role,14)}<span class="pnm">${esc(p.name)}</span><span class="fattag">${L("피로","Fatigue","疲労","疲劳")} ${r.fat} ${fs.t}</span>${injTag(r)}</div>
         <div class="mini"><span>${L("컨디","Cond","調子","状态")} <b style="color:${cc}">${r.cond}</b></span><span>${L("사기","Morale","士気","士气")} <b style="color:${morCol(morOf(r))}">${morOf(r)}</b></span><span>${ROLE[p.role].k}</span></div></div>
       <div class="ovr" style="color:${p.ovr>=85?'var(--mint)':'var(--text)'}">${p.ovr}<small>OVR</small></div></div>`; }).join("");
   for(let i=starters().length;i<5;i++) h+=`<button class="pc empty" style="width:100%" onclick="openSheet('market')">+ 빈 자리 | 선수 영입 필요</button>`;
@@ -2884,6 +2901,79 @@ function trainHTML(){ const tp=trainPlan(), cur=curTrain(), I=TRAIN_INT[tp.int];
   </div>
   <p class="mute" style="font-size:12.5px;margin-top:8px">다음 훈련: <b style="color:${TRAIN[cur].c}">${TRAIN[cur].n}</b>, 예상 피로 ${trainFatPreview()>0?"+":""}${trainFatPreview()}. 피로 70 이상이면 성장 효율이 25%, 85 이상이면 50% 줄어듭니다. 강하게 훈련할 때 피로 80 이상인 선수는 사기가 떨어집니다.</p></details>`; }
 
+/* ================= INJURIES ================= */
+/* w: relative frequency, d:[min,max] days out, play: can still play (growth penalty), ret: forces retirement */
+const INJ=[
+ {k:"cts",n:["손목터널증후군","Carpal tunnel syndrome","手根管症候群","腕管综合征"],w:5,d:[14,42]},
+ {k:"teno",n:["건초염","Tenosynovitis","腱鞘炎","腱鞘炎"],w:5,d:[14,28]},
+ {k:"cubt",n:["팔꿈치 터널 증후군","Cubital tunnel syndrome","肘部管症候群","肘管综合征"],w:3,d:[28,56]},
+ {k:"tennis",n:["테니스 엘보","Tennis elbow","テニス肘","网球肘"],w:4,d:[21,42]},
+ {k:"dq",n:["드퀘르벵병","De Quervain's tenosynovitis","ドケルバン病","桡骨茎突狭窄性腱鞘炎"],w:4,d:[14,28]},
+ {k:"trig",n:["방아쇠수지","Trigger finger","ばね指","扳机指"],w:4,d:[14,21]},
+ {k:"tneck",n:["거북목증후군","Text neck syndrome","ストレートネック","颈椎前倾综合征"],w:5,d:[14,35]},
+ {k:"cerv",n:["경추 염좌","Cervical sprain","頸椎捻挫","颈椎扭伤"],w:4,d:[14,28]},
+ {k:"rotc",n:["회전근개염","Rotator cuff tendinitis","腱板炎","肩袖肌腱炎"],w:4,d:[14,42]},
+ {k:"lumb",n:["요추 염좌","Lumbar sprain","腰椎捻挫","腰椎扭伤"],w:3,d:[30,90]},
+ {k:"disc",n:["허리디스크","Herniated disc","椎間板ヘルニア","腰椎间盘突出"],w:2,d:[28,75]},
+ {k:"over",n:["과로","Exhaustion","過労","过度疲劳"],w:9,d:[4,4]},
+ {k:"dry",n:["안구건조증","Dry eye","ドライアイ","干眼症"],w:9,d:[1,1]},
+ {k:"sty",n:["다래끼","Stye","ものもらい","麦粒肿"],w:8,d:[1,1]},
+ {k:"cold",n:["몸살/감기","Cold","風邪","感冒"],w:10,d:[1,1]},
+ {k:"flu",n:["독감","Flu","インフルエンザ","流感"],w:6,d:[4,4]},
+ {k:"shing",n:["대상포진","Shingles","帯状疱疹","带状疱疹"],w:2,d:[21,21]},
+ {k:"wfrac",n:["손목 골절","Wrist fracture","手首の骨折","手腕骨折"],w:1.5,d:[21,21]},
+ {k:"wlig",n:["손목 인대 늘어남","Wrist ligament strain","手首の靭帯損傷","手腕韧带拉伤"],w:5,d:[7,7]},
+ {k:"dep",n:["우울감","Low mood","気分の落ち込み","情绪低落"],w:22,d:[14,28],play:true},
+ {k:"car",n:["교통사고","Traffic accident","交通事故","交通事故"],w:0.35,d:[120,180]},
+ {k:"scz",n:["조현병","Schizophrenia","統合失調症","精神分裂症"],w:0.05,d:[0,0],ret:true}
+];
+const INJ_P=0.05;          // daily chance once fatigue >=80 has lasted 14+ days
+const INJ_RET=0.03;        // chance an injury (1 week or longer) ends the career
+function injDef(k){ return INJ.find(x=>x.k===k); }
+function injName(k){ const d=injDef(k); return d?L(...d.n):""; }
+function rOf(id){ return G.roster.find(r=>r.id===id); }
+function isOut(r){ return !!(r&&r.inj&&!injDef(r.inj.k).play&&r.inj.d>0); }
+function isLowMood(r){ return !!(r&&r.inj&&injDef(r.inj.k).play&&r.inj.d>0); }
+function healthyN(){ return G.roster.filter(r=>!isOut(r)).length; }
+function emergNeed(){ return Math.max(0,5-healthyN()); }
+function lineupOK(){ const st=starters(); return st.length>=5&&st.every(r=>!isOut(r)); }
+/* injured players drop to the bench, healthy bench players move up */
+function benchInjured(){ const ok=G.roster.filter(r=>!isOut(r)), out=G.roster.filter(r=>isOut(r));
+  const st=G.roster.slice(0,5).filter(r=>!isOut(r)); const restOk=ok.filter(r=>!st.includes(r));
+  while(st.length<5&&restOk.length) st.push(restOk.shift());
+  G.roster=st.concat(restOk,out); }
+function injNews(s){ G.injNews=(G.injNews||[]).concat([s]).slice(-6); }
+function roJ(w){ const c=(w||'').charCodeAt(w.length-1); if(c<0xAC00||c>0xD7A3) return '(으)로'; const j=(c-0xAC00)%28; return (j===0||j===8)?'로':'으로'; }
+function injuryDay(b){
+  const gone=[];
+  G.roster.forEach(r=>{
+    if(r.inj){ r.inj.d--; if(r.inj.d<=0){ const nm=P(r.id).name, k=r.inj.k; delete r.inj;
+        b.push(L(`${nm} 선수가 ${injName(k)}에서 회복했습니다.`,`${nm} has recovered from ${injName(k)}.`,`${nm}が${injName(k)}から回復しました。`,`${nm}已从${injName(k)}中恢复。`)); } }
+    r.hi=r.fat>=80?(r.hi||0)+1:0;
+    if(!r.inj&&r.hi>=14&&Math.random()<INJ_P){
+      const tot=INJ.reduce((s,x)=>s+x.w,0); let x=Math.random()*tot, d=INJ[0]; for(const c of INJ){ x-=c.w; if(x<=0){ d=c; break; } }
+      const nm=P(r.id).name, tn=T(G.team).name;
+      if(d.ret||(d.d[0]>=7&&Math.random()<INJ_RET)){ gone.push([r,d]); return; }
+      const days=d.d[0]+Math.floor(Math.random()*(d.d[1]-d.d[0]+1)); r.inj={k:d.k,d:days,t:days}; r.hi=0;
+      if(!d.play) r.fat=Math.max(0,r.fat-30);
+      const msg=d.play?L(`${nm} 선수가 ${injName(d.k)}을 호소합니다. 경기는 뛸 수 있지만 ${days}일 동안 성장 효율이 30% 떨어집니다.`,`${nm} is struggling with ${injName(d.k)}. Can still play, but growth is -30% for ${days} days.`,`${nm}が${injName(d.k)}を訴えています。試合には出られますが${days}日間成長効率が30%下がります。`,`${nm}出现${injName(d.k)}，可以出场，但${days}天内成长效率-30%。`)
+        :L(`부상: ${nm} 선수 ${injName(d.k)} 진단, ${days}일 동안 출전할 수 없습니다.`,`Injury: ${nm} diagnosed with ${injName(d.k)}, out for ${days} days.`,`負傷: ${nm}が${injName(d.k)}と診断され、${days}日間出場できません。`,`伤病: ${nm}被诊断为${injName(d.k)}，${days}天内无法出场。`);
+      b.push(msg); injNews(d.play?L(`${tn} ${nm}, 컨디션 난조로 컨디셔닝 프로그램 참여`,`${tn}'s ${nm} joins a conditioning program after a rough patch`,`${tn}の${nm}、不調でコンディショニングプログラムに参加`,`${tn}的${nm}状态低迷，参加调整计划`)
+        :L(`${tn} ${nm}, ${injName(d.k)}${roJ(injName(d.k))} ${days}일 결장`,`${tn}'s ${nm} out ${days} days with ${injName(d.k)}`,`${tn}の${nm}、${injName(d.k)}で${days}日間欠場`,`${tn}的${nm}因${injName(d.k)}缺阵${days}天`));
+    }
+  });
+  gone.forEach(([r,d])=>{ const nm=P(r.id).name, tn=T(G.team).name;
+    G.roster=G.roster.filter(x=>x!==r); retireId(r.id,"injury"); if(G.iglId===r.id) G.iglId=null;
+    b.push(L(`${nm} 선수가 ${injName(d.k)} 때문에 현역 은퇴를 결정했습니다.`,`${nm} has retired due to ${injName(d.k)}.`,`${nm}が${injName(d.k)}のため現役引退を決めました。`,`${nm}因${injName(d.k)}决定退役。`));
+    injNews(L(`${tn} ${nm}, ${injName(d.k)}${roJ(injName(d.k))} 현역 은퇴`,`${tn}'s ${nm} retires due to ${injName(d.k)}`,`${tn}の${nm}、${injName(d.k)}で現役引退`,`${tn}的${nm}因${injName(d.k)}退役`));
+    try{ txNews(L(`${nm}, ${tn}에서 부상으로 은퇴`,`${nm} retires from ${tn} due to injury`,`${nm}、${tn}で負傷により引退`,`${nm}因伤从${tn}退役`)); }catch(e){} });
+  benchInjured();
+  const need=emergNeed(); if(need>0&&need!==G.lastNeed) b.push(L(`출전 가능한 선수가 ${healthyN()}명입니다. 경기를 치르려면 ${need}명이 더 필요하며, 이적시장과 상관없이 FA ${need}명을 긴급 영입할 수 있습니다.`,`Only ${healthyN()} players are available. You need ${need} more to play; you may sign ${need} free agent(s) now regardless of the window.`,`出場可能な選手は${healthyN()}人です。試合には${need}人足りません。移籍市場に関係なくFAを${need}人緊急獲得できます。`,`可出场选手只有${healthyN()}人，还差${need}人才能比赛，可不受转会窗口限制紧急签下${need}名自由球员。`));
+  G.lastNeed=need;
+}
+function injTag(r){ if(!r||!r.inj) return ""; const play=isLowMood(r);
+  return `<span class="injtag ${play?"mood":""}" title="${esc(injName(r.inj.k))}">${esc(injName(r.inj.k))} ${r.inj.d}${L("일","d","日","天")}</span>`; }
+
 /* ================= ADVANCE ================= */
 function advance(){
   clearUndo();
@@ -2898,6 +2988,7 @@ function advance(){
     if(r.fat>75) r.cond=Math.max(15,r.cond-6);
   });
   try{ moraleDay(ev,b); }catch(e){ console.error(e); }
+  try{ injuryDay(b); }catch(e){ console.error(e); }
   { const st=starters().map(r=>r.id), bn=G.roster.slice(5).map(r=>r.id); let up=[];
     if(ev==="scrim"){ up=useXP(st,14,true).concat(useXP(bn,3)); }
     if(up.length) b.push(L(`성장: ${up.join(", ")}.`,`Growth: ${trText(up.join(", "))}.`,`成長: ${trText(up.join(", "))}。`,`成长: ${trText(up.join(", "))}。`)); }
@@ -2909,7 +3000,7 @@ function advance(){
   if(ev==="rest") b.push(L("휴식일. 선수단 피로가 회복됐습니다.","Rest day. The squad recovered from fatigue.","休養日。選手団の疲労が回復しました。","休息日，队伍疲劳得到恢复。"));
   const tired=starters().filter(r=>r.fat>=70);
   if(tired.length) b.push(L(`${tired.map(r=>P(r.id).name).join(", ")} 선수의 피로도가 높습니다. 휴식을 고려하세요.`,`${tired.map(r=>P(r.id).name).join(", ")}: fatigue is high. Consider resting.`,`${tired.map(r=>P(r.id).name).join("、")}の疲労度が高いです。休養を検討してください。`,`${tired.map(r=>P(r.id).name).join("、")}疲劳度较高，请考虑休息。`));
-  if(G.roster.length<5) b.push(L(`주전이 ${G.roster.length}명뿐입니다. 경기 전에 선수를 영입하세요.`,`Only ${G.roster.length} starters. Sign players before the match.`,`スタメンが${G.roster.length}人しかいません。試合前に選手を獲得してください。`,`首发只有${G.roster.length}人，请在比赛前签下选手。`));
+  if(G.roster.length<5&&!G.roster.some(r=>isOut(r))) b.push(L(`주전이 ${G.roster.length}명뿐입니다. 경기 전에 선수를 영입하세요.`,`Only ${G.roster.length} starters. Sign players before the match.`,`スタメンが${G.roster.length}人しかいません。試合前に選手を獲得してください。`,`首发只有${G.roster.length}人，请在比赛前签下选手。`));
   const ai=aiDaily().concat(aiTrades()); { const tw=tradeOffersTick(G.day===6); if(tw) b.push(tw); }
   if(ai.length) b.push(L(`이적 소식: ${ai.slice(0,3).join(" / ")}${ai.length>3?` 외 ${ai.length-3}건`:""}.`,`Transfers: ${ai.slice(0,3).map(trText).join(" / ")}${ai.length>3?` and ${ai.length-3} more`:""}.`,`移籍ニュース: ${ai.slice(0,3).map(trText).join(" / ")}${ai.length>3?` ほか${ai.length-3}件`:""}。`,`转会消息: ${ai.slice(0,3).map(trText).join(" / ")}${ai.length>3?` 等${ai.length-3}条`:""}。`));
   { const ln=learnDay(); if(ln.length) b.push(...ln.slice(0,3)); const ol=otherLeagueDay(); if(ol.length) b.push(L(`다른 리그: ${ol.join(" / ")}.`,`Other leagues: ${ol.map(trText).join(" / ")}.`,`他リーグ: ${ol.map(trText).join(" / ")}。`,`其他联赛: ${ol.map(trText).join(" / ")}。`)); }
@@ -2918,6 +3009,7 @@ function advance(){
   G.day++; G.dday=Math.max(0,G.dday-1);
   if(G.plan){ const na=(G.week||0)*7+G.day; for(const k in G.plan) if(+k<na) delete G.plan[k]; }
   if(G.day>6){ G.day=0; G.week++; weeklyForm(); try{ sponsorWeek(b); moraleWeek(b); }catch(e){ console.error(e); } const w=weekly(); G.budget+=w.net; b.push(L(`주간 정산: ${w.net>=0?"+":""}${short(w.net)}. 잔액 ${won(G.budget)}.`,`Weekly settlement: ${w.net>=0?"+":""}${short(w.net)}. Balance ${won(G.budget)}.`,`週次精算: ${w.net>=0?"+":""}${short(w.net)}。残高 ${won(G.budget)}。`,`每周结算: ${w.net>=0?"+":""}${short(w.net)}。余额 ${won(G.budget)}。`)); G.log.push(`Week ${G.week-1} 정산 ${short(w.net)}`); }
+  try{ hgTick(b); }catch(e){ console.error(e); }
   if(G.dday===0 && G.sea.next==="phase") b.push(...advancePhase());
   if(G.dday===0 && G.sea.next==="match") b.push(L(`오늘은 공식 경기일입니다. ${fxLabel()}.`,`Official match day. ${trText(fxLabel())}.`,`今日は公式戦の日です。${trText(fxLabel())}。`,`今天是正式比赛日。${trText(fxLabel())}。`));
   try{ archiveNews(); }catch(e){}
@@ -2952,7 +3044,7 @@ function myPower(){
   const mapAvg=Object.values(G.maps).reduce((a,b)=>a+b,0)/MAPS.length;
   return base/5 + moraleBonus() + coPow(G.team) + pcPow() + G.synergy*0.08 + mapAvg*0.05 + Math.min(4,balance)*0.8 - 3 - (1-commScore(st.map(r=>r.id),G.team))*6 + iglBonus(st.map(r=>r.id),G.team)*0.8;
 }
-function playMatch(){ openMatch(); }
+function playMatch(){ benchInjured(); if(!lineupOK()){ const need=emergNeed(); toast(need>0?L(`출전 가능한 선수가 ${need}명 부족해 경기를 진행할 수 없습니다. FA를 긴급 영입하세요.`,`Not enough available players (${need} short). Sign free agents to play.`,`出場可能な選手が${need}人足りず試合を進められません。FAを緊急獲得してください。`,`可出场选手不足${need}人，无法比赛。请紧急签下自由球员。`):L("부상 선수가 주전에 있어 경기를 진행할 수 없습니다. 로스터를 조정하세요.","An injured player is in the starting five. Adjust the roster.","負傷中の選手がスタメンにいるため試合を進められません。","首发中有伤员，无法比赛，请调整阵容。")); renderAll(); return; } openMatch(); }
 
 /* ================= SHEETS ================= */
 function sheetWide(on){ document.body.classList.toggle("sheet-open",on);
@@ -2978,7 +3070,7 @@ function squadHTML(){
   const trainBox=trainHTML();
   const rows=G.roster.map((r,i)=>{ const p=P(r.id),s=p.s;
     return `<tr data-tip="${esc(statTip(r.id))}"><td>${i<5?'<span class="st-tag" style="color:var(--mint);border-color:var(--mint)">주전</span>':'<span class="st-tag">벤치</span>'}</td>
-      <td style="white-space:nowrap">${ricon(p.role,14)} <b>${plink(r.id)}</b>${i<5&&iglOf(starters().map(x=>x.id),G.team)===r.id?' <span class="iglb">IGL</span>':""}</td><td style="white-space:nowrap">${ROLE[p.role].k}</td><td class="num">${p.ovr}</td><td class="num lk" onclick="openPlayer('${esc(r.id)}')" style="color:${scoutInfo(r.id)?"#93B4FF":"#666"}">${potText(r.id)}</td><td class="num">${(G.apps||{})[r.id]||0}</td>
+      <td style="white-space:nowrap">${ricon(p.role,14)} <b>${plink(r.id)}</b>${injTag(r)}${i<5&&iglOf(starters().map(x=>x.id),G.team)===r.id?' <span class="iglb">IGL</span>':""}</td><td style="white-space:nowrap">${ROLE[p.role].k}</td><td class="num">${p.ovr}</td><td class="num lk" onclick="openPlayer('${esc(r.id)}')" style="color:${scoutInfo(r.id)?"#93B4FF":"#666"}">${potText(r.id)}</td><td class="num">${(G.apps||{})[r.id]||0}</td>
       <td class="num" style="color:${morCol(morOf(r))}" title="${morLabel(morOf(r))}">${morOf(r)}</td><td class="num">${r.cond}</td><td>${fatBadge(r.fat)}</td><td class="num">${((G.dev||{})[r.id]||{xp:0}).xp}</td><td class="num" style="white-space:nowrap">${short(r.salary)} / ${r.years}년</td>
       <td style="white-space:nowrap"><button class="sbtn" onclick="swapStarter(${i})">${i<5?"후보로":"주전으로"}</button> ${i<5?`<button class="sbtn" onclick="setIGL('${esc(r.id)}')">IGL</button> `:""}<button class="sbtn" onclick="care(${i})">멘탈 코칭</button> <button class="sbtn red" onclick="release(${i})">방출</button></td></tr>`; }).join("");
   const ig=iglOf(starters().map(x=>x.id),G.team);
@@ -2987,6 +3079,7 @@ function squadHTML(){
   ${G.released.length?`<p class="mute" style="font-size:13px;margin-top:14px">시즌 종료 후 FA로 나간 선수: ${G.released.map(plink).join(", ")}</p>`:""}${compHTML()}`;
 }
 function swapStarter(i){
+  if(i>=5&&isOut(G.roster[i])) return toast(L("부상 중인 선수는 주전으로 올릴 수 없습니다.","Injured players cannot start.","負傷中の選手はスタメンにできません。","伤病中的选手不能首发。"));
   const r=G.roster.splice(i,1)[0];
   if(i<5) G.roster.push(r); else G.roster.splice(Math.min(4,G.roster.length),0,r);
   if(i<5 && G.roster.length>5){ const b=G.roster.splice(5,1)[0]; G.roster.splice(4,0,b); }
@@ -3081,11 +3174,11 @@ function reservation(p,years){
 function askFor(p,years){ const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf*DF().ask/1000)*1000; }
 function buyout(p){ if(rfaFee(p.id)) return rfaFee(p.id); return p.status==="T2" ? Math.round(marketAsk(p)*0.7*DF().ask*(NG&&NG.id===p.id?ivFDisc():1)/1000)*1000 : 0; }
 function openNego(id){
-  const p=P(id); if(!(G.rfa&&G.rfa[id])&&needWindow()) return;
+  const p=P(id); if(!(G.rfa&&G.rfa[id])&&!(emergNeed()>0&&!teamOf(id))&&needWindow()) return;
   if(teamOf(id)&&teamOf(id)!==G.team&&!(G.rfa&&G.rfa[id])) return openRFA(id);
   if((G.banned||{})[id]) return toast(`${p.name} 선수가 완강히 거절합니다.`);
   if(G.lock[id]) return toast(`${p.name} 측이 ${G.lock[id]}일 동안 협상을 거부합니다.`);
-  if(G.roster.length>=MAXR) return toast(`로스터가 가득 찼습니다(${MAXR}명). 먼저 방출하세요.`);
+  if(G.roster.length>=MAXR+emergNeed()) return toast(`로스터가 가득 찼습니다(${MAXR}명). 먼저 방출하세요.`);
   closePM();
   const prev=G.nego[id];
   NG={id, years:2, round:prev?prev.round:0, patience:prev?prev.patience:4, ask:prev?prev.ask:askFor(p,2), chat:prev?prev.chat:[], disc:prev&&prev.disc||1, fdisc:prev&&prev.fdisc||null, iv:prev&&prev.iv||null, fav:prev&&prev.fav!=null?prev.fav:60};
@@ -3419,6 +3512,122 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeM(); closePM
 
 
 
+/* ================= RED BULL HOME GROUND (offseason invitational) ================= */
+function hgName(){ return L("레드불 홈그라운드","Red Bull Home Ground","レッドブル・ホームグラウンド","红牛主场赛"); }
+const HG_PRIZE={1:120000,2:60000,3:30000,4:20000,5:8000};
+function hgPlan(start,yr){ G.hg={yr,start,stage:"plan",res:{},slots:[]}; }
+function hgDates(){ const h=G.hg; return `${mdOf(h.start)}~${mdOf(h.start+3)}`; }
+/* last season group-stage form: in-game records if we have them, else the 2026 Stage 1/2 results */
+function hgSeedScore(k,yr){
+  const rec=G.gsRec&&G.gsRec[yr];
+  if(rec) return rec[k]?rec[k].w*3+rec[k].md*0.3+tStr(k)*0.01:tStr(k)*0.01-5;
+  let s=0; ((T(k).results)||[]).forEach(r=>{ const m=/^Stage [12] (.*)$/.exec(r); if(!m) return; const x=m[1];
+    s+=/준우승/.test(x)?8:/우승/.test(x)?10:/^3위/.test(x)?7:/^4위/.test(x)?6:/5-6/.test(x)?5:/7-8/.test(x)?4:/9-10/.test(x)?3:/11-12/.test(x)?2:1; });
+  return s+tStr(k)*0.01; }
+function hgFull(k){ return (k===G.team?G.roster.length:rosterOf(k).length)>=5; }
+function hgSelect(){
+  const h=G.hg, ovr=k=>teamOvr(rosterOf(k)), pick=[G.team];
+  ["AM","EM","PA","CN"].forEach(r=>{ regionTeams(r).filter(k=>k!==G.team&&hgFull(k)).sort((a,b)=>ovr(b)-ovr(a)).slice(0,2).forEach(k=>pick.push(k)); });
+  const low=DB.teams.map(t=>t.key).filter(k=>!pick.includes(k)&&hgFull(k)).sort((a,b)=>ovr(a)-ovr(b)).slice(0,5);
+  if(low.length){ h.wild=low[Math.floor(Math.random()*low.length)]; pick.push(h.wild); }
+  const sd=pick.slice().sort((a,b)=>hgSeedScore(b,h.yr)-hgSeedScore(a,h.yr)), A=[], B=[];
+  sd.forEach((k,i)=>{ (i%4===0||i%4===3?A:B).push(k); });     // snake seeding 1,4,5,8,9 / 2,3,6,7,10
+  h.teams=pick; h.seed=sd; h.groups=[A,B]; h.stage="set"; hgBuild();
+}
+function hgRR(list){ const t=list.slice(); if(t.length%2) t.push(null); const n=t.length, R=[];
+  for(let r=0;r<n-1;r++){ const pr=[]; for(let i=0;i<n/2;i++){ const a=t[i], b=t[n-1-i]; if(a&&b) pr.push([a,b]); } R.push(pr); t.splice(1,0,t.pop()); }
+  return R; }
+function hgBuild(){
+  const h=G.hg, S=[], rmap=()=>MAPS[Math.floor(Math.random()*MAPS.length)];
+  h.groups.forEach((grp,g)=>{ let R=null;
+    for(let t=0;t<60;t++){ R=hgRR(grp.slice().sort(()=>Math.random()-.5)); if(!grp.includes(G.team)) break; const bye=R.findIndex(rd=>!rd.some(p=>p.includes(G.team))); if(bye>=0&&bye<3) break; }
+    R.forEach((rd,r)=>rd.forEach((p,i)=>S.push({id:`g${g}r${r}m${i}`,grp:g,r,day:r<3?0:1,bo:1,a:p[0],b:p[1],map:rmap(),
+      label:L(`${hgName()} ${"AB"[g]}조 ${r+1}라운드`,`${hgName()} Group ${"AB"[g]} R${r+1}`,`${hgName()} ${"AB"[g]}組 第${r+1}ラウンド`,`${hgName()} ${"AB"[g]}组 第${r+1}轮`)}))); });
+  S.sort((x,y)=>x.r-y.r||x.grp-y.grp);
+  const K=(id,day,bo,src,ko,en)=>S.push({id,day,bo,src,label:L(`${hgName()} ${ko}`,`${hgName()} ${en}`,`${hgName()} ${ko}`,`${hgName()} ${en}`)});
+  K("ub1",2,3,[["G",0,0],["G",1,1]],"승자조 4강 1경기","Upper Semifinal 1");
+  K("ub2",2,3,[["G",1,0],["G",0,1]],"승자조 4강 2경기","Upper Semifinal 2");
+  K("lb1",2,3,[["L","ub1"],["L","ub2"]],"패자조 1라운드","Lower Round 1");
+  K("ubf",3,3,[["W","ub1"],["W","ub2"]],"승자조 결승전","Upper Final");
+  K("lbf",3,3,[["W","lb1"],["L","ubf"]],"패자조 결승전","Lower Final");
+  K("gf",3,5,[["W","ubf"],["W","lbf"]],"최종 결승","Grand Final");
+  h.slots=S; h.res={};
+}
+function hgTable(g){ const h=G.hg, st={}; h.groups[g].forEach(k=>st[k]={w:0,l:0,rd:0});
+  h.slots.filter(s=>s.grp===g&&h.res[s.id]).forEach(s=>{ const r=h.res[s.id]; st[r.w].w++; st[r.l].l++; st[r.w].rd+=r.rd; st[r.l].rd-=r.rd; });
+  return {st,order:h.groups[g].slice().sort((a,b)=>(st[b].w-st[a].w)||(st[b].rd-st[a].rd)||(tStr(b)-tStr(a)))}; }
+function hgGroupDone(){ const h=G.hg; return h.slots.filter(s=>s.grp!=null).every(s=>h.res[s.id]); }
+function hgTeamsOf(s){ if(s.a) return [s.a,s.b]; const h=G.hg;
+  const R=x=>x[0]==="G"?hgTable(x[1]).order[x[2]]:x[0]==="W"?h.res[x[1]].w:h.res[x[1]].l; return [R(s.src[0]),R(s.src[1])]; }
+function hgNext(){ const h=G.hg;
+  for(const s of h.slots){ if(h.res[s.id]) continue; const [a,b]=hgTeamsOf(s); s.ta=a; s.tb=b;
+    if(a===G.team||b===G.team) return s;
+    const r=simAI(a,b,s.bo); h.res[s.id]={w:r.w,l:r.l,s:r.s,rd:s.bo===1?13-rint(2,11):0}; }
+  return null; }
+function hgFix(s){ return {opp:s.ta===G.team?s.tb:s.ta,label:s.label,bo:s.bo,po:s.bo>1,map:s.map||null,hg:s.id}; }
+function hgSetNext(out){
+  const h=G.hg, s=hgNext();
+  if(!h.gDone&&hgGroupDone()){ h.gDone=true;
+    [0,1].forEach(g=>{ const t=hgTable(g); out.push(L(`${hgName()} ${"AB"[g]}조 최종: ${t.order.map((k,i)=>`${i+1}. ${T(k).name} ${t.st[k].w}-${t.st[k].l}`).join(", ")}`,`${hgName()} Group ${"AB"[g]} final: ${t.order.map((k,i)=>`${i+1}. ${T(k).name} ${t.st[k].w}-${t.st[k].l}`).join(", ")}`,`${hgName()} ${"AB"[g]}組 最終: ${t.order.map((k,i)=>`${i+1}. ${T(k).name} ${t.st[k].w}-${t.st[k].l}`).join("、")}`,`${hgName()} ${"AB"[g]}组 最终: ${t.order.map((k,i)=>`${i+1}. ${T(k).name} ${t.st[k].w}-${t.st[k].l}`).join("，")}`)); });
+    const g=h.groups.findIndex(x=>x.includes(G.team)), pos=hgTable(g).order.indexOf(G.team);
+    out.push(pos<2?L(`${"AB"[g]}조 ${pos+1}위로 녹아웃 스테이지(더블 엘리미네이션, Bo3) 진출!`,`Group ${"AB"[g]} #${pos+1}: through to the double-elimination knockout stage (Bo3)!`,`${"AB"[g]}組${pos+1}位でノックアウトステージ(ダブルエリミネーション、Bo3)進出!`,`以${"AB"[g]}组第${pos+1}晋级淘汰赛(双败, Bo3)!`)
+      :L(`${"AB"[g]}조 ${pos+1}위로 조별리그에서 탈락했습니다.`,`Finished #${pos+1} in Group ${"AB"[g]} and are out.`,`${"AB"[g]}組${pos+1}位でグループ敗退しました。`,`${"AB"[g]}组第${pos+1}，小组赛出局。`)); }
+  if(s){ setFixture(hgFix(s),Math.max(0,h.start+s.day-absNow())); return; }
+  hgFinish(out);
+}
+function hgStart(b){ const h=G.hg;
+  h.stash={fx:G.sea.fx,next:G.sea.next,target:absNow()+G.dday,evLog:G.evLog||[],evK:G.evK||{}};
+  G.evLog=[]; G.evK={}; h.live=true; h.stage="run";
+  b.push(L(`${hgName()} 개막! 10팀이 A, B조로 나뉘어 Bo1 풀리그(맵 랜덤)를 치르고, 조 상위 2팀이 더블 엘리미네이션 녹아웃(Bo3, 최종 결승 Bo5)에 갑니다.`,`${hgName()} begins! 10 teams play Bo1 round robins (random maps) in Groups A and B; the top 2 of each go to a double-elimination knockout (Bo3, Grand Final Bo5).`,`${hgName()}開幕! 10チームがA・B組でBo1総当たり(マップはランダム)を行い、各組上位2チームがダブルエリミネーションのノックアウト(Bo3、最終決勝Bo5)へ。`,`${hgName()}开幕！10支队伍分A、B两组进行Bo1循环赛(随机地图)，每组前2晋级双败淘汰赛(Bo3，总决赛Bo5)。`));
+  hgSetNext(b); }
+function hgResult(win,ms){
+  const h=G.hg, fx=G.sea.fx, s=h.slots.find(x=>x.id===fx.hg), opp=fx.opp, out=[];
+  let rd=0; try{ const lg=(G.evLog||[]).slice(-1)[0]; (lg.maps||[]).forEach(m=>{ const x=/(\d+)-(\d+)$/.exec(m); if(x) rd+=(+x[1])-(+x[2]); }); }catch(e){}
+  h.res[s.id]={w:win?G.team:opp,l:win?opp:G.team,s:ms.slice(),rd:Math.abs(rd)||1};
+  hgSetNext(out); return out; }
+function hgPlace(){ const h=G.hg, r=h.res;
+  if(r.gf&&r.gf.w===G.team) return 1; if(r.gf&&r.gf.l===G.team) return 2; if(r.lbf&&r.lbf.l===G.team) return 3; if(r.lb1&&r.lb1.l===G.team) return 4; return 5; }
+function hgFinish(out){
+  const h=G.hg, place=hgPlace(), champ=h.res.gf.w, runner=h.res.gf.l, money=HG_PRIZE[place]||0;
+  G.budget+=money; const fame={1:6,2:3,3:2,4:1}[place]||0; G.fame=Math.min(100,G.fame+fame); G.fans+=fame*5000;
+  const pl=place===1?L("우승","Champions","優勝","冠军"):place===2?L("준우승","Runners-up","準優勝","亚军"):place===3?L("3위","3rd","3位","第三"):place===4?L("4위","4th","4位","第四"):L("조별리그 탈락","Group stage exit","グループ敗退","小组出局");
+  out.push(absNow()<h.start+3&&place>2?L(`${hgName()} 일정을 마쳤습니다. 최종 ${pl}, 상금 ${short(money)}. 남은 경기 결과는 ${mdOf(h.start+3)}에 나옵니다.`,`Our ${hgName()} run is over: ${pl}, prize ${short(money)}. Remaining results come out on ${mdOf(h.start+3)}.`,`${hgName()}の日程を終えました。最終${pl}、賞金${short(money)}。残りの結果は${mdOf(h.start+3)}に出ます。`,`${hgName()}赛程结束。最终${pl}，奖金${short(money)}。其余结果将于${mdOf(h.start+3)}公布。`)
+    :L(`${hgName()} 종료. 우승 ${T(champ).name}, 준우승 ${T(runner).name}. 우리 팀 ${pl}, 상금 ${short(money)}.`,`${hgName()} is over. Champions ${T(champ).name}, runners-up ${T(runner).name}. We finished: ${pl}, prize ${short(money)}.`,`${hgName()}終了。優勝${T(champ).name}、準優勝${T(runner).name}。我々は${pl}、賞金${short(money)}。`,`${hgName()}结束。冠军${T(champ).name}，亚军${T(runner).name}。我们获得${pl}，奖金${short(money)}。`));
+  if(place===1) out.push(hgTrophy());
+  G.sea.hist.push(`${h.yr} ${hgName()}: ${pl}`);
+  h.champ=champ; const early=absNow()<h.start+3; if(early) h.pendAnn=true; else hgAnnounce(null);
+  const st=h.stash||{}; G.evLog=st.evLog||[]; G.evK=st.evK||{};
+  G.sea.fx=st.fx||null; G.sea.next=st.next||"phase"; G.dday=Math.max(0,(st.target!=null?st.target:absNow())-absNow());
+  h.live=false; h.stage="done"; h.place=place; delete h.stash;
+  if(G.sea.next==="match"&&G.sea.fx) out.push(L(`다음 공식 경기: ${fxLabel()} (D-${G.dday}).`,`Next official match: ${trText(fxLabel())} (D-${G.dday}).`,`次の公式戦: ${trText(fxLabel())} (D-${G.dday})。`,`下一场正式比赛: ${trText(fxLabel())} (D-${G.dday})。`));
+}
+function hgTrophy(){ const h=G.hg, fin=(G.evLog||[]).filter(x=>x.win).slice(-1)[0]||null, mvp=Object.entries(G.evK||{}).sort((a,b)=>b[1]-a[1])[0];
+  const tr={id:Date.now()+"_"+Math.floor(Math.random()*1e6),kind:"HG",yr:h.yr,event:hgName(),name:TROPHY_NAME.HG,
+    roster:starters().map(r=>{ const p=P(r.id); return {name:p.name,nat:p.nat,role:p.role,ovr:p.ovr}; }),final:fin,path:(G.evLog||[]).slice(),mvp:mvp?{name:mvp[0],k:mvp[1]}:null};
+  G.trophies=(G.trophies||[]).concat([tr]); G.pendingTrophy=tr.id;
+  return L(`트로피 획득: ${tr.name}. 전시장 탭에 전시됐습니다.`,`Trophy won: ${tr.name}. It is on display in the Trophies tab.`,`トロフィー獲得: ${tr.name}。展示室に飾られました。`,`获得奖杯: ${tr.name}。已陈列在展示室。`); }
+function hgAnnounce(b){ const h=G.hg, gf=h.res.gf, c=T(gf.w).name, r=T(gf.l).name; h.pendAnn=false;
+  if(b) b.push(L(`${hgName()} 최종 결승: ${c} ${gf.s.join("-")} ${r}. ${c} 우승.`,`${hgName()} Grand Final: ${c} ${gf.s.join("-")} ${r}. ${c} are champions.`,`${hgName()}最終決勝: ${c} ${gf.s.join("-")} ${r}。${c}が優勝。`,`${hgName()}总决赛: ${c} ${gf.s.join("-")} ${r}。${c}夺冠。`));
+  try{ txNews(L(`${h.yr} ${hgName()} 우승: ${c} (결승 ${gf.s.join("-")} ${r})`,`${h.yr} ${hgName()} won by ${c} (final ${gf.s.join("-")} vs ${r})`,`${h.yr} ${hgName()}優勝: ${c} (決勝 ${gf.s.join("-")} ${r})`,`${h.yr} ${hgName()}冠军: ${c} (决赛 ${gf.s.join("-")} ${r})`)); }catch(e){} }
+function hgVisible(sl){ const h=G.hg; return !h.pendAnn||h.start+sl.day<absNow(); }
+function hgTick(b){ const h=G.hg; if(!h||h.live) return; const now=absNow();
+  if(h.stage==="done"){ if(h.pendAnn&&now>=h.start+3) hgAnnounce(b); return; }
+  if(h.stage==="plan"&&now===h.start-1) b.push(L(`내일(${mdOf(h.start)}) ${hgName()}가 열립니다. 오늘(${mdOf(now)}) 기준 5인 로스터가 완성된 팀 가운데 권역별 OVR 상위 2팀과 하위권 1팀이 우리 팀과 함께 초청됩니다.`,`${hgName()} starts tomorrow (${mdOf(h.start)}). Teams with a full 5-man roster as of today (${mdOf(now)}) are invited: the top 2 by OVR per region and one lower-rated team, plus us.`,`明日(${mdOf(h.start)})${hgName()}が開幕します。今日(${mdOf(now)})時点で5人ロスターが揃ったチームから、地域別OVR上位2チームと下位1チームが我々と共に招待されます。`,`明天(${mdOf(h.start)})${hgName()}开幕。以今天(${mdOf(now)})为准，5人阵容齐全的队伍中各赛区OVR前2和1支低排名队伍将与我们一同受邀。`));
+  if(h.stage==="plan"&&now>=h.start){ hgSelect();
+    b.push(L(`${hgName()} 초청 확정. A조: ${h.groups[0].map(k=>T(k).name).join(", ")} / B조: ${h.groups[1].map(k=>T(k).name).join(", ")}. 작년 그룹 스테이지 성적 순으로 지그재그 시드 배정.`,`${hgName()} field set. Group A: ${h.groups[0].map(k=>T(k).name).join(", ")} / Group B: ${h.groups[1].map(k=>T(k).name).join(", ")}. Snake-seeded by last year's group stage results.`,`${hgName()}招待確定。A組: ${h.groups[0].map(k=>T(k).name).join("、")} / B組: ${h.groups[1].map(k=>T(k).name).join("、")}。昨年のグループステージ成績順でスネーク方式シード。`,`${hgName()}名单确定。A组: ${h.groups[0].map(k=>T(k).name).join("、")} / B组: ${h.groups[1].map(k=>T(k).name).join("、")}。按去年小组赛成绩蛇形分组。`));
+    try{ txNews(L(`${hgName()} 초청 명단 발표: ${h.teams.map(k=>T(k).name).join(", ")}`,`${hgName()} invites: ${h.teams.map(k=>T(k).name).join(", ")}`,`${hgName()}招待チーム発表: ${h.teams.map(k=>T(k).name).join("、")}`,`${hgName()}受邀名单: ${h.teams.map(k=>T(k).name).join("、")}`)); }catch(e){}
+    hgStart(b); } }
+function hgPanel(){ const h=G.hg; if(!h) return "";
+  if(h.stage==="plan") return `<div class="sub" style="margin-top:12px">${h.yr} ${hgName()}</div><p class="mute" style="font-size:13px">${hgDates()} | ${L("초청전 10팀, A/B조 Bo1 풀리그 후 조 상위 2팀이 더블 엘리미네이션(Bo3, 최종 결승 Bo5). 개막 전날 기준 5인 로스터 완성 팀 중 권역별 OVR 상위 2팀과 하위권 1팀, 그리고 우리 팀이 나갑니다.","10-team invitational: Bo1 round robins in Groups A/B, top 2 each into double elimination (Bo3, Grand Final Bo5). Invited the day before: top 2 by OVR per region and one lower team with full rosters, plus us.","10チームの招待大会。A/B組Bo1総当たり後、各組上位2チームがダブルエリミネーション(Bo3、最終決勝Bo5)。","10队邀请赛：A/B组Bo1循环后各组前2进入双败(Bo3，总决赛Bo5)。")}</p>`;
+  if(h.stage==="done"&&G.sea&&(((G.sea.ph&&G.sea.ph.round)>0)||(G.sea.pi>0&&G.sea.pi<6))) return "";
+  let s=`<div class="sub" style="margin-top:12px">${h.yr} ${hgName()} (${hgDates()})</div><div style="display:flex;gap:12px;flex-wrap:wrap">`;
+  [0,1].forEach(g=>{ const t=hgTable(g); s+=`<table class="tbl" style="flex:1;min-width:260px"><tr><th>#</th><th>${"AB"[g]}${L("조"," Group","組","组")}</th><th>${L("승-패","W-L","勝-敗","胜-负")}</th><th>${L("라운드 득실","Round diff","ラウンド得失","回合差")}</th></tr>${t.order.map((k,i)=>`<tr onclick="openClub('${k}')" style="cursor:pointer;${k===G.team?"background:rgba(220,38,38,.12)":""}"><td class="num">${i+1}</td><td>${T(k).name}</td><td class="num">${t.st[k].w}-${t.st[k].l}</td><td class="num">${t.st[k].rd>0?"+":""}${t.st[k].rd}</td></tr>`).join("")}</table>`; });
+  s+=`</div>`;
+  if(h.gDone){ s+=`<div class="mute" style="font-size:13px;line-height:1.8;margin-top:6px">`+["ub1","ub2","lb1","ubf","lbf","gf"].map(id=>{ const sl=h.slots.find(x=>x.id===id), r=h.res[id]; let tm=""; try{ tm=hgTeamsOf(sl).map(k=>k?T(k).name:"?").join(" vs "); }catch(e){ tm=L("미정","TBD","未定","待定"); }
+      const vis=hgVisible(sl); if(!vis) tm=L("진행 예정","Upcoming","予定","待进行"); return `${esc(sl.label.replace(hgName()+" ",""))} (Bo${sl.bo}): ${tm}${r&&vis?` | <b>${T(r.w).name}</b> ${r.s.join("-")}`:""}`; }).join("<br>")+`</div>`; }
+  if(h.champ&&!h.pendAnn) s+=`<p style="margin-top:6px">${L("우승","Champions","優勝","冠军")}: <b>${T(h.champ).name}</b></p>`;
+  return s; }
+
 /* ================= SEASON CALENDAR ================= */
 const PHASES=[
   {k:"KO",n:"킥오프",type:"league",fmt:"swiss",rounds:3,prize:150000,to:"M1"},
@@ -3468,7 +3677,7 @@ function startPhase(first){
       try{ L.push(...postEvent(ph0,null)); }catch(e){ console.error(e); }
       setPhaseEnd(21);
     }
-  } else { L.push(...offseason()); setPhaseEnd(21); }
+  } else { L.push(...offseason()); setPhaseEnd(21); try{ hgPlan(absNow()+10,G.sea.yr); L.push(`${G.sea.yr} ${hgName()}: ${hgDates()} (${LANG==="ko"?"오프시즌 초청전, 우리 팀 자동 초청":"offseason invitational, we are invited"})`); }catch(e){ console.error(e); } }
   return L;
 }
 function fxLeague(){ const ph=G.sea.ph, p0=curPhase(); return {opp:ph.sched[ph.round],label:`${p0.n} ${p0.fmt==="group"?"조별리그":"스위스"} ${ph.round+1}/${p0.rounds}`,bo:3,po:false}; }
@@ -3489,6 +3698,7 @@ function finishLeague(champ,runner,semis){
   const ph=G.sea.ph, p0=curPhase(), my=T(G.team).region; ph.done=true; ph.champ=champ;
   const field=[champ,runner];
   ["AM","EM","PA","CN"].filter(r=>r!==my).forEach(r=>{ const o=ph.others&&ph.others[r]; if(o){ field.push(...finishOther(o,p0)); txNews(`VCT ${REG[r].n} ${p0.n} 우승: ${T(o.champ).name}`); } else field.push(...regionTeams(r).map(k=>[k,tStr(k)+Math.random()*6]).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0])); });
+  if(p0.fmt==="group"){ G.gsRec=G.gsRec||{}; const R=G.gsRec[G.sea.yr]=G.gsRec[G.sea.yr]||{}; const add=st=>{ for(const k in st){ const x=R[k]=R[k]||{w:0,l:0,md:0}; x.w+=st[k].w; x.l+=st[k].l; x.md+=st[k].md; } }; add(ph.st); for(const r in (ph.others||{})) add(ph.others[r].st||{}); }
   G.sea.lastLeague=JSON.parse(JSON.stringify({k:ph.k,st:ph.st,groups:ph.groups,others:ph.others,po:ph.po,champ:ph.champ,round:ph.round,name:p0.n}));
   G.sea.q[p0.to]=field;
   const place=champ===G.team?1:runner===G.team?2:semis.includes(G.team)?3:9;
@@ -3506,6 +3716,7 @@ function simLeagueRound(skip){
     for(let i=0;i+1<rest.length;i+=2){ const r=simAI(rest[i],rest[i+1],3); ph.st[r.w].w++; ph.st[r.l].l++; ph.st[r.w].md+=r.s[0]-r.s[1]; ph.st[r.l].md-=r.s[0]-r.s[1]; } });
 }
 function seasonResult(win,ms){
+  if(G.hg&&G.hg.live&&G.sea.fx&&G.sea.fx.hg) return hgResult(win,ms);
   const ph=G.sea.ph, p0=curPhase(), opp=G.sea.fx.opp, L=[];
   if(p0.type==="league"){
     if(!ph.po){
@@ -3570,7 +3781,7 @@ function offseason(){
   G.sea.q={};
   return L;
 }
-function phaseLabel(){ if(!G.sea) return ""; return `${G.sea.yr} ${curPhase().n}`; }
+function phaseLabel(){ if(!G.sea) return ""; if(G.hg&&G.hg.live) return `${G.hg.yr} ${hgName()}`; return `${G.sea.yr} ${curPhase().n}`; }
 function fxLabel(){ if(!G.sea) return ""; return G.sea.next==="match"&&G.sea.fx?`${G.sea.fx.label} vs ${T(G.sea.fx.opp).name}`:`다음: ${PHASES[(G.sea.pi+1)%PHASES.length].n}`; }
 function stLine(k){ return (k===G.team?G.roster.map(q=>q.id):rosterOf(k)).slice(0,5).map(id=>`<span class="stp">${ricon(P(id).role,11)}${plink(id)}</span>`).join(""); }
 function seasonHTML(){
@@ -3580,6 +3791,7 @@ function seasonHTML(){
   const my=T(G.team).region; lgView=lgView||my;
   h+=`<div class="lgbar"><input id="lgQ" placeholder="팀 검색 (모든 리그)" value="${esc(lgQ)}"><div class="seg">${["AM","EM","PA","CN"].map(r=>`<button class="${lgView===r?"on":""}" onclick="lgView='${r}';openSheet('league',true)">${REG[r].n}${r===my?" (우리)":""}</button>`).join("")}</div></div><div id="lgRes">${lgSearchHTML()}</div>`;
   const L=leagueOf(lgView), pLeague=PHASES.find(p=>p.k===(L&&L.k))||p0;
+  if(lgView===my){ try{ h+=hgPanel(); }catch(e){ console.error(e); } }
   if(lgView!==my && L){
     const lists=pLeague.fmt==="group"&&L.groups?L.groups:[Object.keys(L.st)];
     lists.forEach((lst,gi)=>{ h+=`<div class="sub" style="margin-top:12px">VCT ${REG[lgView].n} ${pLeague.n} ${lists.length>1?(gi===0?"A조":"B조"):"순위"} (${L.round||0}/${pLeague.rounds}라운드)</div>
@@ -3655,7 +3867,24 @@ function aiPref(k,m){ return 40+hash(k+m)%45; }
 /* AI veto vs us: ban our best maps, pick our weakest ones (scouting) */
 function aiVetoScore(k,m){ return aiPref(k,m)+(G&&G.maps?(60-G.maps[m])*0.6:0); }
 /* AI difficulty: opponents scout us, peak in playoffs/internationals, keep improving through the season and push harder against a dominant team */
-var AI_K={base:2.2,gap:0.45,gapCap:3};
+var AI_K={base:1.2,gap:0.15,gapCap:1.0};
+var AI_FLAT=1.5, AUTO_PEN=0.8;                       // AI flat edge, extra edge while a map is auto-simulated (skip)
+const PW_S=4.0, PW_C=0.9;                           // map win = logistic((D+C)/S), fitted on the round sim
+/* static rating gap between the two sides on one map (same terms the round sim uses) */
+function pwGap(ok,st,map,auto){ const keep=MX;
+  try{ MX={o:ok,st:st||{bo:3},final:!!(st&&st.bo===5&&/결승/.test(st.label||"")),buff:{me:[],op:[]},streak:[0,0],score:[0,0],map,skip:!!auto,maps:[map]};
+    MX.me=mkSide(starters().map(r=>r.id),"me"); MX.op=mkSide(rosterOf(ok),"op");
+    const sr=t=>MX[t].reduce((a,p)=>a+p.ovr+(p.aim-50)*0.08+(p.fire-50)*0.05+(p.kpr?(p.kpr-0.72)*10:0),0)/5+teamMod(t);
+    return sr("me")-sr("op"); } finally { MX=keep; } }
+function pwMap(ok,st,map,auto){ return 1/(1+Math.exp(-(pwGap(ok,st,map,auto)+PW_C)/PW_S)); }
+function pwSeries(ps,bo){ const need=Math.ceil(bo/2); let dp={"0,0":1}, win=0;
+  for(let i=0;i<bo;i++){ const p=ps[Math.min(i,ps.length-1)], nx={};
+    for(const k in dp){ const [a,b]=k.split(",").map(Number), v=dp[k]; [[a+1,b,p],[a,b+1,1-p]].forEach(([x,y,q])=>{ if(x>=need) win+=v*q; else if(y<need){ const kk=x+","+y; nx[kk]=(nx[kk]||0)+v*q; } }); }
+    dp=nx; }
+  return win; }
+function predWin(ok,st,maps){ const bo=(st&&st.bo)||3; const pool=maps&&maps.length?maps:null;
+  const f=auto=>{ if(pool) return pwSeries(pool.map(m=>pwMap(ok,st,m,auto)),bo); const avg=MAPS.reduce((a,m)=>a+pwMap(ok,st,m,auto),0)/MAPS.length; return pwSeries([avg],bo); };
+  try{ return {live:f(false),auto:f(true)}; }catch(e){ console.error(e); return {live:.5,auto:.5}; } }
 function aiEdge(){ if(!MX||!G) return 0; const p0=curPhase(); let v=AI_K.base;
   if(MX.st&&MX.st.po) v+=0.8; if(p0&&p0.type==="intl") v+=1.2; if(MX.final) v+=0.6;
   const PI=G.sea?G.sea.pi||0:0; v+=Math.min(0.8,PI*0.12);
@@ -3681,6 +3910,8 @@ function teamAorB(){
 function startVeto(){
   MX.final=MX.st.bo===5&&/결승/.test(MX.st.label||"");
   const ab=teamAorB(); MX.weA=ab.weA; MX.vwhy=ab.why;
+  if(MX.st.bo===1){ const m=MX.st.map||MAPS[Math.floor(Math.random()*MAPS.length)], a=Math.random()<0.5; MX.vwhy=L("Bo1 단판. 맵은 대회 측이 무작위로 정했고, 진영은 코인 토스로 정합니다.","Bo1. The map was drawn at random by the organizer; sides by coin toss.","Bo1一本勝負。マップは大会側がランダムに決定、陣営はコイントス。","Bo1单局。地图由主办方随机决定，阵营由掷硬币决定。");
+    MX.veto={steps:[],i:0,pool:[],maps:[m],bans:[],log:[L(`랜덤 맵: ${m}`,`Random map: ${m}`,`ランダムマップ: ${m}`,`随机地图: ${m}`),L(`코인 토스: 우리 ${a?"공격":"수비"} 시작`,`Coin toss: we start on ${a?"attack":"defense"}`,`コイントス: 我々は${a?"攻撃":"守備"}スタート`,`掷硬币: 我们${a?"进攻":"防守"}开局`)],atk:[a]}; MX.maps=[m]; MX.meAtkArr=[a]; return renderVetoDone(); }
   MX.veto={steps:MX.st.bo===5?(MX.final?VETO5F:VETO5):VETO3,i:0,pool:[...MAPS],maps:[],bans:[],log:[],atk:[]};
   runVeto();
 }
@@ -3725,11 +3956,11 @@ function renderVeto(){
     <div class="vlog">${V.log.map(l=>`<div>${esc(l)}</div>`).join("")||`<div class="mute">${VETO_GUIDE[vetoKind()]}</div>`}</div></div>`;
 }
 function renderVetoDone(){
-  const V=MX.veto;
+  const V=MX.veto; try{ const pw=predWin(MX.o,MX.st,MX.maps); MX.pWin=pw.live; MX.pAuto=pw.auto; }catch(e){}
   $("#mtBox").innerHTML=`<div class="mpre">${vetoHead()}
     <div class="mvt">${MX.maps.map((m,i)=>`<div><img src="${mapThumb(m)}" alt="" style="width:100%;border-radius:2px;margin-bottom:4px"><small>MAP ${i+1}</small><b>${m}</b><span>우리 ${MX.meAtkArr[i]?"공격":"수비"} 시작 | 숙련 ${G.maps[m]}</span></div>`).join("")}</div>
     <div class="vlog">${V.log.map(l=>`<div>${esc(l)}</div>`).join("")}</div>
-    <p class="mute">예상 승률 ${Math.round(MX.pWin*100)}%. 맵마다 팀당 전술 타임아웃 2회. 경기를 건너뛰면 승리 수당, 팬, 명성, 경험치 보상이 50%로 줄어듭니다.</p>
+    <p class="mute">예상 승률 ${Math.round(MX.pWin*100)}% (직접 진행, 정해진 맵 기준) | 경기 스킵 시 ${Math.round((MX.pAuto||MX.pWin)*100)}%. 작전과 타임아웃을 잘 쓰면 직접 진행 승률은 더 올라갑니다. 맵마다 팀당 전술 타임아웃 2회. 경기를 건너뛰면 승리 수당, 팬, 명성, 경험치 보상이 50%로 줄어듭니다.</p>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="ghost" onclick="vetoUndo()">밴픽 다시 (이전으로)</button><button class="ghost" onclick="vetoExit()">나가기</button><button class="ghost" onclick="tfOpen('pre')">작전 회의 (기본 전술)</button><button class="go" onclick="startMap()">경기 시작</button><button class="ghost" onclick="quickSeries()">결과만 보기 (보상 50%)</button></div><div id="mtPre" class="toov fixed"></div></div>`;
 }
 
@@ -3960,14 +4191,14 @@ function mkSide(ids, team){
 }
 function openMatch(){
   clearUndo();
-  const fx=G.sea.fx; if(!fx) return; const o=T(fx.opp), st={po:fx.po,label:fx.label,bo:fx.bo};
-  const op=teamOvr(rosterOf(o.key))*0.93+55*0.08+60*0.05-(1-commScore(rosterOf(o.key),o.key))*6, me=myPower(), pWin=1/(1+Math.exp(-(me-op)/3.5));
-  MX={o:o.key,st,maps:[],mi:0,series:[0,0],pWin,me:mkSide(starters().map(r=>r.id),"me"),op:mkSide(rosterOf(o.key),"op"),speed:2,maplog:[],manual:{atk:null,def:null}};
+  const fx=G.sea.fx; if(!fx) return; const o=T(fx.opp), st={po:fx.po,label:fx.label,bo:fx.bo,map:fx.map||null};
+  const pw=predWin(o.key,st), pWin=pw.live;
+  MX={o:o.key,st,maps:[],mi:0,series:[0,0],pWin,pAuto:pw.auto,me:mkSide(starters().map(r=>r.id),"me"),op:mkSide(rosterOf(o.key),"op"),speed:2,maplog:[],manual:{atk:null,def:null}};
   $("#mt").classList.add("on"); startVeto();
 }
 function initMapState(){
   const m=MX.maps[MX.mi]; MX.M=buildGrid(m); MX.map=m;
-  MX.score=[0,0]; MX.rn=0; MX.cash={me:800,op:800}; MX.lossN={me:0,op:0}; MX.to=[2,2]; MX.buff={me:[],op:[]}; MX.streak=[0,0]; MX.feed=[]; MX.paused=false; MX.read=0; MX.rlog=[];
+  MX.score=[0,0]; MX.halfAsk=false; MX.rn=0; MX.cash={me:800,op:800}; MX.lossN={me:0,op:0}; MX.to=[2,2]; MX.buff={me:[],op:[]}; MX.streak=[0,0]; MX.feed=[]; MX.paused=false; MX.read=0; MX.rlog=[];
   MX.igl={me:{hist:[],cur:{},keep:{atk:0,def:0}},op:{hist:[],cur:{},keep:{atk:0,def:0}}};
   MX.meAtk=MX.meAtkArr?!!MX.meAtkArr[MX.mi]:Math.random()<0.5;
   MX.me.concat(MX.op).forEach(p=>{ p.mk=0; p.md=0; p.ma=0; });
@@ -3983,7 +4214,7 @@ function teamMod(team){
   let v=(G.co?coachMod(team):0)+buffSum(team)+Math.min(2,Math.max(-2,(MX.streak[team==="me"?0:1])*0.5));
   if(team==="me"){ const st=starters(); const ac=st.length?st.reduce((s,r)=>s+r.cond,0)/st.length:70, af=st.length?st.reduce((s,r)=>s+r.fat,0)/st.length:30;
     v+=(G.synergy-50)/12+(G.maps[MX.map]-50)/12+(ac-75)/15-af/30-(1-commScore(starters().map(r=>r.id),G.team))*5+iglBonus(starters().map(r=>r.id),G.team); }
-  else v+=4.5+aiEdge()-(1-commScore(rosterOf(MX.o),MX.o))*5+iglBonus(rosterOf(MX.o),MX.o);
+  else v+=AI_FLAT+(MX.skip?AUTO_PEN:0)+aiEdge()-(1-commScore(rosterOf(MX.o),MX.o))*5+iglBonus(rosterOf(MX.o),MX.o);
   return v;
 }
 /* ---- light economy + round highlights (clutch / ace / thrifty) ---- */
@@ -4174,8 +4405,10 @@ function endRound(win){
   if(done){ MX.pauseUntil=performance.now()+900; MX.pendingEnd=true; return; }
   MX.pauseUntil=performance.now()+(MX.skip?0:700);
   if(MX.skip) return startRound();
+  if(MX.rn===12||(MX.rn===24&&a===12&&b===12)) MX.halfAsk=true;
   if(MX.rn===12||MX.rn===24){ MX.feed.unshift({sys:MX.rn===12?"하프타임, 공수 교대":"연장전 돌입"}); MX.igl.me.keep={atk:0,def:0}; MX.igl.op.keep={atk:0,def:0}; }
-  if(MX.streak[0]>=3 && MX.to[1]>0 && Math.random()<0.7){ MX.to[1]--; MX.buff.op.push({v:2,n:3,src:"상대 타임아웃"}); MX.igl.op.keep={atk:0,def:0}; MX.streak[0]=0; MX.feed.unshift({sys:`${T(MX.o).name} 타임아웃 (상대 팀 전술 정비)`}); }
+  const toBlock=MX.rn<2||MX.rn===12||MX.rn===13||MX.rn===24||MX.rn===25;
+  if(!toBlock && MX.to[1]>0 && ((MX.streak[0]>=3 && Math.random()<0.7)||(MX.score[0]-MX.score[1]>=4 && MX.streak[0]>=2 && Math.random()<0.35))){ MX.to[1]--; MX.buff.op.push({v:2,n:3,src:"상대 타임아웃"}); MX.igl.op.keep={atk:0,def:0}; MX.streak[0]=0; MX.feed.unshift({sys:`${T(MX.o).name} 타임아웃 (상대 팀 전술 정비)`}); }
   if(MX.streak[1]<3) MX.offered=false;
   MX.nextRound=true;
 }
@@ -4264,7 +4497,7 @@ function renderTF(){
     <p class="mute" style="font-size:11px;margin-top:6px">항목마다 "IGL 판단 / 직접 지시"를 바꿀 수 있습니다. IGL 판단 항목은 경기 흐름과 상대 전술에 맞춰 IGL이 라운드마다 정합니다.</p>
     <div class="tfb">${body}</div>
     ${talks.length?`<div class="tfr"><label><span>선수들에게 한마디</span></label>${seg("talk",talks.map(t=>[t.k,t.t]),TF.talk)}</div>`:""}
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">${TF.mode==="half"?"":TF.mode==="pre"?`<button class="ghost" onclick="$('#mtPre').classList.remove('on')">취소</button>`:`<button class="ghost" onclick="${TF.mode==="opTO"?"tfApply()":"skipTO()"}">${TF.mode==="opTO"?"그대로 진행":"취소"}</button>`}<button class="go" style="padding:10px 22px;font-size:15px" onclick="tfApply()">지시 전달</button></div>`;
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">${TF.mode==="half"?`<button class="ghost" onclick="skipTO()">그대로 진행</button>`:TF.mode==="pre"?`<button class="ghost" onclick="$('#mtPre').classList.remove('on')">취소</button>`:`<button class="ghost" onclick="${TF.mode==="opTO"?"tfApply()":"skipTO()"}">${TF.mode==="opTO"?"그대로 진행":"취소"}</button>`}<button class="go" style="padding:10px 22px;font-size:15px" onclick="tfApply()">지시 전달</button></div>`;
 }
 function tfApply(){
   const mode=TF.mode;
@@ -4297,9 +4530,9 @@ function planFor(team,side){
 }
 function tfOpen(mode){
   tfInit(); TF.mode=mode;
-  TF.title=mode==="half"?`하프타임 | ${MX.score[0]} : ${MX.score[1]}`:mode==="opTO"?`${T(MX.o).name} 타임아웃 | ${MX.score[0]} : ${MX.score[1]}`:mode==="pre"?"경기 전 작전 회의":`전술 타임아웃 (남은 ${MX.to[0]}회) | ${MX.score[0]} : ${MX.score[1]}`;
-  TF.h=mode==="half"?"후반 작전 지시 (무료)":mode==="opTO"?"상대가 흐름을 끊었습니다. 작전과 한마디":mode==="pre"?"기본 공수 전술":mode==="op"?"흐름이 넘어갔습니다. 작전 변경":"작전 변경";
-  if(mode==="half"&&MX.rn===12) TF.tab=sideOf("me")==="atk"?"atk":"def";
+  TF.title=mode==="half"?`공수교대 | ${MX.score[0]} : ${MX.score[1]}`:mode==="opTO"?`${T(MX.o).name} 타임아웃 | ${MX.score[0]} : ${MX.score[1]}`:mode==="pre"?"경기 전 작전 회의":`전술 타임아웃 (남은 ${MX.to[0]}회) | ${MX.score[0]} : ${MX.score[1]}`;
+  TF.h=mode==="half"?(MX.rn>=24?"연장 공수교대 작전 지시 (타임아웃 차감 없음)":"공수교대 작전 지시 (타임아웃 차감 없음)"):mode==="opTO"?"상대가 흐름을 끊었습니다. 작전과 한마디":mode==="pre"?"기본 공수 전술":mode==="op"?"흐름이 넘어갔습니다. 작전 변경":"작전 변경";
+  if(mode==="half"&&(MX.rn===12||MX.rn===24)) TF.tab=sideOf("me")==="atk"?"atk":"def";
   const box=mode==="pre"?$("#mtPre"):$("#mtTO");
   box.innerHTML=`<div class="tob wide" id="tfBox"></div>`; box.classList.add("on"); renderTF();
 }
@@ -4316,6 +4549,7 @@ function loop(now){
     if(MX.R.over){
       if(now>=(MX.pauseUntil||0)){
         if(MX.pendingEnd){ MX.pendingEnd=false; return endMap(); }
+        if(MX.halfAsk){ MX.halfAsk=false; MX.wantTO=false; return askTimeout("half"); }
         if(MX.wantTO && MX.to[0]>0){ MX.wantTO=false; return askTimeout("me"); }
         if(MX.nextRound){ MX.nextRound=false; startRound(); }
       }
@@ -4517,7 +4751,7 @@ function finishSeries(){
   G.log.push(line);
   const mvp=MX.me.slice().sort((a,b)=>b.k-a.k)[0];
   const skX=MX.skipped?L(" (경기 스킵으로 보상 50%)"," (skipped: 50% reward)"," (スキップのため報酬50%)"," (跳过比赛奖励50%)"):"";
-  G.brief=[L(`${MX.st.label} 결과: ${line}.`,`${trText(MX.st.label)} result: ${trForce(line)}.`,`${trText(MX.st.label)} 結果: ${trForce(line)}。`,`${trText(MX.st.label)} 结果: ${trForce(line)}。`), L(`팀 MVP ${mvp.name} (${mvp.k}킬). 예상 승률은 ${Math.round(MX.pWin*100)}%였습니다.`,`Team MVP ${mvp.name} (${mvp.k} kills). Predicted win chance was ${Math.round(MX.pWin*100)}%.`,`チームMVP ${mvp.name} (${mvp.k}キル)。予想勝率は${Math.round(MX.pWin*100)}%でした。`,`队伍MVP ${mvp.name} (${mvp.k}击杀)。预测胜率为${Math.round(MX.pWin*100)}%。`),
+  G.brief=[L(`${MX.st.label} 결과: ${line}.`,`${trText(MX.st.label)} result: ${trForce(line)}.`,`${trText(MX.st.label)} 結果: ${trForce(line)}。`,`${trText(MX.st.label)} 结果: ${trForce(line)}。`), L(`팀 MVP ${mvp.name} (${mvp.k}킬). 예상 승률은 ${Math.round((MX.skipped?(MX.pAuto||MX.pWin):MX.pWin)*100)}%였습니다.`,`Team MVP ${mvp.name} (${mvp.k} kills). Predicted win chance was ${Math.round((MX.skipped?(MX.pAuto||MX.pWin):MX.pWin)*100)}%.`,`チームMVP ${mvp.name} (${mvp.k}キル)。予想勝率は${Math.round((MX.skipped?(MX.pAuto||MX.pWin):MX.pWin)*100)}%でした。`,`队伍MVP ${mvp.name} (${mvp.k}击杀)。预测胜率为${Math.round((MX.skipped?(MX.pAuto||MX.pWin):MX.pWin)*100)}%。`),
     win?L(`승리 수당 ${short(bonus)}이 지급됐습니다.`,`Win bonus of ${short(bonus)} paid.`,`勝利手当${short(bonus)}が支給されました。`,`发放胜利奖金${short(bonus)}。`)+skX:L("패배 후 선수단 컨디션이 떨어졌습니다.","Squad condition dropped after the loss.","敗戦後、選手団の調子が落ちました。","失利后队伍状态下滑。")+skX].concat(seaLines).concat(ups.length?[L(`경기 경험으로 성장: ${ups.join(", ")}.`,`Growth from match experience: ${trText(ups.join(", "))}.`,`試合経験で成長: ${trText(ups.join(", "))}。`,`比赛经验成长: ${trText(ups.join(", "))}。`)]:[]).concat(morRows.length?[L(`사기 변화: ${morRows.join(", ")}.`,`Morale changes: ${morRows.join(", ")}.`,`士気の変化: ${morRows.join(", ")}。`,`士气变化: ${morRows.join(", ")}。`)]:[]);
   G.bi=0; MX=null; $("#mt").classList.remove("on"); renderAll(); save();
   if(G.pendingTrophy&&!FAST){ const id=G.pendingTrophy; G.pendingTrophy=null; save(); setTimeout(()=>trophyFX(id),300); }
@@ -4848,6 +5082,33 @@ function newsItems(){
   const gens=Object.values(G.gen||{}).filter(g=>!ownedSet().has(g.id)); if(gens.length){ const g=gens.sort((a,b)=>b.ovr-a.ovr)[Math.floor(R()*Math.min(10,gens.length))]; out.push(["ROOKIE",L(`무명 신예 ${g.name}(${g.nat}), 랭크에서 프로들을 연파하며 스카우터들 주목`,`Unknown prospect ${g.name} (${natName(g.nat)}) beats pros in ranked, scouts take note`,`無名の新星${g.name}(${natName(g.nat)})、ランクでプロを連破しスカウトが注目`,`无名新秀${g.name}(${natName(g.nat)})排位连胜职业选手，引起球探关注`)]); }
   // trade offers to me
   (G.tOffers||[]).forEach(o=>out.push(["TRADE",L(`${T(o.k).name}, ${mt.name}에 ${P(o.want[0]).name} 트레이드 제의`,`${T(o.k).name} offer ${mt.name} a trade for ${P(o.want[0]).name}`,`${T(o.k).name}が${mt.name}に${P(o.want[0]).name}のトレードを打診`,`${T(o.k).name}向${mt.name}提出${P(o.want[0]).name}的交易`)]));
+  // extra variety: jokes, fans, business, league, interviews, injuries
+  (G.injNews||[]).slice(-3).forEach(s=>out.push(["MEDICAL",s]));
+  { const X=[];
+    const t1=rt(), p1=sp(t1.key), t2=rt(), p2=sp(t2.key), ag=agName(), mp=pick(MAPS);
+    X.push(["OFFBEAT",L(`${t1.name} 숙소 냉장고에서 이름 써둔 푸딩 실종. 범인은 아직 미궁`,`A labeled pudding vanishes from the ${t1.name} house fridge. Culprit still unknown`,`${t1.name}の寮の冷蔵庫から名前入りプリンが消失。犯人は未だ不明`,`${t1.name}宿舍冰箱里写了名字的布丁失踪，凶手仍未查明`)]);
+    X.push(["OFFBEAT",L(`${p1.name}(${t1.name}) "제일 무서운 상대는 아침 7시 알람"`,`${p1.name} (${t1.name}): "My scariest opponent is the 7 a.m. alarm"`,`${p1.name}(${t1.name})「一番怖い相手は朝7時のアラーム」`,`${p1.name}(${t1.name}): "最可怕的对手是早上7点的闹钟"`)]);
+    X.push(["OFFBEAT",L(`${t1.name} 팀 하우스 와이파이 마비. 원인은 공유기 위에 올려둔 컵라면`,`${t1.name} house Wi-Fi goes down. Cause: a cup of noodles left on the router`,`${t1.name}のチームハウスでWi-Fi停止。原因はルーターの上のカップ麺`,`${t1.name}宿舍Wi-Fi瘫痪，原因是路由器上放了一碗泡面`)]);
+    X.push(["OFFBEAT",L(`${p1.name}의 반려묘가 키보드를 밟아 랭크 서렌 투표 찬성. 팬들 "고양이가 IGL"`,`${p1.name}'s cat steps on the keyboard and votes to surrender. Fans: "the cat is IGL"`,`${p1.name}の猫がキーボードを踏んでランクの降参投票に賛成。ファン「猫がIGL」`,`${p1.name}的猫踩到键盘投了投降票，粉丝: "猫才是指挥"`)]);
+    X.push(["OFFBEAT",L(`${t2.name} 선수단 볼링 회식. 최고 점수는 의외로 코치`,`${t2.name} team bowling night. Top score, surprisingly, from the coach`,`${t2.name}がボウリングで親睦会。最高得点はまさかのコーチ`,`${t2.name}全队保龄球聚餐，最高分竟然是教练`)]);
+    X.push(["OFFBEAT",L(`${p2.name}, 숙소 청소 당번 ${n(4,9)}주 연속 당첨. 본인은 "조작 의심"`,`${p2.name} drawn for house cleaning ${n(4,9)} weeks in a row. Claims it's rigged`,`${p2.name}、寮の掃除当番に${n(4,9)}週連続で当選。本人は「不正を疑う」`,`${p2.name}连续${n(4,9)}周抽中宿舍值日，本人怀疑"被操纵"`)]);
+    X.push(["OFFBEAT",L(`${t1.name} 노래방 회식. ${p1.name} 고음 도전에 팀원 전원 귀를 막아`,`${t1.name} karaoke night. Whole team covers their ears at ${p1.name}'s high note`,`${t1.name}がカラオケで親睦会。${p1.name}の高音に全員が耳をふさぐ`,`${t1.name}去KTV聚会，${p1.name}飙高音时全队捂住耳朵`)]);
+    X.push(["OFFBEAT",L(`${p2.name}, 데스매치 중 없는 팀원 위치를 콜. 팀원 "나 거기 없었어"`,`${p2.name} calls a teammate's position in deathmatch. Teammate: "I wasn't even there"`,`${p2.name}、デスマッチ中にいない味方の位置をコール。味方「そこにいなかった」`,`${p2.name}死斗时报了队友位置，队友: "我根本不在那"`)]);
+    X.push(["OFFBEAT",L(`${t2.name} 코치, 작전 보드에 점심 메뉴 투표를 남겨 화제`,`${t2.name} coach leaves a lunch-menu poll on the tactics board`,`${t2.name}のコーチ、作戦ボードに昼食メニュー投票を残して話題に`,`${t2.name}教练在战术板上留下午饭投票，引发热议`)]);
+    X.push(["FANS",L(`${t1.name} 팬, 경기장에 ${p1.name} 얼굴 대형 현수막 들고 등장`,`${t1.name} fans bring a giant ${p1.name} face banner to the arena`,`${t1.name}ファン、${p1.name}の顔の巨大横断幕を持って来場`,`${t1.name}粉丝举着${p1.name}的巨型头像横幅来到现场`)]);
+    X.push(["FANS",L(`팬이 만든 ${p2.name} 하이라이트 리믹스 영상 조회수 ${n(10,90)}만`,`Fan-made ${p2.name} highlight remix hits ${n(100,900)}K views`,`ファン制作の${p2.name}ハイライトリミックス動画、再生数${n(10,90)}万回`,`粉丝制作的${p2.name}集锦混剪播放量破${n(10,90)}万`)]);
+    X.push(["BUSINESS",L(`${t1.name}, 새 유니폼 공개. 반응은 "역대급"과 "잠옷 같다"로 갈려`,`${t1.name} reveal new jerseys. Reactions split between "best ever" and "looks like pajamas"`,`${t1.name}が新ユニフォーム公開。反応は「歴代最高」と「パジャマみたい」に二分`,`${t1.name}公布新队服，评价分为"史上最佳"和"像睡衣"`)]);
+    X.push(["BUSINESS",L(`${t2.name}, 에너지 드링크 콜라보 굿즈 출시 첫날 품절`,`${t2.name} energy-drink collab merch sells out on day one`,`${t2.name}のエナジードリンクコラボグッズ、初日で完売`,`${t2.name}能量饮料联名周边首日售罄`)]);
+    X.push(["LEAGUE",L(`VCT 이번 주 중계 최고 동시 시청자 ${n(30,180)}만 명`,`VCT broadcast peaks at ${n(300,1800)}K concurrent viewers this week`,`VCT今週の配信、最高同時視聴者${n(30,180)}万人`,`VCT本周直播最高同时在线${n(30,180)}万人`)]);
+    X.push(["LEAGUE",L(`리그 사무국, 경기 중 테크니컬 퍼즈 규정 재정비 검토`,`League office reviews tech-pause rules`,`リーグ事務局、試合中のテクニカルポーズ規定の見直しを検討`,`联赛官方考虑重新调整技术暂停规定`)]);
+    X.push(["AWARDS",L(`이번 주 MVP 후보: ${p1.name}(${t1.name}), ${p2.name}(${t2.name})`,`Player of the week nominees: ${p1.name} (${t1.name}), ${p2.name} (${t2.name})`,`今週のMVP候補: ${p1.name}(${t1.name})、${p2.name}(${t2.name})`,`本周MVP候选: ${p1.name}(${t1.name})、${p2.name}(${t2.name})`)]);
+    X.push(["COMMUNITY",L(`${p1.name} 인터뷰 "다음 상대보다 ${mp} 맵 생각뿐"`,`${p1.name}: "I'm only thinking about ${mp}, not the opponent"`,`${p1.name}インタビュー「次の相手より${mp}のことだけ考えている」`,`${p1.name}采访: "比起对手，我只在想${mp}"`)]);
+    X.push(["COMMUNITY",L(`${p2.name}, 경기 전 루틴 공개 "바나나 하나, 에임 연습 30분"`,`${p2.name} shares pre-match routine: "One banana, 30 minutes of aim training"`,`${p2.name}、試合前のルーティン公開「バナナ1本、エイム練習30分」`,`${p2.name}公开赛前习惯: "一根香蕉，30分钟瞄准练习"`)]);
+    X.push(["STREAM",L(`${p1.name}, 24시간 마라톤 방송 도중 잠들어 시청자 ${n(1,9)}천 명이 지켜봐`,`${p1.name} falls asleep mid 24-hour stream while ${n(1,9)}K viewers watch`,`${p1.name}、24時間配信中に寝落ち。視聴者${n(1,9)}千人が見守る`,`${p1.name}24小时直播中途睡着，${n(1,9)}千名观众围观`)]);
+    X.push(["HIGHLIGHT",L(`${p2.name}(${t2.name}), ${ag}로 칼 에이스. 해설진 "이건 모욕"`,`${p2.name} (${t2.name}) knife ace on ${ag}. Casters: "that's just disrespect"`,`${p2.name}(${t2.name})、${ag}でナイフエース。解説陣「これは屈辱」`,`${p2.name}(${t2.name})用${ag}刀杀五人，解说: "这是羞辱"`)]);
+    X.push(["MEDICAL",L(`${p2.name}(${t2.name}), 손목 보호대를 차고 연습 참여. 구단 "예방 차원"`,`${p2.name} (${t2.name}) practices in a wrist brace. Club: "precautionary"`,`${p2.name}(${t2.name})、手首サポーターを着けて練習参加。球団「予防のため」`,`${p2.name}(${t2.name})戴护腕参加训练，俱乐部: "预防措施"`)]);
+    for(let i=0;i<4&&X.length;i++){ const j=Math.floor(R()*X.length); out.push(X.splice(j,1)[0]); }
+  }
   // mix: keep order varied but my club first
   const head=out.filter(x=>x[0]==="PREVIEW"||x[0]==="RESULT"&&x[1].startsWith(mt.name));
   const rest=out.filter(x=>!head.includes(x)).sort(()=>R()-0.5);
@@ -5339,8 +5600,8 @@ function otherLeagueDay(){
 var FAST=false;
 function autoMatch(){
   const fx=G.sea.fx; if(!fx) return false; const o=T(fx.opp), st={po:fx.po,label:fx.label,bo:fx.bo};
-  const op=teamOvr(rosterOf(o.key))*0.93+55*0.08+60*0.05-(1-commScore(rosterOf(o.key),o.key))*6, me=myPower(), pWin=1/(1+Math.exp(-(me-op)/3.5));
-  MX={o:o.key,st,maps:[],mi:0,series:[0,0],pWin,me:mkSide(starters().map(r=>r.id),"me"),op:mkSide(rosterOf(o.key),"op"),speed:2,maplog:[],manual:{atk:null,def:null}};
+  const pw=predWin(o.key,st), pWin=pw.live;
+  MX={o:o.key,st,maps:[],mi:0,series:[0,0],pWin,pAuto:pw.auto,me:mkSide(starters().map(r=>r.id),"me"),op:mkSide(rosterOf(o.key),"op"),speed:2,maplog:[],manual:{atk:null,def:null}};
   const pool=[...MAPS].sort((a,b)=>(G.maps[b]-G.maps[a])+(Math.random()-0.5)*30);
   MX.maps=pool.slice(0,fx.bo); MX.meAtkArr=MX.maps.map(()=>Math.random()<0.5); MX.weA=Math.random()<0.5;
   quickSeries(); return true;
