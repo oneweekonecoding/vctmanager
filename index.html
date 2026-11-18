@@ -3075,8 +3075,105 @@ function openSheet(k,keep){
   if(k==="trophy"){ body.innerHTML=trophyRoomHTML(); bindTrophies(); }
   if(keep) body.scrollTop=sc;
 }
+/* ================= COACH GUIDE (weakness report + recommendations) ================= */
+const GD_ROLEKEY={duelist:["entry","fire","aim"],initiator:["util","entry"],controller:["util","cons"],sentinel:["cons","aim"],flex:["aim","util"]};
+const GD_TRAIN={aim:"aim",fire:"aim",entry:"entry",util:"util",cons:"clutch",exp:"vod"};
+let GD_AVG=null, GD_AT=-1;
+function gdLeagueAvg(){ if(GD_AVG&&GD_AT===absNow()) return GD_AVG; GD_AT=absNow(); const keys=["aim","fire","entry","util","cons","exp"], sum={}, n={}, role={};
+  DB.teams.forEach(t=>{ (rosterOf(t.key)||[]).slice(0,5).forEach(id=>{ const p=P(id); if(!p||!p.A) return;
+    keys.forEach(k=>{ sum[k]=(sum[k]||0)+(p.A[k]||40); n[k]=(n[k]||0)+1; });
+    const r=role[p.role]=role[p.role]||{c:0}; r.c++; keys.forEach(k=>r[k]=(r[k]||0)+(p.A[k]||40)); }); });
+  const avg={}; keys.forEach(k=>avg[k]=sum[k]/Math.max(1,n[k]));
+  const ravg={}; for(const r in role){ ravg[r]={}; keys.forEach(k=>ravg[r][k]=role[r][k]/role[r].c); }
+  GD_AVG={avg,ravg}; return GD_AVG; }
+function gdOppTendency(ok){ const style=k=>1+(hash(ok+k)%5)/4;
+  const aw=Object.keys(APAT).map(k=>[k,style(k)]), dw=Object.keys(DPAT).map(k=>[k,style("d"+k)*(k==="hold"?1.6:1)]);
+  const at=aw.reduce((s,x)=>s+x[1],0), dt=dw.reduce((s,x)=>s+x[1],0);
+  const A=aw.map(([k,v])=>[k,v/at]).sort((a,b)=>b[1]-a[1]), D=dw.map(([k,v])=>[k,v/dt]).sort((a,b)=>b[1]-a[1]);
+  // our best defense vs their attack mix, our best attack vs their defense mix
+  const myDef=Object.keys(DPAT).map(d=>[d,A.reduce((s,[a,p])=>s+p*(CMAT[a][d]||0),0)]).sort((x,y)=>x[1]-y[1]);
+  const myAtk=Object.keys(APAT).map(a=>[a,D.reduce((s,[d,p])=>s+p*(CMAT[a][d]||0),0)]).sort((x,y)=>y[1]-x[1]);
+  return {A,D,myDef,myAtk}; }
+function coachGuide(){
+  const out=[], st=starters(), ids=st.map(r=>r.id), add=(lv,tag,title,diag,why,acts)=>out.push({lv,tag,title,diag,why,acts:acts||[]});
+  if(!st.length){ add(3,"로스터","선수가 없습니다","주전 자리가 비어 있습니다.","5명이 채워져야 경기를 치를 수 있습니다.",[["이적시장 열기","openSheet('market')"]]); return out; }
+  /* 1. injuries / lineup */
+  const out5=G.roster.filter(r=>isOut(r)); const need=emergNeed();
+  if(need>0) add(3,"부상","출전 가능 인원 부족",`출전 가능한 선수가 ${healthyN()}명입니다.`,"한 명이라도 비면 경기를 치를 수 없습니다. 지금은 이적시장 기간과 관계없이 모자란 인원만큼 FA를 영입할 수 있습니다.",[["이적시장 열기","openSheet('market')"]]);
+  else if(out5.length) add(2,"부상","부상 선수 관리",`${out5.map(r=>`${P(r.id).name}(${injName(r.inj.k)} ${r.inj.d}일)`).join(", ")} 결장 중입니다.`,"부상자는 자동으로 벤치로 내려가고, 대체 선수가 주전으로 뜁니다. 복귀 전까지는 대체 선수의 컨디션과 피로를 같이 봐야 합니다.");
+  /* 2. fatigue + injury risk */
+  const tf=teamFat(), hot=st.filter(r=>r.fat>=70), risk=G.roster.filter(r=>(r.hi||0)>=9&&!isOut(r));
+  if(risk.length) add(3,"피로","부상 위험 선수",`${risk.map(r=>`${P(r.id).name}(피로 80 이상 ${r.hi}일째)`).join(", ")}`,"피로 80 이상이 14일 넘게 이어지면 매일 5% 확률로 부상이 생깁니다. 하루라도 80 밑으로 내리면 카운트가 0으로 돌아갑니다.",[["컨디셔닝 훈련으로","setTrain('recover')"],["이번 주 휴식 넣기","guidePlan('rest')"]]);
+  if(tf>=55||hot.length>=2) add(3,"피로",`팀 피로 ${tf}`,`주전 ${hot.length}명이 피로 70 이상입니다.`,"경기 중 피로는 선수당 능력에서 직접 빠집니다(평균 피로 30마다 약 -1). 피로 70 이상이면 훈련 성장 효율도 25~50% 줄어듭니다.",[["컨디셔닝 훈련으로","setTrain('recover')"],["이번 주 휴식 넣기","guidePlan('rest')"]]);
+  /* 3. morale / condition */
+  const lowM=st.filter(r=>morOf(r)<45), lowC=st.filter(r=>r.cond<70);
+  if(lowM.length) add(2,"사기","사기 낮은 선수",`${lowM.map(r=>`${P(r.id).name} ${morOf(r)}`).join(", ")}`,"사기는 에임, 화력, 안정감에 바로 더해집니다(사기 12마다 약 1). 팀 빌딩 훈련은 전원 사기 +2, 멘탈 코칭은 한 명을 집중 관리합니다.",[["팀 빌딩 훈련으로","setTrain('team')"],["선수단 탭에서 멘탈 코칭","openSheet('squad')"]]);
+  if(lowC.length>=2) add(st.reduce((x,r)=>x+r.cond,0)/st.length<60?2:1,"컨디션","컨디션 저하",`${lowC.map(r=>`${P(r.id).name} ${r.cond}`).join(", ")}`,"팀 평균 컨디션이 75보다 15 낮을 때마다 경기력 -1입니다. 컨디셔닝 훈련은 컨디션 +6, 승리 후에도 회복됩니다.",[["컨디셔닝 훈련으로","setTrain('recover')"]]);
+  /* 4. synergy / language / IGL */
+  if(G.synergy<60) add(G.synergy<50?3:2,"팀 합",`팀 합 ${G.synergy}`,"팀 합 50 기준으로 12 낮을 때마다 경기력 -1, 12 높을 때마다 +1입니다.","스크림은 확률적으로 팀 합 +1, 택틱 훈련은 확률적으로 +1, 팀 빌딩은 확정 +2입니다. 팀 합이 낮을 때는 팀 빌딩이 가장 빠릅니다.",[["팀 빌딩 훈련으로","setTrain('team')"],["이번 주 스크림 위주","guidePlan('scrim')"]]);
+  const cm=commScore(ids);
+  if(cm<0.9) add(cm<0.75?3:2,"소통",`소통 점수 ${Math.round(cm*100)}%`,`주전 언어: ${langLine(ids)}.`,"소통 점수가 100%보다 낮은 만큼 경기력이 최대 -5까지 깎입니다(지금 약 -"+((1-cm)*5).toFixed(1)+"). 팀 빌딩은 언어 습득을 앞당기고, 같은 언어 선수를 쓰면 바로 해결됩니다.",[["팀 빌딩 훈련으로","setTrain('team')"]]);
+  const ig=iglOf(ids,G.team), best=ids.slice().sort((a,b)=>iglVal(P(b))-iglVal(P(a)))[0];
+  if(ig&&best&&best!==ig&&iglVal(P(best))-iglVal(P(ig))>=5) add(2,"IGL","IGL 교체 추천",`지금 IGL ${P(ig).name}(판단력 ${Math.round(iglVal(P(ig)))}) < ${P(best).name}(${Math.round(iglVal(P(best)))}).`,"IGL의 안정감과 경험이 높을수록 상대 전술을 읽고 카운터를 고를 확률이 오르고, 경기력 보너스(최대 +2.5)도 커집니다.",[[`${P(best).name}을 IGL로`,`setIGL('${esc(best)}')`]]);
+  /* 5. roles */
+  const roles=new Set(st.map(r=>P(r.id).role)), miss=["duelist","initiator","controller","sentinel"].filter(r=>!roles.has(r)&&!roles.has("flex"));
+  if(miss.length){ const bench=G.roster.slice(5).filter(r=>!isOut(r)&&miss.includes(P(r.id).role));
+    add(2,"포지션",`${miss.map(r=>ROLE[r].k).join(", ")} 없음`,`주전 포지션: ${st.map(r=>ROLE[P(r.id).role].k).join(", ")}.`,"포지션이 고르게 갖춰질수록 팀 전력 보너스가 붙습니다(포지션 1종당 +0.8, 최대 4종).",bench.length?[[`${P(bench[0].id).name} 주전으로`,`swapStarter(${G.roster.indexOf(bench[0])})`]]:[["이적시장 열기","openSheet('market')"]]); }
+  /* 6. attributes vs league */
+  const LA=gdLeagueAvg(), keys=["aim","fire","entry","util","cons","exp"], my={};
+  keys.forEach(k=>my[k]=st.reduce((s,r)=>s+(P(r.id).A[k]||40),0)/st.length);
+  const gap=keys.map(k=>[k,my[k]-LA.avg[k]]).sort((a,b)=>a[1]-b[1]);
+  const weak=gap.filter(x=>x[1]<-1.5).slice(0,2);
+  if(weak.length){ const tk=GD_TRAIN[weak[0][0]];
+    add(weak[0][1]<-5?2:1,"능력치",`팀 약점: ${weak.map(x=>ATTR[x[0]]).join(", ")}`,weak.map(x=>`${ATTR[x[0]]} 팀 평균 ${Math.round(my[x[0]])} (VCT 주전 평균 ${Math.round(LA.avg[x[0]])}, ${x[1].toFixed(1)})`).join(" / "),
+      "훈련은 고른 능력치에 경험치를 몰아 줍니다. 에임과 화력은 교전 승률, 진입은 공격 초반 교전, 안정감은 수비 홀딩과 클러치, 유틸은 요원 숙련과 경험에 영향을 줍니다.",[[`${TRAIN[tk].n} 훈련으로`,`setTrain('${tk}')`]]); }
+  /* per-player role weaknesses */
+  const pw=[]; st.forEach(r=>{ const p=P(r.id), ks=GD_ROLEKEY[p.role]||[], ra=LA.ravg[p.role]; if(!ra) return;
+    const w=ks.map(k=>[k,(p.A[k]||40)-ra[k]]).sort((a,b)=>a[1]-b[1])[0]; if(w&&w[1]<=-6) pw.push(`${p.name}(${ROLE[p.role].k}) ${ATTR[w[0]]} ${p.A[w[0]]} (포지션 평균 ${Math.round(ra[w[0]])})`); });
+  if(pw.length) add(1,"선수",`포지션 핵심 능력 부족 ${pw.length}명`,pw.join(" / "),"포지션마다 경기에서 크게 쓰이는 능력이 다릅니다. 타격대는 진입과 화력, 척후대와 전략가는 유틸, 감시자는 안정감이 핵심입니다. 해당 능력 훈련이나 영입으로 보완하세요.");
+  /* 7. maps + next opponent */
+  const fx=G.sea&&G.sea.next==="match"&&G.sea.fx, ok=fx&&fx.opp;
+  const mapsS=MAPS.slice().sort((a,b)=>G.maps[a]-G.maps[b]), wm=mapsS[0];
+  let focusMap=wm, oppPick=null;
+  if(ok){ const sc=MAPS.slice().sort((a,b)=>aiVetoScore(ok,b)-aiVetoScore(ok,a)); oppPick=sc[0];
+    if(G.maps[oppPick]<G.maps[wm]+12) focusMap=oppPick; }
+  if(G.maps[focusMap]<65) add(G.maps[focusMap]<50?2:1,"맵",`${focusMap} 숙련 ${G.maps[focusMap]}`,`가장 약한 맵: ${mapsS.slice(0,3).map(m=>`${m} ${G.maps[m]}`).join(", ")}.${oppPick?` 다음 상대 ${T(ok).name}가 고를 가능성이 가장 높은 맵: ${oppPick}(우리 숙련 ${G.maps[oppPick]}).`:""}`,
+    "맵 숙련 50 기준으로 12 차이마다 그 맵 경기력 ±1입니다. 상대 AI는 자기 선호 맵을 픽하고 우리가 약한 맵을 노려 밴픽합니다. 스크림과 택틱 깎기는 '스크림 맵'으로 지정한 맵의 숙련을 올립니다.",[[`스크림 맵을 ${focusMap}로`,`setScrimMap('${focusMap}')`],["택틱 깎기 훈련으로","setTrain('tactic')"]]);
+  if(ok){ const td=gdOppTendency(ok), A=td.A, D=td.D;
+    add(1,"전술",`다음 상대 ${T(ok).name} 전술 성향`,`공격: ${A.slice(0,2).map(([k,p])=>`${APAT[k]} ${Math.round(p*100)}%`).join(", ")} / 수비: ${D.slice(0,2).map(([k,p])=>`${DPAT[k]} ${Math.round(p*100)}%`).join(", ")} (평소 고르는 비율).`,
+      `추천: 우리 수비는 <b>${DPAT[td.myDef[0][0]]}</b>, 우리 공격은 <b>${APAT[td.myAtk[0][0]]}</b>. 상대가 자주 쓰는 패턴에 상성상 가장 유리합니다. 경기 전 '작전 회의'나 타임아웃에서 전술을 직접 지정하세요. 상대 IGL은 우리가 같은 패턴을 반복하면 읽고 바꾸니, 2~3라운드마다 섞는 것이 좋습니다.`); }
+  return out.sort((a,b)=>b.lv-a.lv); }
+/* pick the training that addresses the top problem */
+function guideTrain(){ const g=coachGuide(); for(const it of g){ const a=(it.acts||[]).find(x=>/^setTrain/.test(x[1])); if(a) return /setTrain\('(\w+)'\)/.exec(a[1])[1]; } return "aim"; }
+/* fill the next 7 days of the planner from the guide */
+function guidePlan(kind){ const now=absNow(), nm=nextMatchAbs(), tf=teamFat(); G.plan=G.plan||{};
+  let rests=kind==="rest"?2:tf>=55?2:tf>=40?1:0; const fm=(()=>{ const g=coachGuide().find(x=>x.tag==="맵"); return g?/스크림 맵을 (\S+)로/.exec(g.acts[0][0])[1]:null; })();
+  for(let a=now;a<now+7;a++){ if(a===nm||schedAt(a)==="media") continue;
+    let ev; if(nm!=null&&a===nm-1) ev=tf>=35?"rest":"scrim";
+    else if(rests>0){ ev="rest"; rests--; }
+    else if(kind==="scrim") ev="scrim"; else ev=(a-now)%2===0?"scrim":"train";
+    G.plan[planKey(a)]=Object.assign({ev},ev==="scrim"&&fm?{map:fm}:{}); }
+  setTrain(guideTrain()); save(); toast("추천에 맞춰 앞으로 7일 일정과 훈련을 바꿨습니다."); if($("#ov").classList.contains("on")) openGuide(); renderAll(); }
+const GD_LV={3:["긴급","#ef4444"],2:["중요","#f59e0b"],1:["참고","#60a5fa"]};
+function guideHTML(compact){ const g=coachGuide(); const items=compact?g.slice(0,3):g;
+  const card=it=>`<div class="gdc" style="--gc:${GD_LV[it.lv][1]}"><div class="gdh"><span class="gdl">${GD_LV[it.lv][0]}</span><span class="gdt">${esc(it.tag)}</span><b>${esc(it.title)}</b></div>
+    <div class="gdd">${esc(it.diag)}</div><div class="gdw">${it.why}</div>${it.acts.length?`<div class="gda">${it.acts.map(([l,js])=>`<button class="sbtn" onclick="${/openSheet/.test(js)?"closeM();":""}${js};gdRefresh()">${esc(l)}</button>`).join("")}</div>`:""}</div>`;
+  return `<div class="gdbox"><div class="gdtop"><b>코치 추천 가이드</b><span class="mute">지금 팀 상태를 보고 우선순위대로 정리했습니다. 버튼을 누르면 바로 적용됩니다.</span>
+    <span style="flex:1"></span><button class="sbtn on" onclick="guidePlan('auto')">추천대로 7일 일정 짜기</button>${compact?`<button class="sbtn" onclick="openGuide()">전체 보기 (${g.length})</button>`:""}</div>
+    ${items.length?items.map(card).join(""):`<p class="mute" style="padding:8px 2px">눈에 띄는 약점이 없습니다. 다음 상대 맵 위주로 스크림을 이어가세요.</p>`}</div>`; }
+function gdRefresh(){ setTimeout(()=>{ if($("#ov").classList.contains("on")&&$("#md .gdbox")) openGuide(); },30); }
+function openGuide(){ $("#md").style.setProperty("--c","var(--red)");
+  $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><div style="padding:22px 24px">${guideHTML(false)}</div>`; $("#ov").classList.add("on"); }
+(function(){ if(document.getElementById("gdCss")) return; const s=document.createElement("style"); s.id="gdCss"; s.textContent=`
+.gdbox{margin:0 0 14px}.gdtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.gdtop b{font-size:15px}.gdtop .mute{font-size:12px}
+.gdc{border:1px solid #2a2a2a;border-left:3px solid var(--gc);background:#151517;border-radius:4px;padding:10px 12px;margin-bottom:8px}
+.gdh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.gdl{font-size:11px;font-weight:700;color:#111;background:var(--gc);padding:0 6px;border-radius:3px;line-height:18px}
+.gdt{font-size:11px;color:#bbb;border:1px solid #333;padding:0 6px;border-radius:3px;line-height:18px}.gdh b{font-size:14px}
+.gdd{font-size:13px;color:#e5e5e5;margin-top:6px;line-height:1.55}.gdw{font-size:12px;color:#9a9a9a;margin-top:4px;line-height:1.6}.gdw b{color:#fff}
+.gda{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}`; document.head.appendChild(s); })();
+
 function squadHTML(){
-  const trainBox=trainHTML();
+  const trainBox=guideHTML(true)+trainHTML();
   const rows=G.roster.map((r,i)=>{ const p=P(r.id),s=p.s;
     return `<tr data-tip="${esc(statTip(r.id))}"><td>${i<5?'<span class="st-tag" style="color:var(--mint);border-color:var(--mint)">주전</span>':'<span class="st-tag">벤치</span>'}</td>
       <td style="white-space:nowrap">${ricon(p.role,14)} <b>${plink(r.id)}</b>${injTag(r)}${i<5&&iglOf(starters().map(x=>x.id),G.team)===r.id?' <span class="iglb">IGL</span>':""}</td><td style="white-space:nowrap">${ROLE[p.role].k}</td><td class="num">${p.ovr}</td><td class="num lk" onclick="openPlayer('${esc(r.id)}')" style="color:${scoutInfo(r.id)?"#93B4FF":"#666"}">${potText(r.id)}</td><td class="num">${(G.apps||{})[r.id]||0}</td>
@@ -5752,6 +5849,7 @@ function ensureAutoBtn(){
   let sk=$("#skipBtn");
   if(!sk&&g){ sk=document.createElement("button"); sk.id="skipBtn"; sk.className="ghost"; sk.textContent="경기 스킵 (결과만, 보상 50%)"; sk.onclick=skipMatchNow; g.parentNode.insertBefore(sk,g.nextSibling); }
   if(sk) sk.style.display=m?"":"none";
+  if(!$("#guideBtn")&&g){ const gb=document.createElement("button"); gb.id="guideBtn"; gb.className="ghost"; gb.textContent="추천 가이드"; gb.onclick=openGuide; g.parentNode.insertBefore(gb,g.nextSibling); }
   if($("#autoBtn")||!g) return;
   const b=document.createElement("button"); b.id="autoBtn"; b.className="ghost"; b.textContent="자동 진행"; b.onclick=openAuto;
   g.parentNode.insertBefore(b,g.nextSibling);
