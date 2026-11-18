@@ -1014,6 +1014,16 @@ body.ui-tab .calbtn{width:32px}
 @media (max-width:900px){ .calw{grid-template-columns:1fr} .cgc{min-height:54px} .tlr{grid-template-columns:1fr 1fr;} .tlr span.mute{grid-column:1/-1} }
 
 #md:has(.calm){max-width:1150px;width:100%}
+
+/* difficulty selector */
+.diffseg button{position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.diffseg .d-chal.on{background:#93B4FF;border-color:#93B4FF;color:#0a0a0a}
+.diffseg .d-rebuild.on{background:#22C55E;border-color:#22C55E;color:#0a0a0a}
+.diffseg .d-hard.on{background:#f59e0b;border-color:#f59e0b;color:#0a0a0a}
+.diffseg .d-imp.on{background:#FF4655;border-color:#FF4655;color:#fff}
+#diffTip{position:fixed;z-index:200;width:320px;max-width:calc(100vw - 16px);background:#141414;border:1px solid var(--line);border-left:3px solid #F59E0B;border-radius:4px;padding:10px 12px;font-size:12.5px;line-height:1.55;color:#e6edf3;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#diffTip.on{display:block}#diffTip b{display:block;margin-bottom:4px;color:#F59E0B}#diffTip p{margin:0}
+.difftag{font-size:10px;padding:1px 6px;border-radius:3px;border:1px solid currentColor;margin-left:6px}
 </style>
 </head>
 <body>
@@ -1222,6 +1232,48 @@ function startI18n(){
   document.title=trText(document.title);
 }
 function setLang(l){ try{ localStorage.setItem("vctmgr_lang",l); }catch(e){} location.reload(); }
+/* ===== difficulty ===== */
+const DIFFS={
+ basic:{ask:1,ai:0,cap:1,bud:1,aiCap:1,grow:1,n:["기본","Standard","スタンダード","标准"],
+   d:["기본 모드입니다. 다소 쉽게 느껴질 수 있습니다.","The standard mode. It may feel a little easy.","基本モードです。やや簡単に感じるかもしれません。","基础模式，可能会觉得有些简单。"]},
+ chal:{ask:1.18,ai:1.5,cap:1,bud:1,aiCap:1,grow:1,n:["도전자","Challenger","チャレンジャー","挑战者"],
+   d:["약간 어려워집니다. 선수를 영입할 때 써야 하는 돈이 증가하고, 상대 AI의 수준이 약간 증가합니다.","A bit harder. Signing players costs more and opponent AI gets slightly stronger.","やや難しくなります。選手獲得にかかる費用が増え、相手AIのレベルが少し上がります。","稍有难度。签约选手花费增加，对手AI水平略有提升。"]},
+ rebuild:{ask:1,ai:0,cap:0.68,bud:0.58,aiCap:1,grow:1,freePot:true,n:["리빌딩","Rebuild","リビルド","重建"],
+   d:["포텐셜을 초급 스카우터 없이 무제한으로 볼 수 있지만 선수 영입 예산이 30% 이상 감소하고, 종합적인 예산이 40% 이상 감소합니다. 상대 AI 수준은 기본과 같습니다.","See every player's potential (basic scout level) for free, but the signing budget drops by 30%+ and the overall budget by 40%+. Opponent AI is the same as Standard.","初級スカウトなしでポテンシャルを無制限に見られますが、獲得予算が30%以上、全体予算が40%以上減ります。相手AIは基本と同じです。","无需初级球探即可无限查看潜力，但引援预算减少30%以上，总预算减少40%以上。对手AI与标准相同。"]},
+ hard:{ask:1.1,ai:4,cap:0.58,bud:0.48,aiCap:1.2,grow:0.6,allFA:true,n:["하드","Hard","ハード","困难"],
+   d:["기존에 있는 모든 선수가 FA로 풀리고 시작하며, 선수 영입 예산이 40% 이상 감소하고, 종합적인 예산이 50% 이상 감소합니다. 상대 AI 수준은 도전자보다 크게 어려워집니다. 다른 팀들의 영입 예산이 20%씩 증가합니다. 유망주들의 성장 효율이 40% 내외로 감소합니다.","Every existing player starts as a free agent. Signing budget -40%+, overall budget -50%+. Opponent AI is much stronger than Challenger. Other clubs get +20% signing budget. Prospect growth about -40%.","既存の全選手がFAになって始まります。獲得予算40%以上、全体予算50%以上減少。相手AIはチャレンジャーより大幅に強くなります。他チームの獲得予算は20%増加。若手の成長効率は約40%減少します。","所有现有选手以自由球员身份开局。引援预算减少40%以上，总预算减少50%以上。对手AI比挑战者强很多。其他队伍引援预算增加20%。新秀成长效率降低约40%。"]},
+ imp:{ask:1.2,ai:8,cap:0.38,bud:0.18,aiCap:1.35,grow:0.55,allFA:true,coFA:true,coMin:3,lock:true,n:["임파서블","Impossible","インポッシブル","地狱"],
+   d:["기존에 있는 모든 선수와 감독까지 FA로 풀리고 시작하며, 선수 영입 예산이 60% 이상 감소하고, 종합적인 예산이 80% 이상 감소합니다. 상대 AI 수준은 하드보다 2배 이상 어려워지며, 상대 코치진의 명성이 모두 고급 이상으로 고정됩니다. 다른 팀의 영입 예산은 35% 이상 증가합니다. 오프시즌 선수 영입 이후 다음 오프시즌까지 선수 영입이 불가하며, 유망주들의 성장 효율이 40% 이상 감소합니다.","Every player and coach starts as a free agent. Signing budget -60%+, overall budget -80%+. Opponent AI is over twice as hard as Hard, and every rival coach is fixed at Senior reputation or higher. Other clubs get +35% signing budget. After the offseason signing period you cannot sign anyone until the next offseason. Prospect growth -40%+.","全選手と監督がFAになって始まります。獲得予算60%以上、全体予算80%以上減少。相手AIはハードの2倍以上強く、相手監督の名声はすべて上級以上に固定。他チームの獲得予算は35%以上増加。オフシーズンの獲得期間後は次のオフシーズンまで選手を獲得できません。若手の成長効率は40%以上減少します。","所有选手和教练以自由身份开局。引援预算减少60%以上，总预算减少80%以上。对手AI比困难强两倍以上，对手教练声望全部固定在高级以上。其他队伍引援预算增加35%以上。休赛期引援结束后直到下个休赛期都无法签人。新秀成长效率降低40%以上。"]}};
+const DIFF_KEYS=["basic","chal","rebuild","hard","imp"];
+function diffPref(){ try{ const d=localStorage.getItem("vctmgr_diff"); return DIFFS[d]?d:"basic"; }catch(e){ return "basic"; } }
+function DF(){ return DIFFS[(G&&G.diff)||"basic"]||DIFFS.basic; }
+function diffName(k){ return DIFFS[k].n[LI_ALL()]; }
+function diffDesc(k){ return DIFFS[k].d[LI_ALL()]; }
+function LI_ALL(){ return {ko:0,en:1,ja:2,zh:3}[LANG]||0; }
+function setDiff(k){ try{ localStorage.setItem("vctmgr_diff",k); }catch(e){} document.querySelectorAll(".diffseg button").forEach(b=>b.classList.toggle("on",b.dataset.k===k)); }
+let _dlp=null;
+function diffPress(e,k){ clearTimeout(_dlp); _dlp=setTimeout(()=>{ _dlp="shown"; showDiffTip(k,e.target); },420); }
+function diffRelease(e,k){ if(_dlp==="shown"){ _dlp=null; e.preventDefault(); return; } clearTimeout(_dlp); _dlp=null; setDiff(k); }
+function showDiffTip(k,el){ let t=document.getElementById("diffTip"); if(!t){ t=document.createElement("div"); t.id="diffTip"; document.body.appendChild(t); t.addEventListener("click",()=>t.classList.remove("on")); }
+  t.innerHTML=`<b>${diffName(k)}</b><p>${diffDesc(k)}</p>`; const r=el.getBoundingClientRect(); t.style.left=Math.max(8,Math.min(innerWidth-328,r.left+r.width/2-160))+"px"; t.style.top=(r.bottom+8)+"px"; t.classList.add("on");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),6000); }
+function diffSeg(){ const cur=diffPref(); return `<span class="uiseg no-tr diffseg">${DIFF_KEYS.map(k=>`<button data-k="${k}" class="${cur===k?"on":""} d-${k}" onpointerdown="diffPress(event,'${k}')" onpointerup="diffRelease(event,'${k}')" onpointerleave="clearTimeout(_dlp)" oncontextmenu="event.preventDefault()">${diffName(k)}</button>`).join("")}</span>`; }
+/* my transfer window under Impossible: offseason + preseason only */
+function myTransferOpen(){ if(!DF().lock) return transferOpen(); if(!G||!G.sea) return true; const p0=curPhase(); return p0.type==="off"||(G.sea.pi===0&&!((G.sea.ph&&G.sea.ph.round)>0)&&G.sea.next==="match"&&!(G.sea.hist||[]).some(h=>String(h).startsWith(G.sea.yr+" "))); }
+function freePotInfo(id){ const p=P(id); if(!p) return null; const pot=potOf(id), e=(hash(id+"fp")%5)-2, lo=Math.max(p.ovr,pot-4+e), hi=Math.min(99,lo+8); return {lo,hi,by:"basic",free:true}; }
+function isProspect(id){ const p=P(id); return p&&(p.gen||ageOf(id)<=22); }
+/* apply start conditions once, right after the world is built */
+function applyDiffStart(){ const D=DF(); if(G.diffApplied) return; G.diffApplied=true;
+  G.budget=Math.round(G.budget*D.bud/1000)*1000; (G.sponsors||[]).forEach(s=>s.pay=Math.round(s.pay*D.bud/1000)*1000);
+  if(D.allFA){ const all=[]; G.roster.forEach(r=>all.push(r.id)); G.roster=[]; G.iglId=null; G.comp={};
+    for(const k in G.rosters){ all.push(...G.rosters[k]); G.rosters[k]=[]; }
+    G.freed=Array.from(new Set((G.freed||[]).concat(all))); G.aiPlan={};
+    for(const k in G.rosters) G.aiPlan[k]=spreadDays(5+(Math.random()<0.45?1:0),11); G.bids={}; }
+  if(D.coFA&&G.co){ const ids=Object.values(G.coTeam); G.coTeam={}; G.coFA=Array.from(new Set(G.coFA.concat(ids)));
+    const ai=Object.keys(G.rosters); const pool=G.coFA.map(id=>G.co[id]).sort((a,b)=>cScore(b)-cScore(a));
+    ai.forEach((k,i)=>{ let c=pool.shift(); if(!c){ c=addGenCoach(k+"_imp"+i); G.coFA=G.coFA.filter(x=>x!==c.id); } else G.coFA=G.coFA.filter(x=>x!==c.id); G.coTeam[k]=c.id; }); }
+  if(D.coMin&&G.co) for(const k in G.coTeam){ if(k===G.team) continue; const c=G.co[G.coTeam[k]]; if(c&&coTier(c)<D.coMin){ c.y=Math.max(c.y||0,7-(c.intl||0)); Object.assign(c,mkCoachStats(c)); } } }
+
 function langSeg(){ return `<span class="uiseg no-tr langseg">${Object.keys(I18N_LANGS).map(k=>`<button class="${LANG===k?"on":""}" onclick="setLang('${k}')">${I18N_LANGS[k]}</button>`).join("")}</span>`; }
 
 const REG = {AM:{n:"AMERICAS",k:"아메리카스"},EM:{n:"EMEA",k:"유럽/중동/아프리카"},PA:{n:"PACIFIC",k:"퍼시픽"},CN:{n:"CHINA",k:"중국"}};
@@ -1354,7 +1406,7 @@ const SCOUT=[
 ];
 const SC_R={basic:1,adv:2,pro:3,chief:3};
 function scoutCost(id,k){ if(k==="chief") k="pro"; return Math.round(SCOUT.find(s=>s.k===k).cost(P(id))/1000)*1000; }
-function scoutInfo(id){ return (G&&G.scouted||{})[id]; }
+function scoutInfo(id){ const s=(G&&G.scouted||{})[id]; if(s) return s; return G&&DF().freePot?freePotInfo(id):undefined; }
 function potText(id){ const s=scoutInfo(id); if(!s) return "?"; return s.lo===s.hi?String(s.lo):`${s.lo}-${s.hi}`; }
 function potComment(id){ const gap=potOf(id)-P(id).ovr;
   return gap>=10?"성장 여지가 매우 큽니다. 꾸준히 주전으로 기용하면 크게 오릅니다.":gap>=5?"주전 경기와 스크림을 꾸준히 뛰면 성장할 선수입니다.":gap>=1?"거의 완성 단계입니다. 남은 성장 폭이 작습니다.":"완성형 선수입니다. 더 오르기 어렵습니다."; }
@@ -1641,7 +1693,7 @@ function setScrimMap(m){ G.scrimMap=m; save(); toast(`스크림 맵: ${m}. ${m} 
 const ROLE_ATTR={duelist:["aim","fire","entry"],initiator:["entry","util","cons"],controller:["util","cons","aim"],sentinel:["cons","util","aim"],flex:["aim","util","cons"]};
 function gainXP(id, xp, focus){
   G.dev=G.dev||{}; const d=G.dev[id]=G.dev[id]||{xp:0,pts:0,A:{},ovr:0};
-  const p=P(id); const gap=potOf(id)-p.ovr; xp=gap<=0?Math.round(xp*0.1):Math.round(xp*Math.min(1.3,0.3+gap/10)); xp=Math.round(xp*GROW*(G.co?coXPMul():1)*pcXPMul()*(p.gen?0.8:(p.s&&p.s.r>=1.05?1.4:p.s&&p.s.r>=0.98?1.2:1.05))); d.xp+=xp; const ups=[];
+  const p=P(id); const gap=potOf(id)-p.ovr; xp=gap<=0?Math.round(xp*0.1):Math.round(xp*Math.min(1.3,0.3+gap/10)); xp=Math.round(xp*(isProspect(id)?DF().grow:1)*GROW*(G.co?coXPMul():1)*pcXPMul()*(p.gen?0.8:(p.s&&p.s.r>=1.05?1.4:p.s&&p.s.r>=0.98?1.2:1.05))); d.xp+=xp; const ups=[];
   while(d.xp>=100){
     d.xp-=100;
     const pool=ROLE_ATTR[p.role].concat(Object.keys(ATTR));
@@ -2000,13 +2052,14 @@ function aiPick(k){
   const nat=majorNat(ros, t.region);
   const have=new Set(ros.slice(0,5).map(id=>P(id).role));
   const need=new Set(ROLES4.filter(r=>!have.has(r)));
-  const cap0 = t.partner ? 950000 : 380000, tph=phOf(k), cph=coPh(G.co?coOf(k):null), cap=phCap(tph,cap0);
+  const cap0 = (t.partner ? 950000 : 380000)*DF().aiCap, tph=phOf(k), cph=coPh(G.co?coOf(k):null), cap=phCap(tph,cap0);
   const imports=ros.filter(id=>P(id).region!==t.region).length;
   let best=null, bs=-1e9;
   for(const p of allPlayers()){
     if(own.has(p.id)||!isFree(p)||G.lock[p.id]>=99||(G.banU&&G.banU[p.id])||(G.relBy&&G.relBy[p.id]===k)) continue;
     if(G.nego&&G.nego[p.id]&&Math.random()<0.5) continue;
     if(G.bids&&G.bids[p.id]&&G.bids[p.id].some(b=>b.k===k)) continue;
+    if(G.bids&&G.bids[p.id]&&G.bids[p.id].length>=2&&Math.random()<0.85) continue;
     const ask=marketAsk(p); if(ask>cap) continue; if(ros.length>=5&&payroll(k)+ask>teamCap(k)) continue;
     if(p.region!==t.region && imports>=2) continue;
     const L=teamLang(ros,k); let s=p.ovr + langPref(p.id,L) + (G.co&&coOf(k)&&coLang(coOf(k))===langOf(p)?3:0) + (p.gen?-7:p.est?-2:5) + (p.nat===nat?8:p.region===t.region?1:-9) + (need.size?(need.has(p.role)?12:p.role==="flex"?7:-4):0) + Math.random()*5
@@ -2045,6 +2098,7 @@ function initWorld(){
     DB.teams.filter(t=>t.key!==G.team).forEach(t=>{ const n=Math.max(0,5-G.rosters[t.key].length)+(Math.random()<0.45?1:0); need+=n; if(n) G.aiPlan[t.key]=spreadDays(n,16); sortRoster(t.key); });
     G.brief&&G.brief.splice(2,0,L(`스토브리그: 다른 구단들이 앞으로 약 20일 동안 FA와 신예 ${need}명 정도를 차례로 영입합니다. 먼저 움직이면 원하는 선수를 선점할 수 있습니다.`,`Offseason: over the next ~20 days, other clubs will sign about ${need} free agents and prospects one by one. Move first to grab the players you want.`,`ストーブリーグ: 他クラブは今後約20日間でFAと新星を約${need}人、順番に獲得します。先に動けば狙った選手を確保できます。`,`休赛期: 其他俱乐部将在约20天内陆续签下约${need}名自由球员和新秀。先出手就能抢到想要的选手。`));
   }
+  if(G.diff&&!G.diffApplied&&G.rosters){ try{ if(!G.co&&typeof initCoaches==="function") initCoaches(); }catch(err){} applyDiffStart(); }
 }
 /* AI recruitment takes time: clubs place bids, players decide a few days later */
 function dayNo(){ return (G.sea?G.sea.yr:2027)*1000+(G.week||0)*7+(G.day||0); }
@@ -2052,11 +2106,12 @@ function bidsOf(id){ return ((G.bids||{})[id]||[]).filter(b=>G.rosters[b.k]); }
 function topBid(id){ const bs=bidsOf(id); return bs.length?bs.slice().sort((a,b)=>b.sal-a.sal)[0]:null; }
 /* spread n signing starts over the next `win` days (absolute day numbers) */
 function spreadDays(n,win){ const now=absNow(), out=[]; for(let i=0;i<n;i++){ out.push(now+Math.min(win,Math.round((i+Math.random()*0.8)*win/n))); } return out.sort((a,b)=>a-b); }
-function planDue(k){ const pl=G.aiPlan&&G.aiPlan[k]; if(!pl||!pl.length) return null; return pl[0]<=absNow(); }
+function planDue(k){ const pl=G.aiPlan&&G.aiPlan[k]; if(!pl||!pl.length) return null; if(pl[0]>absNow()+60){ G.aiPlan[k]=pl.filter(x=>x<=absNow()+60); return planDue(k); } return pl[0]<=absNow(); }
+function pursuitN(k){ let n=0; for(const id in (G.bids||{})) if(G.bids[id].some(b=>b.k===k)) n++; return n; }
 function hasPursuit(k){ for(const id in (G.bids||{})) if(G.bids[id].some(b=>b.k===k)) return true; return false; }
 function placeBid(k,rep){ const p=aiPick(k); if(!p) return null; const t=T(k);
   const sal=Math.round(marketAsk(p)*(0.95+Math.random()*0.3)*(t.partner?1.05:0.97)/1000)*1000;
-  G.bids=G.bids||{}; (G.bids[p.id]=G.bids[p.id]||[]).push({k,y:1+Math.floor(Math.random()*3),sal,due:dayNo()+2+Math.floor(Math.random()*4),rep:rep||null});
+  G.bids=G.bids||{}; (G.bids[p.id]=G.bids[p.id]||[]).push({k,y:1+Math.floor(Math.random()*3),sal,due:dayNo()+(DF().allFA&&G.sea&&G.sea.pi===0?1+Math.floor(Math.random()*3):2+Math.floor(Math.random()*4)),rep:rep||null});
   if(G.nego&&G.nego[p.id]) G.brief&&G.brief.push(L(`협상 중인 ${p.name} 선수에게 ${t.name}도 영입 제안을 보냈습니다.`,`${t.name} also made an offer to ${p.name}, who you are negotiating with.`,`交渉中の${p.name}に${t.name}もオファーを出しました。`,`${t.name}也向正在谈判的${p.name}发出了报价。`));
   return p; }
 function aiSignId(k,id,b,quiet){ const p=P(id), t=T(k);
@@ -2073,6 +2128,7 @@ function resolveBids(){ const out=[], now=dayNo(), own=ownedSet(); G.bids=G.bids
     const score=b=>b.sal*(T(b.k).partner?1.08:1)*(1+clubFame(b.k)/300)*(0.9+Math.random()*0.2);
     const win=bs.slice().sort((a,b)=>score(b)-score(a))[0];
     if(G.rosters[win.k].length>=MAXR&&!win.rep){ G.bids[id]=bs.filter(b=>b!==win); continue; }
+    G.aiPlan=G.aiPlan||{}; bs.filter(b=>b!==win).forEach(b=>{ (G.aiPlan[b.k]=G.aiPlan[b.k]||[]).unshift(absNow()+1); });
     delete G.bids[id]; aiSignId(win.k,id,win); out.push(`${T(win.k).name}, ${p.name} ${win.rep?"교체 영입":"영입"}`); }
   return out; }
 function aiDaily(){
@@ -2081,9 +2137,9 @@ function aiDaily(){
   for(const k in G.rosters){
     const ros=G.rosters[k], t=T(k);
     if(ros.length<5){ if(urgent){ const p=aiSign(k); if(p) out.push(`${t.name}, ${p.name} 영입`); sortRoster(k); continue; }
-      if(hasPursuit(k)) continue;
-      G.aiPlan=G.aiPlan||{}; if(!G.aiPlan[k]||!G.aiPlan[k].length) G.aiPlan[k]=spreadDays(5-ros.length,Math.min(19,7*(5-ros.length)));
-      if(planDue(k)){ G.aiPlan[k].shift(); placeBid(k); } continue; }
+      const maxP=5-ros.length>=3?3:1; if(pursuitN(k)>=maxP) continue;
+      G.aiPlan=G.aiPlan||{}; if(!G.aiPlan[k]||!G.aiPlan[k].length) G.aiPlan[k]=spreadDays(5-ros.length,Math.max(1,Math.min(19,7*(5-ros.length),G.sea&&G.sea.next==="match"?G.dday-3:19)));
+      while(planDue(k)&&pursuitN(k)<maxP){ G.aiPlan[k].shift(); if(!placeBid(k)) break; } continue; }
     if(G.aiPlan&&G.aiPlan[k]&&G.aiPlan[k].length&&ros.length<6){ if(!hasPursuit(k)&&planDue(k)){ G.aiPlan[k].shift(); placeBid(k); } continue; }
     if(G.aiPlan&&G.aiPlan[k]&&ros.length>=6) delete G.aiPlan[k];
     if(!transferOpen()) continue;
@@ -2376,7 +2432,7 @@ function newGame(k){
   const left = t.roster.filter(n=>P(n).status==="FA");
   const fame = (t.partner?55:38) + Math.min(30, t.results.length*6) + (CHAMPS.includes(k)?8:0);
   G = {
-    v:3, team:k, day:0, week:1, dday:21, budget:startBudget(k),
+    v:3, diff:diffPref(), team:k, day:0, week:1, dday:21, budget:startBudget(k),
     roster: kept.slice(0,MAXR).map(n=>({id:n, cond:80+hash(n)%18, fat:10+hash(n+"f")%25, salary:Math.round(marketAsk(P(n))*0.95/1000)*1000, years:1+hash(n+"y")%2})),
     fame, fans: fame*14000 + hash(k)%9000,
     fac:{gear:2,dorm:2,lab:1}, synergy:50,
@@ -2426,10 +2482,10 @@ function windowNote(){ if(!G.sea) return ""; const p0=curPhase(); if(p0.type==="
   if((G.twin||0)>0) return L(`이적시장 열림 (${G.twin}일 남음)`,`Transfer window open (${G.twin} days left)`,`移籍市場オープン (残り${G.twin}日)`,`转会窗口开放 (剩余${G.twin}天)`);
   const nxt=PHASES.slice(G.sea.pi+1).find(x=>x.type==="intl"); const nn=nxt?nxt.n:"";
   return nxt?L(`이적시장 닫힘. ${nn} 종료 후 다시 열립니다`,`Transfer window closed. Reopens after ${nn}`,`移籍市場は閉鎖中。${nn}終了後に再開`,`转会窗口已关闭，${nn}结束后重新开放`):L("이적시장 닫힘. 오프시즌에 다시 열립니다","Transfer window closed. Reopens in the offseason","移籍市場は閉鎖中。オフシーズンに再開","转会窗口已关闭，休赛期重新开放"); }
-function needWindow(){ if(transferOpen()) return false; toast(windowNote()+L(". 이적과 트레이드는 국제대회가 끝난 뒤와 오프시즌에만 할 수 있습니다.",". Signings and trades are only allowed after international events and in the offseason.","。移籍とトレードは国際大会終了後とオフシーズンのみ可能です。","。转会和交易只能在国际赛事结束后和休赛期进行。")); return true; }
+function needWindow(){ if(DF().lock&&!myTransferOpen()){ toast(L("임파서블 난이도: 오프시즌과 프리시즌이 끝나면 다음 오프시즌까지 선수를 영입할 수 없습니다.","Impossible: after the offseason/preseason you cannot sign players until the next offseason.","インポッシブル: オフシーズンとプレシーズンが終わると次のオフシーズンまで選手を獲得できません。","地狱难度: 休赛期和季前赛结束后，直到下个休赛期都无法签人。")); return true; } if(transferOpen()) return false; toast(windowNote()+L(". 이적과 트레이드는 국제대회가 끝난 뒤와 오프시즌에만 할 수 있습니다.",". Signings and trades are only allowed after international events and in the offseason.","。移籍とトレードは国際大会終了後とオフシーズンのみ可能です。","。转会和交易只能在国际赛事结束后和休赛期进行。")); return true; }
 const PH_CAPMUL={star:1.45,win:1.1,fran:1.15,vet:1.0,vetcore:0.9,scout:0.9,pot:0.8,tank:0.55};
 function teamCap(k){ const t=T(k), bud=k===G.team?G.budget:startBudget(k), ph=phOf(k);
-  return Math.round(((t.partner?1150000:550000)+Math.max(0,bud)*0.12)*(PH_CAPMUL[ph]||1)*(k===G.team?2:1.6)/1000)*1000; }
+  return Math.round(((t.partner?1150000:550000)+Math.max(0,bud)*0.12)*(PH_CAPMUL[ph]||1)*(k===G.team?2*DF().cap:1.6*DF().aiCap)/1000)*1000; }
 function payroll(k){ return k===G.team?G.roster.reduce((s,r)=>s+(r.salary||0),0):rosterOf(k).reduce((s,id)=>s+marketAsk(P(id))*0.95,0); }
 function capLine(){ const c=teamCap(G.team), p=payroll(G.team); return L(`연봉 총액 ${short(p)} / 상한 ${short(c)} (${PH[phOf(G.team)].s} 기조, 재정 반영)`,`Payroll ${short(p)} / cap ${short(c)} (${PH[phOf(G.team)].s}, finances)`,`年俸総額 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方針、財政反映)`,`薪资总额 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方针，财政影响)`); }
 function poorClub(){ const t=T(G.team); return !t.partner&&G.budget<900000; }
@@ -2666,7 +2722,7 @@ function weekly(){
   const coachPay = G.co&&myCoach()?Math.round(coSal(myCoach())/52):0;
   const staff = 18000+coachPay+Math.round(pcWeekCost()), facCost = (G.fac.gear+G.fac.dorm+G.fac.lab)*2500;
   const sp = G.sponsors.reduce((s,x)=>s+x.pay,0);
-  const stipend = T(G.team).partner?42000:12000;
+  const stipend = Math.round((T(G.team).partner?42000:12000)*DF().bud);
   const merch = Math.round(G.fans*0.07);
   const inc = sp+stipend+merch, exp = pay+staff+facCost;
   return {inc,exp,net:inc-exp,pay,staff,facCost,sp,stipend,merch};
@@ -2677,7 +2733,7 @@ function renderTop(){ requestAnimationFrame(()=>{ const h=$("#top"); if(h) docum
   document.documentElement.style.setProperty("--c",`var(--${t.region})`);
   $("#tEmb").innerHTML=logoImg(t); $("#tEmb").style.borderColor=`var(--${t.region})`;
   $("#tName").textContent=t.name;
-  phInit(); $("#tLeague").innerHTML=`VCT ${REG[t.region].n} | ${t.partner?L("파트너 팀","Partner team","パートナーチーム","合作伙伴队伍"):L("오픈 예선 진출팀","Open qualifier team","オープン予選チーム","公开预选赛队伍")} | ${phTag(G.team,true)}`;
+  phInit(); $("#tLeague").innerHTML=`VCT ${REG[t.region].n} | ${t.partner?L("파트너 팀","Partner team","パートナーチーム","合作伙伴队伍"):L("오픈 예선 진출팀","Open qualifier team","オープン予選チーム","公开预选赛队伍")} | ${phTag(G.team,true)}${G.diff&&G.diff!=="basic"?`<span class="difftag" style="color:${{chal:"#93B4FF",rebuild:"#22C55E",hard:"#f59e0b",imp:"#FF4655"}[G.diff]}" data-tip="${esc(diffDesc(G.diff))}">${diffName(G.diff)}</span>`:""}`;
   $("#tFans").innerHTML=`명성 <b class="osw">${G.fame}</b> | 팬 <b class="osw">${Math.round(G.fans).toLocaleString()}</b>`;
   $("#tFans").dataset.tip=`<h6>명성 / 팬덤</h6><div class="g"><span>명성</span><span>${G.fame} / 100</span><span>팬 수</span><span>${Math.round(G.fans).toLocaleString()}</span><span>전적</span><span>${G.record.w}승 ${G.record.l}패</span></div><div class="ft">명성이 높을수록 선수들이 낮은 연봉에도 계약합니다.</div>`;
   $("#tSeason").textContent=`${phaseLabel()} - WEEK ${G.week}`;
@@ -3013,10 +3069,10 @@ function reservation(p,years){
   if(p.region===T(G.team).region) f-=0.02;
   if(G.co){ const cf=coPlayerFit(myCoach(),p.id); f+=cf>=1?-0.03:cf<0.5?0.03:0; }
   const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years];
-  return Math.round(ask*f*yf*(NG&&NG.id===p.id?ivDisc():1)/1000)*1000;
+  return Math.round(ask*f*yf*DF().ask*(NG&&NG.id===p.id?ivDisc():1)/1000)*1000;
 }
-function askFor(p,years){ const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf/1000)*1000; }
-function buyout(p){ if(rfaFee(p.id)) return rfaFee(p.id); return p.status==="T2" ? Math.round(marketAsk(p)*0.7*(NG&&NG.id===p.id?ivFDisc():1)/1000)*1000 : 0; }
+function askFor(p,years){ const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf*DF().ask/1000)*1000; }
+function buyout(p){ if(rfaFee(p.id)) return rfaFee(p.id); return p.status==="T2" ? Math.round(marketAsk(p)*0.7*DF().ask*(NG&&NG.id===p.id?ivFDisc():1)/1000)*1000 : 0; }
 function openNego(id){
   const p=P(id); if(!(G.rfa&&G.rfa[id])&&needWindow()) return;
   if(teamOf(id)&&teamOf(id)!==G.team&&!(G.rfa&&G.rfa[id])) return openRFA(id);
@@ -3366,7 +3422,7 @@ const PHASES=[
   {k:"CH",n:"Champions",type:"intl",prize:1000000},
   {k:"OFF",n:"오프시즌",type:"off"}
 ];
-function tStr(k){ return k===G.team ? myPower() : teamOvr(rosterOf(k))-(1-commScore(rosterOf(k),k))*6+iglBonus(rosterOf(k),k)*0.8+(G.co?coPow(k):0); }
+function tStr(k){ return k===G.team ? myPower() : DF().ai+teamOvr(rosterOf(k))-(1-commScore(rosterOf(k),k))*6+iglBonus(rosterOf(k),k)*0.8+(G.co?coPow(k):0); }
 function regionTeams(r){ return DB.teams.filter(t=>t.region===r).map(t=>t.key); }
 function simAI(a,b,bo){
   const p=1/(1+Math.exp(-(tStr(a)-tStr(b))/3.5)), need=Math.ceil(bo/2); let x=0,y=0;
@@ -3875,8 +3931,9 @@ function tacBonus(ap,dp,R){
 /* ================= SERIES / MAP ================= */
 let MX=null;
 function mkSide(ids, team){
-  const tb=team==="me"?moraleBonus():0;
+  const tb=team==="me"?moraleBonus():0, ab=team==="me"?0:Math.round(DF().ai*1.4);
   const list=ids.slice(0,5).map(id=>{ const p=P(id), s=p.s||{}; const rr=team==="me"?G.roster.find(x=>x.id===id):null, mb=rr?Math.round((morOf(rr)-60)/12+tb):0; return {id,name:p.name,role:p.role,ovr:p.ovr,aim:(p.A.aim||40)+mb,fire:(p.A.fire||40)+mb,entry:p.A.entry||40,cons:(p.A.cons||40)+mb,util:p.A.util||40,kpr:s.kpr||null,apr:s.apr||null}; });
+  if(ab) list.forEach(q=>["aim","fire","entry","cons","util"].forEach(a=>{ if(q[a]!=null) q[a]=Math.min(99,q[a]+ab); }));
   while(list.length<5) list.push({id:"sub"+list.length,name:L("대체 선수","Stand-in","代役","替补"),role:"sentinel",ovr:55,aim:30,fire:30,entry:30,cons:30,util:30});
   return list.map(p=>({...p,team,k:0,d:0,a:0,mk:0,md:0,ma:0}));
 }
@@ -4733,8 +4790,9 @@ const NEWS_COLOR={RESULT:"#93B4FF",STANDINGS:"#93B4FF",TRANSFER:"#3DDBA4",TRADE:
 function newsItems(){
   const R=newsRng(`${G.week}|${G.day}|${G.matchNo}|${(G.tx||[]).length}`);
   const pick=a=>a[Math.floor(R()*a.length)], n=(a,b)=>a+Math.floor(R()*(b-a+1));
-  const mt=T(G.team), others=DB.teams.filter(x=>x.key!==G.team&&rosterOf(x.key).length);
-  const rt=()=>pick(others), sp=k=>P(pick(rosterOf(k).slice(0,5)));
+  const mt=T(G.team), oth0=DB.teams.filter(x=>x.key!==G.team&&rosterOf(x.key).length), others=oth0.length>=3?oth0:DB.teams.filter(x=>x.key!==G.team);
+  const anyP=()=>{ const f=allPlayers().filter(x=>isFree(x)&&!x.gen); return f.length?f[Math.floor(R()*f.length)]:allPlayers()[0]; };
+  const rt=()=>pick(others), sp=k=>{ const r=(k===G.team?G.roster.map(x=>x.id):rosterOf(k)).slice(0,5); return r.length?P(pick(r)):anyP(); };
   const agName=()=>agNm(pick(DB.agents));
   const out=[];
   // my club
@@ -5891,7 +5949,7 @@ function openAwards(yr){
   bind(); $("#ov").classList.add("on");
 }
 /* ================= BOOT ================= */
-applyUI(); { const st=document.querySelector('.stamp'); if(st) st.insertAdjacentHTML('afterend',`<div style="display:flex;gap:8px;align-items:center"><span class="mute" style="font-size:11px">화면</span>${uiSeg()}</div><div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span class="mute" style="font-size:11px">Language</span>${langSeg()}</div>`); }
+applyUI(); { const st=document.querySelector('.stamp'); if(st) st.insertAdjacentHTML('afterend',`<div style="display:flex;gap:8px;align-items:center"><span class="mute" style="font-size:11px">화면</span>${uiSeg()}</div><div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span class="mute" style="font-size:11px">Language</span>${langSeg()}</div><div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><span class="mute" style="font-size:11px">${L("난이도","Difficulty","難易度","难度")}</span>${diffSeg()}</div>`); }
 startI18n();
 renderTabs(); renderGrid();
 try{
