@@ -206,6 +206,10 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
 .filters select,.filters input{background:rgba(0,0,0,.3);border:1px solid var(--line);color:var(--text);padding:6px 8px;font-family:inherit;font-size:13px}
 .mrow{display:grid;grid-template-columns:90px 1fr 46px 120px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.mpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0 14px}
+.mcell{background:#151517;border:1px solid #2a2a2a;border-radius:4px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:5px}
+.mcell:hover{border-color:#555}.mcell.on{border-color:var(--red);box-shadow:0 0 0 1px var(--red) inset}.mcell .mtop{display:flex;justify-content:space-between;font-size:13px}.mcell small{font-size:11px}
+.trow2{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .gc{border:1px solid var(--line);background:rgba(0,0,0,.22);padding:14px}
 .gc h5{font-size:14px;margin-bottom:6px}
@@ -828,6 +832,7 @@ body.ui-mob .whog{grid-template-columns:repeat(2,1fr)}
 .car{margin:4px 0 0;padding-left:18px;font-size:12px;line-height:1.7;color:#c9d2cc}
 .tbl tr.owned td{opacity:.85}.tbl tr.owned td:first-child b{color:#9fb6ff}
 .diff.e{background:rgba(96,165,250,.15);color:#7DB4FF;border:none}
+.diff.m{background:rgba(45,212,191,.14);color:#5EEAD4;border:none}
 .diff.vh{background:rgba(168,85,247,.18);color:#C08BFF;border:none}
 .ivopts{display:grid;gap:8px;margin-top:10px}
 .ivo{text-align:left;padding:11px 14px;background:#141816;border:1px solid var(--line);color:#e8ece9;font-size:13px;line-height:1.5;cursor:pointer;border-radius:4px}
@@ -1038,20 +1043,19 @@ body.ui-tab .calbtn{width:32px}
     <div class="brand">
       <small>VCT MANAGER</small>
       <h1>발로란트 프로게임단 키우기</h1>
-      <p>운영할 구단을 고르세요. 권역과 관계없이 파트너 팀 중 로스터 평균 OVR 상위 4팀은 쉬움, 나머지 파트너 팀은 보통입니다. 비파트너 팀 중 평균 OVR 하위 4팀은 매우 어려움, 나머지 비파트너 팀은 어려움입니다.</p>
+      <p>운영할 구단을 고르세요. 별이 많을수록 어렵습니다.</p>
     </div>
     <div class="stamp">로스터 기준 | CHAMPIONS 2026 종료 (2026.10.18)</div>
   </div>
   <div class="tabs" id="tabs"></div>
   <div class="legend">
-    <span class="diff e"><span class="stars">*</span> 쉬움</span><span>파트너 중 평균 OVR 상위 4팀</span><span class="diff n"><span class="stars">**</span> 보통</span><span>2027 파트너 팀: 킥오프 직행, 리그 지원금</span>
-    <span class="diff vh"><span class="stars">*****</span> 매우 어려움</span><span>비파트너 중 평균 OVR 하위 4팀</span><span class="diff h"><span class="stars">****</span> 어려움</span><span>파트너 미선정: 오픈 예선부터, 지원금 없음</span>
+    <span class="diff e" title="파트너 중 평균 OVR 상위 4팀"><span class="stars">*</span> 쉬움</span><span class="diff m" title="파트너 중 최근 2년 국제대회 출전과 우승 경력"><span class="stars">**</span> 할만함</span><span class="diff n" title="나머지 파트너 팀, 최근 2년 국제대회 우승 비파트너 팀"><span class="stars">***</span> 보통</span><span class="diff h" title="파트너 미선정: 오픈 예선부터, 지원금 없음"><span class="stars">****</span> 어려움</span><span class="diff vh" title="비파트너 중 평균 OVR 하위 4팀"><span class="stars">*****</span> 매우 어려움</span><span class="mute" style="font-size:12px">별에 마우스를 올리면 기준이 보입니다</span>
   </div>
   <div class="grid" id="grid"></div>
-  <div class="srcs">
+  <details class="srcs"><summary style="cursor:pointer">데이터 출처</summary>
     로스터: vlr.gg 각 리그 Stage 2 및 Valorant Champions 2026 참가팀 명단. 능력치: vlr.gg 2026 Kickoff, Stage 1, Masters Santiago, Masters London, Stage 2, Champions 기록과 Challengers(일본 vlr.gg, 한국 및 중남미 북부 rib.gg 플레이오프) 기록을 맵 수와 대회 비중으로 가중하고, 표본이 적은 선수는 평균 쪽으로 보정한 뒤 팀 커리어를 더해 산출.
     포지션은 요원 기록 기준이며, 시즌 중 4개 포지션을 모두 플레이한 선수는 FLEX. 요원 목록: playvalorant.com. FA: 2026년 11월 17일 기준 vlr.gg 이적 기록.
-  </div>
+  </details>
 </div>
 </section>
 <div class="ov" id="ov"><div class="md" id="md"></div></div>
@@ -1088,6 +1092,7 @@ body.ui-tab .calbtn{width:32px}
       <div id="rosterList"></div>
       <div class="sub">코칭스태프 버프</div>
       <div class="staff" id="staff"></div>
+      <div id="coachTip"></div>
     </div>
     <div class="pbtns">
       <button class="btn3" onclick="openSheet('squad')">로스터 관리</button>
@@ -1160,7 +1165,7 @@ const TD={
 "닫기":["Close","閉じる","关闭"],"취소":["Cancel","キャンセル","取消"],"저장":["Save","保存","保存"],"삭제":["Delete","削除","删除"],"수락":["Accept","承諾","接受"],"거절":["Decline","拒否","拒绝"],"조정":["Adjust","調整","调整"],"보류":["Hold","保留","搁置"],"진행":["Proceed","進行","进行"],"자동":["Auto","自動","自动"],"설정":["Settings","設定","设置"],"열기":["Open","開く","展开"],"바꾸기":["Change","変更","更改"],"나가기":["Exit","終了","退出"],"초기화":["Reset","リセット","重置"],"지우기":["Clear","消去","清除"],"이전으로":["Back","戻る","返回"],"제의":["Offer","オファー","邀约"],"정보":["Info","情報","信息"],"내놓기":["List","放出","挂牌"],"협상":["Negotiate","交渉","谈判"],"내리기":["Remove","取り下げ","撤下"],
 "월":["Mon","月","一"],"화":["Tue","火","二"],"수":["Wed","水","三"],"목":["Thu","木","四"],"금":["Fri","金","五"],"토":["Sat","土","六"],"일":["Sun","日","日"],
 "월요일":["Monday","月曜日","星期一"],"화요일":["Tuesday","火曜日","星期二"],"수요일":["Wednesday","水曜日","星期三"],"목요일":["Thursday","木曜日","星期四"],"금요일":["Friday","金曜日","星期五"],"토요일":["Saturday","土曜日","星期六"],"일요일":["Sunday","日曜日","星期日"],
-"팀":["Team","チーム","战队"],"선수":["Player","選手","选手"],"감독":["Head coach","監督","主教练"],"코치":["Coach","コーチ","教练"],"주전":["Starter","スタメン","首发"],"벤치":["Bench","ベンチ","替补"],"후보로":["To bench","控えへ","转替补"],"주전으로":["To starter","スタメンへ","转首发"],"방출":["Release","放出","解约"],"영입":["Sign","獲得","签约"],"경질":["Fired","解任","解雇"],"트레이드":["Trade","トレード","交易"],"스크림":["Scrim","スクリム","训练赛"],"휴식":["Rest","休息","休息"],"훈련":["Training","トレーニング","训练"],"미디어":["Media","メディア","媒体"],"경기":["Match","試合","比赛"],"경력":["Career","経歴","生涯"],"언어":["Language","言語","语言"],"국적":["Nationality","国籍","国籍"],"포지션":["Role","ロール","定位"],"구분":["Type","区分","类型"],"권역":["Region","地域","赛区"],"연봉":["Salary","年俸","年薪"],"계약":["Contract","契約","合同"],"재계약":["Renewal","再契約","续约"],"현금":["Cash","現金","现金"],"비용":["Cost","費用","费用"],"명성":["Fame","名声","声望"],"인지도":["Reputation","知名度","知名度"],"사기":["Morale","士気","士气"],"컨디":["Form","調子","状态"],"컨디션":["Condition","コンディション","状态"],"피로":["Fatigue","疲労","疲劳"],"양호":["Good","良好","良好"],"주의":["Caution","注意","注意"],"위험":["Danger","危険","危险"],"높음":["High","高い","高"],"낮음":["Low","低い","低"],"보통":["Normal","普通","普通"],"쉬움":["Easy","やさしい","简单"],"어려움":["Hard","難しい","困难"],"매우 어려움":["Very hard","とても難しい","非常困难"],
+"팀":["Team","チーム","战队"],"선수":["Player","選手","选手"],"감독":["Head coach","監督","主教练"],"코치":["Coach","コーチ","教练"],"주전":["Starter","スタメン","首发"],"벤치":["Bench","ベンチ","替补"],"후보로":["To bench","控えへ","转替补"],"주전으로":["To starter","スタメンへ","转首发"],"방출":["Release","放出","解约"],"영입":["Sign","獲得","签约"],"경질":["Fired","解任","解雇"],"트레이드":["Trade","トレード","交易"],"스크림":["Scrim","スクリム","训练赛"],"휴식":["Rest","休息","休息"],"훈련":["Training","トレーニング","训练"],"미디어":["Media","メディア","媒体"],"경기":["Match","試合","比赛"],"경력":["Career","経歴","生涯"],"언어":["Language","言語","语言"],"국적":["Nationality","国籍","国籍"],"포지션":["Role","ロール","定位"],"구분":["Type","区分","类型"],"권역":["Region","地域","赛区"],"연봉":["Salary","年俸","年薪"],"계약":["Contract","契約","合同"],"재계약":["Renewal","再契約","续约"],"현금":["Cash","現金","现金"],"비용":["Cost","費用","费用"],"명성":["Fame","名声","声望"],"인지도":["Reputation","知名度","知名度"],"사기":["Morale","士気","士气"],"컨디":["Form","調子","状态"],"컨디션":["Condition","コンディション","状态"],"피로":["Fatigue","疲労","疲劳"],"양호":["Good","良好","良好"],"주의":["Caution","注意","注意"],"위험":["Danger","危険","危险"],"높음":["High","高い","高"],"낮음":["Low","低い","低"],"할만함":["Manageable","手ごろ","可以应付"],"보통":["Normal","普通","普通"],"쉬움":["Easy","やさしい","简单"],"어려움":["Hard","難しい","困难"],"매우 어려움":["Very hard","とても難しい","非常困难"],
 "전술":["Tactics","戦術","战术"],"분석":["Analysis","分析","分析"],"멘탈":["Mental","メンタル","心理"],"숙소":["Dorm","宿舎","宿舍"],"분석실":["Analysis room","分析室","分析室"],"연습실 장비":["Practice gear","練習室設備","训练室设备"],"요원":["Agent","エージェント","特工"],"숙련도":["Proficiency","熟練度","熟练度"],"숙련":["Mastery","熟練","熟练"],"포텐셜":["Potential","ポテンシャル","潜力"],"능력치":["Attributes","能力値","能力值"],"경험":["Experience","経験","经验"],"에임":["Aim","エイム","枪法"],"화력":["Firepower","火力","火力"],"진입":["Entry","エントリー","突破"],"안정감":["Consistency","安定感","稳定性"],"유틸":["Utility","ユーティリティ","道具"],"소통":["Communication","コミュニケーション","沟通"],"성향":["Style","傾向","风格"],"육성":["Development","育成","培养"],"신예":["Prospect","新星","新秀"],"가상 신예":["Virtual prospect","架空の新星","虚拟新秀"],"2부":["Tier 2","2部","二级"],"무소속":["Free agent","無所属","无战队"],"내 구단":["My club","自チーム","我的战队"],"소속":["Rostered","所属","在队"],
 "타격대":["Duelist","デュエリスト","决斗者"],"척후대":["Initiator","イニシエーター","先锋"],"전략가":["Controller","コントローラー","控场者"],"감시자":["Sentinel","センチネル","哨卫"],
 "무명":["Unknown","無名","无名"],"초짜":["Rookie","新人","新手"],"중급":["Intermediate","中級","中级"],"고급":["Advanced","上級","高级"],"명장":["Legend","名将","名帅"],
@@ -1174,8 +1179,8 @@ const TD={
 "필터 초기화":["Reset filters","フィルター解除","重置筛选"],"선수 이름 검색":["Search player","選手名で検索","搜索选手"],"이전/소속 팀":["Team / previous team","所属/前所属","所属/前战队"],"연봉 최소 (만원)":["Min salary ($K)","年俸下限 ($K)","最低年薪 ($K)"],"연봉 최대 (만원)":["Max salary ($K)","年俸上限 ($K)","最高年薪 ($K)"],"OVR 이상":["OVR min","OVR以上","OVR以上"],"전체 (FA + 2부 + 신예)":["All (FA + Tier 2 + prospects)","全体 (FA+2部+新星)","全部 (FA+二级+新秀)"],"VCT FA":["VCT FA","VCT FA","VCT 自由球员"],"2부 리그 스카우트":["Tier 2 scouting","2部リーグ","二级联赛球探"],"전체 권역":["All regions","全地域","全部赛区"],"전체 국적":["All nationalities","全国籍","全部国籍"],"전체 포지션":["All roles","全ロール","全部定位"],"희망 연봉":["Asking salary","希望年俸","期望年薪"],"협상 시작":["Start talks","交渉開始","开始谈判"],"제안하기":["Make offer","提案する","提出报价"],"선수와 면담 (필수)":["Interview player (required)","選手と面談 (必須)","与选手面谈 (必须)"],"협상으로 돌아가기":["Back to negotiation","交渉に戻る","返回谈判"],"면담 결과":["Interview result","面談結果","面谈结果"],"면담 완료":["Interview done","面談完了","面谈完成"],"선수 호감도":["Player affinity","選手の好感度","选手好感度"],"남은 인내심":["Patience left","残りの忍耐","剩余耐心"],"시장 평가액":["Market value","市場評価額","市场估值"],"계약금 비율":["Signing bonus rate","契約金比率","签约金比例"],"1년 계약":["1-year deal","1年契約","1年合同"],"2년 계약":["2-year deal","2年契約","2年合同"],"3년 계약":["3-year deal","3年契約","3年合同"],"선수가 느끼는 연봉 가치":["Value felt by player","選手が感じる年俸価値","选手感受到的年薪价值"],"제안 후 주간 연봉 지출 증가":["Weekly wage increase","提案後の週給増加","报价后周薪增加"],"계약금 + 이적료 (선지급)":["Bonus + fee (upfront)","契約金+移籍金 (前払い)","签约金+转会费 (预付)"],"높을수록 연봉을 덜 불러도 수락":["Higher = accepts lower salary","高いほど低い年俸でも承諾","越高越能接受较低年薪"],
 "구단 소개":["About the club","クラブ紹介","俱乐部介绍"],"이 팀으로 시작":["Start with this team","このチームで開始","选择此战队开始"],"상호 합의 해지 후 시작":["Start with mutual release","合意解除して開始","双方解约后开始"],"다른 팀 보기":["Other teams","他のチームを見る","查看其他战队"],"저장 슬롯":["Save slots","セーブスロット","存档栏位"],"빈 슬롯":["Empty slot","空きスロット","空栏位"],"이어하기":["Continue","続きから","继续"],"화면":["Display","画面","画面"],"화면 모드":["Display mode","画面モード","显示模式"],"태블릿":["Tablet","タブレット","平板"],"모바일":["Mobile","モバイル","手机"],"언어 선택":["Language","言語","语言"],
 "발로란트 프로게임단 키우기":["VALORANT Pro Team Manager","VALORANT プロチーム育成","无畏契约职业战队经理"],
-"운영할 구단을 고르세요. 권역과 관계없이 파트너 팀 중 로스터 평균 OVR 상위 4팀은 쉬움, 나머지 파트너 팀은 보통입니다. 비파트너 팀 중 평균 OVR 하위 4팀은 매우 어려움, 나머지 비파트너 팀은 어려움입니다.":["Pick a club to run. Across all regions, the top 4 partner teams by average roster OVR are Easy and the other partner teams are Normal. The bottom 4 non-partner teams are Very hard and the rest are Hard.","運営するクラブを選んでください。地域に関係なく、パートナーチームのうちロスター平均OVR上位4チームは「やさしい」、残りは「普通」です。非パートナーのうち下位4チームは「とても難しい」、残りは「難しい」です。","请选择要经营的战队。不分赛区，合作战队中阵容平均OVR前4名为简单，其余合作战队为普通；非合作战队中后4名为非常困难，其余为困难。"],
-"파트너 중 평균 OVR 상위 4팀":["Top 4 partners by avg OVR","パートナー上位4チーム","合作战队平均OVR前4"],"비파트너 중 평균 OVR 하위 4팀":["Bottom 4 non-partners by avg OVR","非パートナー下位4チーム","非合作战队平均OVR后4"],"2027 파트너 팀: 킥오프 직행, 리그 지원금":["2027 partners: direct to Kickoff, league stipend","2027パートナー: キックオフ直行、リーグ支援金","2027合作战队：直通开幕赛，联赛补贴"],"파트너 미선정: 오픈 예선부터, 지원금 없음":["Not a partner: start from open qualifiers, no stipend","非パートナー: オープン予選から、支援金なし","非合作：从公开预选赛开始，无补贴"],"팀을 고르면 선택한 슬롯에 새 게임이 시작됩니다":["Picking a team starts a new game in the selected slot","チームを選ぶと選択中のスロットで新規ゲームが始まります","选择战队后将在所选栏位开始新游戏"],
+"운영할 구단을 고르세요. 별이 많을수록 어렵습니다.":["Pick a club. More stars means harder.","クラブを選んでください。星が多いほど難しくなります。","请选择战队。星越多越难。"],
+"파트너 중 최근 2년 국제대회 출전 + 우승 경력":["Partners with a recent international appearance and a title (2 yrs)","直近2年に国際大会出場と優勝経験があるパートナー","近2年参加国际赛且有冠军的合作战队"],"나머지 파트너 팀, 최근 2년 국제대회 우승 비파트너 팀":["Other partners, and non-partners with an international title in the last 2 yrs","その他のパートナー、直近2年に国際大会優勝の非パートナー","其他合作战队，以及近2年获国际赛冠军的非合作战队"],"파트너 중 평균 OVR 상위 4팀":["Top 4 partners by avg OVR","パートナー上位4チーム","合作战队平均OVR前4"],"비파트너 중 평균 OVR 하위 4팀":["Bottom 4 non-partners by avg OVR","非パートナー下位4チーム","非合作战队平均OVR后4"],"2027 파트너 팀: 킥오프 직행, 리그 지원금":["2027 partners: direct to Kickoff, league stipend","2027パートナー: キックオフ直行、リーグ支援金","2027合作战队：直通开幕赛，联赛补贴"],"파트너 미선정: 오픈 예선부터, 지원금 없음":["Not a partner: start from open qualifiers, no stipend","非パートナー: オープン予選から、支援金なし","非合作：从公开预选赛开始，无补贴"],"팀을 고르면 선택한 슬롯에 새 게임이 시작됩니다":["Picking a team starts a new game in the selected slot","チームを選ぶと選択中のスロットで新規ゲームが始まります","选择战队后将在所选栏位开始新游戏"],
 "감독 공석":["No head coach","監督不在","主教练空缺"],"꾹 눌러서 감독 경력 보기":["Long-press to see coach career","長押しで監督経歴","长按查看教练履历"],"FA 감독 시장":["Coach market","FA監督市場","自由教练市场"],"코칭 방식 선택":["Coaching style","コーチング方針","执教风格"],"시설 업그레이드":["Upgrade facilities","施設アップグレード","升级设施"],"업그레이드":["Upgrade","アップグレード","升级"],"굿즈 / 스폰서":["Merch / Sponsors","グッズ / スポンサー","周边 / 赞助"],"맵 숙련도":["Map mastery","マップ熟練度","地图熟练度"],"스크림 연습 맵":["Scrim practice map","スクリム練習マップ","训练赛练习地图"],"스크림 제의":["Request scrim","スクリム申請","约训练赛"],"기본 공수 전술":["Default tactics","基本攻守戦術","基础攻防战术"],"대표 공격 패턴":["Main attack pattern","主な攻撃パターン","主要进攻套路"],"픽 우선":["Pick first","優先ピック","优先选择"],"밴 추천":["Ban","バン推奨","建议禁用"],"상황별":["Situational","状況次第","视情况"],
 "현재 주전":["Current starters","現スタメン","当前首发"],"최근 5경기":["Last 5","直近5試合","近5场"],"승-패":["W-L","勝-敗","胜-负"],"맵 득실":["Map diff","マップ得失","地图净胜"],"시즌 기록":["Season log","シーズン記録","赛季记录"],"최근 공식 경기":["Recent official matches","最近の公式戦","近期正式比赛"],"아직 기록이 없습니다.":["No records yet.","まだ記録がありません。","暂无记录。"],"아직 공식 경기가 없습니다.":["No official matches yet.","まだ公式戦がありません。","暂无正式比赛。"],"팀 검색 (모든 리그)":["Search team (all leagues)","チーム検索 (全リーグ)","搜索战队 (所有联赛)"],
 "경기 시작":["Start match","試合開始","开始比赛"],"결과만 보기 (보상 50%)":["Sim result only (50% rewards)","結果だけ見る (報酬50%)","仅看结果 (奖励50%)"],"경기 전 작전 회의":["Pre-match briefing","試合前作戦会議","赛前战术会议"],"작전 회의 (기본 전술)":["Briefing (default tactics)","作戦会議 (基本戦術)","战术会议 (基础战术)"],"밴할 맵을 고르세요":["Choose a map to ban","バンするマップを選択","选择要禁用的地图"],"밴픽 다시 (이전으로)":["Redo veto (back)","バンピックやり直し","重新BP (返回)"],"공격 시":["On attack","攻撃時","进攻时"],"수비 시":["On defense","守備時","防守时"],"지시 전달":["Send orders","指示を伝える","下达指令"],"전부 IGL":["All IGL","全部IGL","全部交给IGL"],"전부 직접":["All manual","全部直接","全部手动"],"IGL 판단":["IGL call","IGL判断","IGL判断"],
@@ -1316,16 +1321,24 @@ function logoImg(t){ return `<img src="${t.logo}" alt="${t.name} 로고">`; }
 /* difficulty: top 4 partner teams by roster-average OVR = easy; bottom 4 non-partner teams = very hard (any region) */
 let _DIFF=null;
 function rosterAvg(t){ const a=t.roster.map(n=>P(n).ovr); return a.length?a.reduce((s,v)=>s+v,0)/a.length:0; }
+/* 2025 record (VCT): international appearances and titles, to go with the 2026 results in the data */
+const REC25={t1:{i:1,w:1,iw:1},prx:{i:1,w:1,iw:1},nrg:{i:1,w:1,iw:1},g2:{i:1,w:1},xlg:{i:1,w:1},rrq:{i:1,w:1},fnc:{i:1,w:1},
+  edg:{i:1},vit:{i:1},wol:{i:1},sen:{i:1},mibr:{i:1},th:{i:1},tl:{i:1},gen:{i:1},drx:{i:1}};
+function teamRec(t){ const r=t.results||[], R=REC25[t.key]||{};
+  const intl=x=>/Masters|Champions/.test(x);
+  const won=x=>/우승/.test(x)&&!/준우승/.test(x);
+  return {intl:!!R.i||r.some(intl), title:!!R.w||r.some(won), intlWin:!!R.iw||r.some(x=>intl(x)&&won(x))}; }
 function diffTier(t){
   if(!_DIFF){ _DIFF={}; const ps=DB.teams.filter(x=>x.partner).map(x=>[x.key,rosterAvg(x),teamOvr(x.roster)]).sort((a,b)=>(b[1]-a[1])||(b[2]-a[2]));
     ps.slice(0,4).forEach(x=>_DIFF[x[0]]="e");
+    DB.teams.filter(x=>x.partner&&!_DIFF[x.key]).forEach(x=>{ const r=teamRec(x); _DIFF[x.key]=r.intl&&r.title?"m":"n"; });
     const np=DB.teams.filter(x=>!x.partner).map(x=>[x.key,rosterAvg(x),teamOvr(x.roster)]).sort((a,b)=>(a[1]-b[1])||(a[2]-b[2]));
-    np.slice(0,4).forEach(x=>_DIFF[x[0]]="vh"); }
+    DB.teams.filter(x=>!x.partner).forEach(x=>{ if(teamRec(x).intlWin) _DIFF[x.key]="n"; });
+    np.filter(x=>!_DIFF[x[0]]).slice(0,4).forEach(x=>_DIFF[x[0]]="vh"); }
   return _DIFF[t.key]||(t.partner?"n":"h");
 }
-function diffHTML(t){ const d=diffTier(t);
-  return d==="e"?`<span class="diff e"><span class="stars">*</span> 쉬움</span>`:d==="vh"?`<span class="diff vh"><span class="stars">*****</span> 매우 어려움</span>`
-    :d==="n"?`<span class="diff n"><span class="stars">**</span> 보통</span>`:`<span class="diff h"><span class="stars">****</span> 어려움</span>`; }
+const DIFF_LBL={e:["*","쉬움"],m:["**","할만함"],n:["***","보통"],h:["****","어려움"],vh:["*****","매우 어려움"]};
+function diffHTML(t){ const d=diffTier(t), x=DIFF_LBL[d]; return `<span class="diff ${d}"><span class="stars">${x[0]}</span> ${x[1]}</span>`; }
 function avatar(name, color, nat){ return `<div class="av" style="background:${color}"><img src="${pixAvatar(String(name),nat)}" alt=""></div>`; }
 function ricon(role,sz){ sz=sz||16; const r=ROLE[role]||ROLE.sentinel;
   if(role==="flex") return `<span class="flexb" style="font-size:${Math.max(8,sz*0.55)}px;height:${sz}px">FLEX</span>`;
@@ -2226,12 +2239,12 @@ function renderTabs(){
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{cur=b.dataset.r;renderTabs();renderGrid();});
   let li=$("#legIntro"); if(!li){ li=document.createElement("div"); li.id="legIntro"; $("#tabs").after(li); }
   li.style.setProperty("--c",`var(--${cur})`);
-  li.innerHTML=`<b>VCT ${REG[cur].n}</b> ${LEAGUE_INTRO[cur]}`;
+  { const full=String(LEAGUE_INTRO[cur]||""), m=/^(.+?[.。])\s/.exec(full), first=m?m[1]:full; li.innerHTML=`<b>VCT ${REG[cur].n}</b> ${first}${m?` <a class="lk" style="font-size:12px" onclick="this.parentNode.innerHTML='<b>VCT ${REG[cur].n}</b> '+LEAGUE_INTRO[cur]">더 보기</a>`:""}`; }
 }
 function renderGrid(){
   $("#grid").innerHTML = DB.teams.filter(t=>t.region===cur).map(t=>{
     const flag = t.key==="loud"?`<span class="flag champ">WORLD CHAMP</span>`:CHAMPS.includes(t.key)?`<span class="flag cq">CHAMPS</span>`:"";
-    return `<button class="card" style="--c:var(--${t.region})" data-k="${t.key}">${flag}<div class="logo">${logoImg(t)}</div><div class="nm">${t.name}</div>${diffHTML(t)}${(()=>{ const c=coOf(t.key); return c?`<div class="cocard"><span>감독 <b>${esc(c.n)}</b></span><span>인지도 ${coBadge(c)}</span><span style="color:${COACH_STYLES[c.st].c}">${COACH_STYLES[c.st].n}</span><span>영입 ${phTag(t.key,true)}</span></div>`:`<div class="cocard mute">감독 공석</div>`; })()}</button>`;
+    return `<button class="card" style="--c:var(--${t.region})" data-k="${t.key}">${flag}<div class="logo">${logoImg(t)}</div><div class="nm">${t.name}</div>${diffHTML(t)}${(()=>{ const c=coOf(t.key); return c?`<div class="cocard"><span>감독 <b>${esc(c.n)}</b></span><span style="color:${COACH_STYLES[c.st].c}">${COACH_STYLES[c.st].n}</span></div>`:`<div class="cocard mute">감독 공석</div>`; })()}</button>`;
   }).join("");
   document.querySelectorAll(".card").forEach(c=>c.onclick=()=>openTeam(c.dataset.k));
 }
@@ -2244,19 +2257,18 @@ function openTeam(k){
     <div class="hero"><div class="logo">${logoImg(t)}</div>
       <div style="flex:1;min-width:240px"><h2>${t.name}</h2>
         <div class="tags"><span class="tag reg">VCT ${REG[t.region].n}</span>${diffHTML(t)}<span class="tag">팀 OVR ${teamOvr(t.roster)}</span>${phTag(t.key)}</div>
-        <p>${t.sintro||""}</p>${(()=>{ const c=coOf(t.key); return c?`<div class="diffbox" style="margin-top:8px;font-size:13px;line-height:1.7">감독 ${coName(c)} | 인지도 ${coBadge(c)} | 언어 ${esc(coLangTag(c))}<br><b style="color:${COACH_STYLES[c.st].c}">${COACH_STYLES[c.st].n}</b> <span class="mute" style="font-size:12px">${COACH_STYLES[c.st].d} (이름을 꾹 누르면 경력)</span></div>`:"<p class=\"mute\" style=\"margin-top:6px\">감독 공석</p>"; })()}</div></div>
+        <p>${t.sintro||""}</p>${(()=>{ const c=coOf(t.key); return c?`<div class="diffbox" style="margin-top:8px;font-size:13px;line-height:1.7">감독 ${coName(c)} | 인지도 ${coBadge(c)} | 언어 ${esc(coLangTag(c))} | <b style="color:${COACH_STYLES[c.st].c}">${COACH_STYLES[c.st].n}</b></div>`:"<p class=\"mute\" style=\"margin-top:6px\">감독 공석</p>"; })()}</div></div>
     <div class="mbody">
-      <div class="sec"><h3>구단 소개</h3><div class="tintro">${introHTML(t)}</div>
-        <div class="srcs" style="margin-top:8px">VCT ${REG[t.region].n} | ${LEAGUE_INTRO[t.region]}</div></div>
+      <div class="sec"><h3>구단 소개</h3><div class="tintro">${(()=>{ const h=introHTML(t), ps=h.split("</p>").filter(Boolean); return ps.length>2?ps.slice(0,2).join("</p>")+`</p><details><summary class="lk" style="cursor:pointer;font-size:12px">더 보기</summary>${ps.slice(2).join("</p>")}</p></details>`:h; })()}</div></div>
       <div class="mcol"><div class="sec"><h3>2026 SEASON</h3><ul class="res">${t.results.map(r=>`<li>${r}</li>`).join("")}</ul>
         <div class="diffbox" style="border-color:${t.partner?'var(--mint)':'var(--red)'}">${t.partner
-          ? `<b class='pos'>${({e:"쉬움",n:"보통"})[diffTier(t)]||"보통"}</b> | 2027-28 파트너 팀. 킥오프 직행권과 리그 지원금을 받고 시작합니다. 시작 자금 <b>${krwText(startBudget(t.key))}</b>. FA들도 파트너 팀을 선호합니다.`
-          : `<b class='neg'>${diffTier(t)==="vh"?"매우 어려움":"어려움"}</b> | 파트너 미선정 팀. 지원금 없이 시작 자금 <b>${krwText(startBudget(t.key))}</b>, 오픈 예선부터 올라가야 합니다. 스타 선수는 계약을 꺼립니다.`}</div></div>
+          ? `<b class='pos'>${DIFF_LBL[diffTier(t)][1]}</b> | 파트너 팀 | 시작 자금 <b>${krwText(startBudget(t.key))}</b>`
+          : `<b class='neg'>${DIFF_LBL[diffTier(t)][1]}</b> | 비파트너 (오픈 예선부터) | 시작 자금 <b>${krwText(startBudget(t.key))}</b>`}</div></div>
       <div class="sec"><h3>ROSTER | CHAMPIONS 2026 종료 기준</h3>
         <div class="plist">${t.roster.map(n=>{const p=P(n);return `<div class="pmini lk" onclick="openPlayer('${esc(n)}')" data-tip="${esc(statTip(n))}">${ricon(p.role,14)}<b>${esc(n)}</b><span class="o">${p.ovr}</span></div>`}).join("")}</div>
-        <div class="srcs" style="margin-top:12px">선수를 누르면 세부 능력치와 요원 숙련도를 볼 수 있습니다.</div></div></div>
+</div></div>
     </div>
-    <div class="foot"><span class="mute" style="font-size:13px">시작하면 계약이 끝난 선수는 FA 시장으로 나갑니다.</span>
+    <div class="foot"><span></span>
       <div style="display:flex;gap:8px"><button class="ghost" onclick="closeM()">다른 팀 보기</button><button class="ghost" onclick="startGame('${t.key}',true)" title="기존 선수 전원과 상호 합의로 계약을 해지하고 빈 로스터로 시작합니다">상호 합의 해지 후 시작</button><button class="go cut" onclick="startGame('${t.key}')">이 팀으로 시작</button></div></div>`;
   $("#ov").classList.add("on");
 }
@@ -2362,7 +2374,7 @@ function openPlayer(id){
         ${G?`<div style="margin-top:14px">${scoutBox(id)}</div>`:""}</div>
     </div>
     <div class="mf"><span class="mute" style="font-size:12px">${signable?`희망 연봉 수준: 약 ${short(marketAsk(p))}/년${p.status==="T2"?" | 이적료 별도":""}`:""}</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${G?`<button class="ghost" onclick="openCompare(${mine?`'${esc(id)}',null`:`(G.roster.find(r=>P(r.id).role==='${p.role}')||G.roster[0]||{}).id,'${esc(id)}'`})">${L("선수 비교","Compare","選手比較","对比")}</button>`:""}${mine&&!(G.tBlock||{})[id]?`<button class="ghost" onclick="listBlock('${esc(id)}')">트레이드 시장에 내놓기</button>`:""}${(()=>{const tk=G&&teamOf(id); return tk&&tk!==G.team?`<button class="ghost" onclick="openRFA('${esc(id)}')">RFA 영입 제의</button><button class="ghost" onclick="openTrade('${tk}','${esc(id)}')">트레이드 문의</button>`:"";})()}${signable?`<button class="go cut" style="padding:10px 20px;font-size:14px" onclick="openNego('${esc(id)}')">협상 시작</button>`:""}<button class="ghost" onclick="closePM()">닫기</button></div></div>`;
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${G?`<button class="ghost" onclick="openCompare(${mine?`'${esc(id)}',null`:`(G.roster.find(r=>P(r.id).role==='${p.role}')||G.roster[0]||{}).id,'${esc(id)}'`})">${L("선수 비교","Compare","選手比較","对比")}</button>`:""}${mine&&!(G.tBlock||{})[id]?`<button class="ghost" onclick="listBlock('${esc(id)}')">트레이드 시장에 내놓기</button>`:""}${(()=>{const tk=G&&teamOf(id); return tk&&tk!==G.team?`<button class="ghost" onclick="openRFA('${esc(id)}')">RFA 영입 제의</button><button class="ghost" onclick="openTrade('${tk}','${esc(id)}')">트레이드 문의</button>`:"";})()}${G&&!mine?`<button class="ghost wbtn ${isWatched(id)?"on":""}" data-w="${esc(id)}" onclick="stoveWatch('${esc(id)}',event)">${isWatched(id)?"찜 해제":"찜"}</button>`:""}${signable?`<button class="go cut" style="padding:10px 20px;font-size:14px" onclick="openNego('${esc(id)}')">협상 시작</button>`:""}<button class="ghost" onclick="closePM()">닫기</button></div></div>`;
   $("#pm").classList.add("on");
 }
 function closePM(){ $("#pm").classList.remove("on"); }
@@ -2485,7 +2497,12 @@ function newGame(k){
   G.brief=b; G.bi=0;
   G.dev={}; applyDev(); initWorld();
   hgFirstSetup();
-  G.brief.push(L(`가상 신예 ${Object.keys(G.gen).length}명이 이적시장에 등장했습니다. 이 중 약 60%가 우리 구단 주력 국적(${G.myNat})이며, 나머지는 원래 국적 그대로입니다.`,`${Object.keys(G.gen).length} fictional prospects entered the market. About 60% share our main nationality (${natName(G.myNat)}); the rest keep their own.`,`架空の新星${Object.keys(G.gen).length}人が移籍市場に登場しました。約60%が当クラブの主要国籍(${natName(G.myNat)})で、残りは元の国籍のままです。`,`${Object.keys(G.gen).length}名虚构新秀进入转会市场，约60%与本队主要国籍(${natName(G.myNat)})相同，其余保持原国籍。`));
+  { const gone=(T(G.team).roster||[]).filter(id=>!G.roster.some(r=>r.id===id)).map(id=>P(id)).filter(Boolean).map(p=>p.name), emp=Math.max(0,5-G.roster.length), t=T(G.team).name;
+    G.brief=[L(`${t} 단장 취임. 오프시즌 시작(11/5), 킥오프 개막 1/18 (D-${G.dday}).`,`Welcome to ${t}. Offseason from 11/5, Kickoff opener 1/18 (D-${G.dday}).`,`${t}のGMに就任。オフ開始(11/5)、キックオフ開幕1/18 (D-${G.dday})。`,`就任${t}经理。休赛期开始(11/5)，开幕赛1/18 (D-${G.dday})。`)]
+      .concat(gone.length?[L(`계약 만료로 ${gone.slice(0,4).join(", ")} FA.${emp?` 주전 ${emp}자리 비었음.`:""}`,`Contracts expired: ${gone.slice(0,4).join(", ")}.${emp?` ${emp} starting spot(s) open.`:""}`,`契約満了でFA: ${gone.slice(0,4).join("、")}。${emp?`スタメン${emp}枠が空き。`:""}`,`合同到期成为自由球员: ${gone.slice(0,4).join("、")}。${emp?`首发空缺${emp}个。`:""}`)]:[])
+      .concat([L(`이적시장은 1/17까지. 다른 구단도 영입 중이니 빈 자리부터 채우세요.`,`Transfer window open until 1/17. Other clubs are signing too, so fill gaps first.`,`移籍市場は1/17まで。他クラブも動いているので空き枠から埋めましょう。`,`转会窗口开放至1/17，其他俱乐部也在签人，先补空位。`),
+        L(`12/10~13 레드불 홈그라운드 자동 초청.`,`Auto-invited to Red Bull Home Ground (12/10-13).`,`12/10~13 レッドブル・ホームグラウンドに自動招待。`,`自动受邀红牛主场赛(12/10~13)。`),
+        L(`처음이면 왼쪽 '코치 한마디'부터 보세요.`,`New here? Start with 'Coach tip' on the left.`,`初めてなら左の「コーチの一言」から。`,`新手请先看左侧“教练提示”。`)]); G.bi=0; }
 }
 let SLOT=1; const SLOTS=3;
 function slotKey(n){ return "vctmgr_slot_"+n; }
@@ -2689,22 +2706,45 @@ function takeJob(k){ const t=T(k), old=G.team;
     closeM(); closeSheet&&closeSheet(); renderAll(); save(); toast(`${t.name} 단장 취임`); }); }
 /* ================= TUTORIAL (about 1 minute) ================= */
 const TUT=[
- {sel:null,t:["단장 취임을 환영합니다","Welcome, General Manager","GM就任おめでとうございます","欢迎上任，经理"],d:["1분 정도면 끝나는 짧은 안내입니다. 언제든 '건너뛰기'를 눌러도 됩니다. 설정에서 다시 볼 수 있습니다.","A quick tour of about one minute. Press 'Skip' anytime; you can replay it from Settings.","1分ほどで終わる短い案内です。いつでも「スキップ」できます。設定からもう一度見られます。","大约一分钟的简短引导。随时可以点“跳过”，也可以在设置里重看。"]},
- {sel:"#top",t:["상단 정보","Top bar","上部の情報","顶部信息"],d:["구단 명성과 팬 수, 시즌과 주차, 다음 경기까지 남은 날짜(D-day), 팀 피로, 잔액과 주간 수입이 한눈에 보입니다.","Fame and fans, season and week, days to the next match (D-day), team fatigue, balance and weekly income.","名声とファン数、シーズンと週、次の試合までの日数(D-day)、チーム疲労、残高と週間収入が一目で分かります。","声望和粉丝、赛季与周次、距离下场比赛的天数(D-day)、队伍疲劳、余额和每周收入一目了然。"]},
- {sel:"#left",t:["로스터","Roster","ロスター","阵容"],d:["주전 5명의 컨디션, 피로, 사기를 확인합니다. 선수를 누르면 능력치, 요원 숙련도, 경력이 열립니다.","Check form, fatigue and morale of your starting five. Click a player for attributes, agent proficiency and career.","スタメン5人の調子、疲労、士気を確認します。選手を押すと能力値、エージェント熟練度、経歴が開きます。","查看首发五人的状态、疲劳和士气。点击选手可查看能力值、特工熟练度和生涯。"]},
- {sel:"#goBtn",t:["하루씩 진행","Advance day by day","1日ずつ進行","逐日推进"],d:["'다음 일정 진행'을 누르면 하루가 지나며 스크림, 훈련, 미디어, 휴식이 일정대로 진행됩니다. '자동 진행'은 여러 날을 한 번에 넘깁니다.","'Next day' moves one day forward: scrims, training, media and rest follow the schedule. 'Auto advance' skips several days at once.","「次の日程へ」で1日進み、スクリム・練習・メディア・休息が日程通り行われます。「自動進行」は数日まとめて進めます。","点击“进行下一日程”推进一天，训练赛、训练、媒体和休息按日程进行。“自动进行”可一次跳过多天。"]},
- {sel:"#brief",t:["비서 브리핑","Assistant briefing","秘書ブリーフィング","助理简报"],d:["사건사고, 트레이드 제의, 계약 소식 같은 중요한 일이 여기에 쌓입니다. 화살표로 넘겨 보세요.","Incidents, trade offers and contract news pile up here. Use the arrows to browse.","事件、トレードの打診、契約の知らせなど重要なことがここに溜まります。矢印でめくれます。","事件、交易报价、合同消息等重要事项都汇总在这里，用箭头翻看。"]},
- {sel:"#dock",t:["메뉴","Menu","メニュー","菜单"],d:["선수단(훈련), 이적시장(영입은 선수 면담 필수, 트레이드), 전술(공수 패턴과 스크림 맵), 구단(감독, 시설, 스폰서), 리그(순위와 일정), 트로피 전시장으로 이동합니다.","Squad (training), Transfers (signing requires a player interview; trades), Tactics (patterns and scrim map), Club (coach, facilities, sponsors), League (standings, schedule) and Trophies.","選手団(練習)、移籍市場(獲得には面談必須、トレード)、戦術(攻守パターンとスクリムマップ)、クラブ(監督・施設・スポンサー)、リーグ(順位と日程)、トロフィーへ移動します。","阵容(训练)、转会市场(签约需面谈，交易)、战术(攻防套路与训练赛地图)、俱乐部(教练、设施、赞助)、联赛(排名与赛程)、奖杯陈列室。"]},
- {sel:"#right",t:["구단 운영","Club management","クラブ運営","俱乐部运营"],d:["스폰서 수입, 시설 레벨, 이번 주 일정을 확인합니다. 시설을 올리면 훈련 효과와 회복이 좋아집니다.","Sponsor income, facility levels and this week's schedule. Better facilities boost training and recovery.","スポンサー収入、施設レベル、今週の日程を確認します。施設を上げると練習効果と回復が良くなります。","查看赞助收入、设施等级和本周日程。升级设施可提升训练效果和恢复。"]},
- {sel:"#ticker",t:["뉴스","News","ニュース","新闻"],d:["리그 소식이 흘러갑니다. 누르면 기사와 팬 댓글을 볼 수 있습니다.","League news scrolls here. Click for articles and fan comments.","リーグのニュースが流れます。押すと記事とファンのコメントが見られます。","联赛新闻在这里滚动，点击可查看文章和粉丝评论。"]},
- {sel:null,t:["경기","Matches","試合","比赛"],d:["경기 날에는 밴픽을 하고 실제 맵 위에서 라운드가 진행됩니다. 작전 회의로 공격 속도와 패턴을 정하고, 타임아웃으로 흐름을 바꿀 수 있습니다. 클러치, 에이스, 절약왕이 나오면 팀 사기가 오릅니다. 그럼 시작해 볼까요?","On match days you run the map veto and rounds play out on the real map. Set pace and patterns in the briefing and use timeouts to swing momentum. Clutches, aces and thrifties lift team morale. Ready?","試合日はバンピックを行い、実際のマップ上でラウンドが進みます。作戦会議で攻撃速度とパターンを決め、タイムアウトで流れを変えられます。クラッチ・エース・倹約王が出るとチームの士気が上がります。では始めましょう。","比赛日先进行BP，然后在真实地图上进行回合。在战术会议中设定进攻节奏和套路，用暂停扭转局势。出现残局、五杀或经济局胜利时队伍士气提升。准备好了吗？"]}
+ {sel:null,pre:"closeSheet",t:["단장 취임을 환영합니다","Welcome, General Manager","GM就任おめでとうございます","欢迎上任，经理"],d:["화면 구성, 첫 경기 준비, 알아두면 좋은 기능 순서로 안내합니다. 약 4분 걸리고, 설정에서 다시 볼 수 있습니다.","Three parts: the screen, preparing for your first match, and useful extras. About 4 minutes; replay it from Settings.","画面、初戦の準備、便利な機能の順に案内します。約4分、設定から再表示できます。","依次介绍界面、首战准备和实用功能，约4分钟，可在设置中重看。"]},
+ {sel:"#tDday",pre:"closeSheet",t:["1부 | D-day","Part 1 | D-day","1部 | D-day","第1部 | D-day"],d:["다음 공식 경기까지 남은 날입니다. 0이 되면 그날이 경기일입니다.","Days until the next official match. At 0, today is match day.","次の公式戦までの日数。0なら今日が試合日です。","距离下场正式比赛的天数，为0即比赛日。"]},
+ {sel:"#tFat",pre:"closeSheet",t:["1부 | 팀 피로","Part 1 | Team fatigue","1部 | チーム疲労","第1部 | 团队疲劳"],d:["주전 평균 피로입니다. 초록은 괜찮고, 빨강이면 쉬게 하세요. 누르면 선수단 화면이 열립니다.","Average fatigue of the starters. Green is fine; red means rest. Click to open the squad.","スタメンの平均疲労。緑は良好、赤なら休ませましょう。押すと選手団画面へ。","首发平均疲劳。绿色正常，红色需休息。点击打开阵容。"]},
+ {sel:"#tMoney",pre:"closeSheet",t:["1부 | 자금","Part 1 | Money","1部 | 資金","第1部 | 资金"],d:["잔액과 주간 수입입니다. 매주 월요일에 연봉, 스폰서, 시설비가 정산됩니다.","Balance and weekly income. Salaries, sponsors and facilities settle every Monday.","残高と週間収入。毎週月曜に年俸、スポンサー、施設費が精算されます。","余额与每周收入。每周一结算薪资、赞助和设施费用。"]},
+ {sel:"#calBtn",pre:"closeSheet",t:["1부 | 캘린더","Part 1 | Calendar","1部 | カレンダー","第1部 | 日历"],d:["시즌 전체 일정과 대회 날짜를 봅니다.","See the whole season and event dates.","シーズン全体の予定と大会日程を確認します。","查看整个赛季和赛事日期。"]},
+ {sel:"#left",pre:"closeSheet",t:["1부 | 주전 5명","Part 1 | Starting five","1部 | スタメン5人","第1部 | 首发5人"],d:["5명이 다 차야 경기를 치릅니다. 선수를 누르면 능력치와 경력이 열립니다.","You need all five to play. Click a player for stats and career.","5人揃わないと試合できません。選手を押すと能力と経歴が開きます。","5人齐全才能比赛。点击选手查看能力和经历。"]},
+ {sel:"#coachTip",pre:"closeSheet",t:["1부 | 코치 한마디","Part 1 | Coach tip","1部 | コーチの一言","第1部 | 教练提示"],d:["지금 가장 급한 문제 2개입니다. 빨강(긴급)이 없으면 잘 운영되고 있는 겁니다.","The two most urgent issues. No red (Urgent) means you're doing fine.","今一番急ぐ課題2つ。赤(緊急)がなければ順調です。","当前最紧急的2个问题。没有红色(紧急)就说明运营良好。"]},
+ {sel:"#cal",pre:"closeSheet",t:["1부 | 이번 주 일정","Part 1 | This week","1部 | 今週の予定","第1部 | 本周日程"],d:["요일 칸을 눌러 스크림, 훈련, 휴식, 미디어를 바꿉니다.","Click a day to switch between scrim, training, rest and media.","曜日を押してスクリム、練習、休養、メディアを切り替えます。","点击某天切换训练赛、训练、休息或媒体。"]},
+ {sel:"#sponsors",pre:"closeSheet",t:["1부 | 스폰서","Part 1 | Sponsors","1部 | スポンサー","第1部 | 赞助商"],d:["매주 들어오는 돈입니다. 막대는 스폰서 목표(미디어, 승리, 스크림) 달성도입니다.","Weekly money. The bar is progress on each sponsor's goal (media, wins, scrims).","毎週の収入。バーは各スポンサー目標(メディア、勝利、スクリム)の達成度。","每周收入。进度条是各赞助目标(媒体、胜利、训练赛)的完成度。"]},
+ {sel:"#brief",pre:"closeSheet",t:["1부 | 비서 브리핑","Part 1 | Briefing","1部 | ブリーフィング","第1部 | 简报"],d:["하루 동안 일어난 일이 쌓입니다. 화살표로 넘겨 보세요.","Everything that happened today. Use the arrows.","1日の出来事が溜まります。矢印でめくれます。","当天发生的事都在这里，用箭头翻页。"]},
+ {sel:"#goBtn",pre:"closeSheet",t:["1부 | 하루씩 진행","Part 1 | Advance","1部 | 1日ずつ進行","第1部 | 逐日推进"],d:["누를 때마다 하루가 지납니다. '자동 진행'은 날짜나 다음 경기까지 한 번에 넘깁니다.","Each click passes a day. 'Auto advance' jumps to a date or the next match.","押すたびに1日進みます。「自動進行」は日付や次の試合まで一気に進めます。","每点一次过一天。“自动推进”可直接跳到指定日期或下场比赛。"]},
+ {sel:"#dock",pre:"closeSheet",t:["1부 | 메뉴","Part 1 | Menu","1部 | メニュー","第1部 | 菜单"],d:["선수단, 이적시장, 전술, 구단, 전시장, 리그 화면으로 갑니다. 2부에서 하나씩 열어 봅니다.","Squad, Transfers, Tactics, Club, Trophies and League. Part 2 opens them one by one.","選手団、移籍市場、戦術、クラブ、展示室、リーグへ。2部で一つずつ開きます。","前往阵容、转会、战术、俱乐部、陈列室、联赛。第2部将逐一打开。"]},
+ {sel:"#shBody .gdbox",pre:"openSheet('squad')",t:["2부 | 1. 추천 가이드","Part 2 | 1. Guide","2部 | 1. ガイド","第2部 | 1. 推荐指南"],d:["팀의 약점이 급한 순서로 나옵니다. 버튼을 누르면 바로 해결 행동이 적용됩니다.","Team weaknesses in order of urgency. Each button applies the fix.","チームの弱点が急ぐ順に並びます。ボタンで対策がすぐ適用されます。","按紧急程度列出弱点，按钮可直接执行解决方案。"]},
+ {sel:"#shBody .gdtop .sbtn.on",pre:"openSheet('squad')",t:["2부 | 2. 7일 일정 자동","Part 2 | 2. Auto 7-day plan","2部 | 2. 7日分を自動","第2部 | 2. 自动7天日程"],d:["막막하면 이 버튼 하나면 됩니다. 피로를 보고 휴식, 스크림, 훈련을 알아서 채웁니다.","When in doubt, press this. It fills rest, scrims and training based on fatigue.","迷ったらこのボタン。疲労を見て休養、スクリム、練習を埋めます。","不知道怎么办就按它，会按疲劳自动安排休息、训练赛和训练。"]},
+ {sel:"#shBody details.fold",pre:"openSheet('squad')",t:["2부 | 3. 훈련","Part 2 | 3. Training","2部 | 3. 練習","第2部 | 3. 训练"],d:["훈련 날에 오를 능력치를 고릅니다. 처음엔 '자동 훈련'이면 충분합니다.","Choose which stats grow on training days. 'Auto' is enough at first.","練習日に伸ばす能力を選びます。最初は「自動」で十分です。","选择训练日提升的能力。起初用“自动”就够了。"]},
+ {sel:"#shBody details.fold",pre:"openSheet('squad')",t:["2부 | 4. 훈련 강도와 피로","Part 2 | 4. Intensity and fatigue","2部 | 4. 強度と疲労","第2部 | 4. 强度与疲劳"],d:["강하게 하면 빨리 크지만 피로도 빨리 쌓입니다. 피로 70부터 성장이 줄고, 80 이상이 2주를 넘기면 부상이 생길 수 있습니다.","Hard grows faster but tires faster. Growth drops from 70 fatigue; 80+ for over two weeks can cause injuries.","強めは早く伸びますが疲れも早い。疲労70から成長が鈍り、80以上が2週間を超えると負傷の恐れ。","高强度成长快但更累。疲劳70起成长变慢，80以上超过两周可能受伤。"]},
+ {sel:"#shBody table.tbl",pre:"openSheet('squad')",t:["2부 | 5. 주전과 IGL","Part 2 | 5. Starters and IGL","2部 | 5. スタメンとIGL","第2部 | 5. 首发与IGL"],d:["'주전으로/후보로'로 라인업을 바꿉니다. IGL은 안정감과 경험이 높은 선수가 좋습니다.","Swap lineups with the starter/bench buttons. Pick an IGL with high consistency and experience.","スタメン/控えボタンで入れ替え。IGLは安定感と経験が高い選手が向いています。","用首发/替补按钮调整阵容。IGL宜选稳定性和经验高的选手。"]},
+ {sel:"#shBody .mpgrid",pre:"openSheet('tactic')",t:["2부 | 6. 스크림 맵","Part 2 | 6. Scrim map","2部 | 6. スクリムマップ","第2部 | 6. 训练赛地图"],d:["카드를 누르면 그 맵이 스크림 맵이 됩니다. 스크림과 택틱 훈련이 이 맵 숙련을 올립니다.","Click a card to make it the scrim map. Scrims and tactic training raise its mastery.","カードを押すとスクリムマップになります。スクリムと戦術練習がその熟練を上げます。","点击卡片设为训练赛地图，训练赛和战术训练会提升其熟练。"]},
+ {sel:"#shBody .mpgrid",pre:"openSheet('tactic')",t:["2부 | 7. 어떤 맵을 고를까","Part 2 | 7. Which map","2部 | 7. どのマップを","第2部 | 7. 选哪张图"],d:["빨간 맵(약한 맵)부터 올리세요. 상대는 우리가 약한 맵을 노립니다. 숙련 12마다 그 맵 경기력이 1 달라집니다.","Raise red (weak) maps first; opponents target them. Every 12 mastery points is worth 1 point of strength there.","赤(弱い)マップから上げましょう。相手はそこを狙います。熟練12ごとに戦力が1変わります。","先练红色(弱)地图，对手会针对它们。熟练每12点该图战力差1。"]},
+ {sel:"#shBody .filters2",pre:"openSheet('market')",t:["2부 | 8. 선수 찾기","Part 2 | 8. Finding players","2部 | 8. 選手探し","第2部 | 8. 寻找选手"],d:["권역, 국적, 포지션, OVR로 거릅니다. 구분에서 'VCT 구단 소속 선수'를 고르면 다른 팀 선수도 보입니다.","Filter by region, nationality, role and OVR. Choose 'VCT club players' to see players on other teams.","地域、国籍、ポジション、OVRで絞り込み。区分で「VCTクラブ所属」を選ぶと他チームの選手も見られます。","按赛区、国籍、位置、OVR筛选。选择“VCT俱乐部选手”可查看他队选手。"]},
+ {sel:"#shBody table.tbl",pre:"openSheet('market')",t:["2부 | 9. 협상","Part 2 | 9. Negotiation","2部 | 9. 交渉","第2部 | 9. 谈判"],d:["'협상'을 누르면 면담 후 연봉과 계약 기간을 제시합니다. 희망 연봉보다 너무 낮으면 거절당하고 며칠간 다시 못 만납니다.","'Negotiate' opens an interview, then you offer salary and years. Lowballing gets a refusal and a cooldown.","「交渉」で面談後に年俸と期間を提示します。希望より低すぎると断られ、数日再交渉できません。","点“谈判”面谈后报价薪资和年限。出价过低会被拒并冷却几天。"]},
+ {sel:"#shBody .stv",pre:"openSheet('market');setTimeout(()=>{const d=$('#shBody .stv');if(d)d.open=true;},50)",t:["2부 | 10. 스토브리그와 찜","Part 2 | 10. Stove league","2部 | 10. ストーブリーグ","第2部 | 10. 休赛期与关注"],d:["오프시즌엔 다른 구단이 선수를 방출합니다. 원하는 선수를 '찜'하면 풀릴 때 알림이 뜹니다.","In the offseason clubs release players. 'Watch' a player to be alerted when he's free.","オフには他クラブが選手を放出します。欲しい選手をお気に入りにすると放出時に通知されます。","休赛期其他俱乐部会放人。关注想要的选手，放出时会提醒。"]},
+ {sel:"#shBody .stv",pre:"openSheet('market');setTimeout(()=>{const d=$('#shBody .stv');if(d)d.open=true;},50)",t:["2부 | 11. 곧 풀릴 선수","Part 2 | 11. Soon to be free","2部 | 11. まもなく放出","第2部 | 11. 即将放出"],d:["찜 목록에 '방출 1순위'가 붙은 선수는 그 팀 주전 중 가장 약해서 다음 방출 대상이 될 가능성이 큽니다.","A watched player marked 'release candidate' is his team's weakest starter and likely next to go.","「放出候補1位」はそのチームの最弱スタメンで、次に放出されやすい選手です。","标有“首要放出候选”的选手是该队最弱首发，最可能被放。"]},
+ {sel:null,pre:"closeSheet",t:["2부 | 12. 경기 날: 밴픽","Part 2 | 12. Match day: veto","2部 | 12. 試合日: バンピック","第2部 | 12. 比赛日：禁选"],d:["우리가 강한 맵은 남기고 약한 맵은 밴합니다. 밴픽이 끝나면 정해진 맵 기준 예상 승률이 다시 나옵니다.","Keep strong maps, ban weak ones. After the veto, win odds update for the chosen maps.","強いマップを残し弱いマップをバン。終わると決まったマップでの予想勝率が出ます。","保留强图、禁掉弱图。禁选后会按选定地图重新显示胜率。"]},
+ {sel:null,pre:"closeSheet",t:["2부 | 13. 경기 중 지휘","Part 2 | 13. In-match calls","2部 | 13. 試合中の指揮","第2部 | 13. 比赛中指挥"],d:["작전 회의에서 공격과 수비 전술을 정합니다. 타임아웃은 맵당 2번, 하프타임 '공수교대' 회의는 횟수에 들어가지 않습니다.","Set attack and defense plans in the meeting. Two timeouts per map; the half-time side-swap meeting is free.","作戦会議で攻守の戦術を決めます。タイムアウトはマップごと2回、ハーフの攻守交代会議は回数外。","在战术会议设置攻防。每图2次暂停，半场攻防互换会议不计次数。"]},
+ {sel:null,pre:"closeSheet",t:["2부 | 14. 직접 할까, 스킵할까","Part 2 | 14. Play or skip","2部 | 14. 指揮かスキップか","第2部 | 14. 亲自指挥还是跳过"],d:["직접 지휘하면 스킵보다 이길 확률이 높습니다. 중요한 경기는 직접, 쉬운 경기는 스킵으로 시간을 아끼세요.","You win more often playing it yourself. Play key matches, skip easy ones to save time.","自分で指揮するとスキップより勝ちやすい。大事な試合は指揮、楽な試合はスキップで時短。","亲自指挥胜率更高。关键比赛亲自打，简单比赛跳过省时间。"]},
+ {sel:null,pre:"closeSheet",t:["2부 | 15. 경기 뒤","Part 2 | 15. After the match","2部 | 15. 試合後","第2部 | 15. 赛后"],d:["경기마다 피로가 쌓입니다. 다음 날은 휴식을 넣어 피로를 70 아래로 내리세요.","Matches add fatigue. Rest the next day to bring it under 70.","試合ごとに疲労が溜まります。翌日は休養で70未満に。","每场比赛都会累积疲劳，次日安排休息降到70以下。"]},
+ {sel:"#shBody",pre:"openSheet('club')",t:["3부 | 구단","Part 3 | Club","3部 | クラブ","第3部 | 俱乐部"],d:["감독, 시설, 스폰서를 관리합니다. 시설을 올리면 훈련과 회복이 좋아집니다.","Manage coach, facilities and sponsors. Better facilities improve training and recovery.","監督、施設、スポンサーを管理。施設を上げると練習と回復が良くなります。","管理教练、设施和赞助。升级设施可提升训练和恢复。"]},
+ {sel:"#shBody",pre:"openSheet('league')",t:["3부 | 리그","Part 3 | League","3部 | リーグ","第3部 | 联赛"],d:["순위, 일정, 다른 리그 결과, 레드불 홈그라운드 대진을 봅니다.","Standings, schedule, other leagues and the Red Bull Home Ground bracket.","順位、日程、他リーグ、レッドブル・ホームグラウンドの組み合わせ。","查看排名、赛程、其他联赛及红牛主场赛对阵。"]},
+ {sel:null,pre:"closeSheet",t:["3부 | 사기와 부상","Part 3 | Morale and injuries","3部 | 士気と負傷","第3部 | 士气与伤病"],d:["사기는 경기력에 바로 반영됩니다. 사기가 떨어지면 팀 빌딩이나 멘탈 코칭으로 올리고, 부상자는 회복할 때까지 쉬게 됩니다.","Morale affects performance directly. Raise it with team building or mental coaching; injured players sit out until healed.","士気は戦力に直結。チームビルディングかメンタルコーチングで上げ、負傷者は回復まで欠場します。","士气直接影响表现，用团队建设或心理辅导提升，伤员需休息至康复。"]},
+ {sel:null,pre:"closeSheet",t:["준비 끝","You're ready","準備完了","准备就绪"],d:["목표는 하나면 됩니다. '코치 한마디'에 빨강(긴급)이 없게 유지하세요. 행운을 빕니다!","One goal is enough: keep 'Coach tip' free of red (Urgent). Good luck!","目標は一つ。「コーチの一言」に赤(緊急)を出さないこと。幸運を!","只需一个目标：让“教练提示”没有红色(紧急)。祝好运！"]}
 ];
 let TI=-1;
-function tutStart(force){ if(!force){ try{ if(localStorage.getItem("vctmgr_tut")) return; }catch(e){} } TI=0; tutShow(); }
-function tutEnd(){ TI=-1; const o=$("#tutO"); if(o) o.remove(); try{ localStorage.setItem("vctmgr_tut","1"); }catch(e){} window.removeEventListener("resize",tutShow); }
-function tutNext(d){ TI+=d; if(TI<0) TI=0; if(TI>=TUT.length) return tutEnd(); tutShow(); }
+function tutStart(force){ if(!force){ try{ if(localStorage.getItem("vctmgr_tut")) return; }catch(e){} } TI=0; tutPre(); }
+function tutEnd(){ TI=-1; const o=$("#tutO"); if(o) o.remove(); try{ if(curTab!=="lobby") closeSheet(); }catch(e){} try{ localStorage.setItem("vctmgr_tut","1"); }catch(e){} window.removeEventListener("resize",tutShow); }
+function tutNext(d){ TI+=d; if(TI<0) TI=0; if(TI>=TUT.length) return tutEnd(); tutPre(); }
+function tutPre(){ const s=TUT[TI]; if(s&&s.pre){ try{ if(s.pre==="closeSheet"){ if(curTab!=="lobby") closeSheet(); } else (new Function(s.pre))(); }catch(e){ console.error(e); } setTimeout(tutShow,280); } else tutShow(); }
 function tutShow(){ if(TI<0) return; let o=$("#tutO"); if(!o){ o=document.createElement("div"); o.id="tutO"; document.body.appendChild(o); window.addEventListener("resize",tutShow); }
-  const s=TUT[TI], el=s.sel?document.querySelector(s.sel):null, r=el&&el.offsetParent!==null?el.getBoundingClientRect():null;
+  const s=TUT[TI], el=s.sel?document.querySelector(s.sel):null; if(el&&el.offsetParent!==null&&s.pre&&s.pre!=="closeSheet") try{ el.scrollIntoView({block:"start"}); }catch(e){} const r=el&&el.offsetParent!==null?el.getBoundingClientRect():null;
   const hole=r?`<div class="tut-hole" style="left:${r.left-6}px;top:${r.top-6}px;width:${r.width+12}px;height:${r.height+12}px"></div>`:`<div class="tut-dim"></div>`;
   let bx=`left:50%;top:50%;transform:translate(-50%,-50%)`;
   if(r){ const W=340, vw=innerWidth, vh=innerHeight; let x=r.right+16, y=r.top;
@@ -3021,8 +3061,10 @@ function advance(){
   try{ hgTick(b); }catch(e){ console.error(e); }
   if(G.dday===0 && G.sea.next==="phase") b.push(...advancePhase());
   if(G.dday===0 && G.sea.next==="match") b.push(L(`오늘은 공식 경기일입니다. ${fxLabel()}.`,`Official match day. ${trText(fxLabel())}.`,`今日は公式戦の日です。${trText(fxLabel())}。`,`今天是正式比赛日。${trText(fxLabel())}。`));
+  try{ stoveDay(b); }catch(e){ console.error(e); }
   try{ archiveNews(); }catch(e){}
   G.brief=b; G.bi=0; renderAll(); save();
+  if(!FAST&&(G.stovePop||[]).length) setTimeout(stoveShow,450);
 }
 const SPON_TYPE={"HEXA ENERGY":"media","NORTHGRID":"win","PIXELFORGE":"scrim"};
 const SPON_POOL=[
@@ -3073,8 +3115,16 @@ function openSheet(k,keep){
   if(k==="club") body.innerHTML=jobHTML()+phPanelHTML()+coachHTML()+`<div style="height:18px"></div>`+clubHTML();
   if(k==="league"){ body.innerHTML=leagueHTML(); lgBind(); }
   if(k==="trophy"){ body.innerHTML=trophyRoomHTML(); bindTrophies(); }
+  try{ collapseHints(body); }catch(e){}
   if(keep) body.scrollTop=sc;
 }
+/* long helper texts in sheets fold into a small "설명" toggle */
+function collapseHints(root){ root.querySelectorAll("p.mute, div.mute, small.mute, p.srcs, div.srcs").forEach(el=>{
+  if(el.closest("table,details.hint,.gdbox,.ctip,.tut-box,.stvw,.trc")) return;
+  if(el.querySelector("button,input,select,table,div,span,a")) return;
+  const tx=el.textContent.trim(); if(tx.length<80) return;
+  const d=document.createElement("details"); d.className="hint"; d.innerHTML=`<summary>${L("설명","Info","説明","说明")}</summary>`; el.parentNode.insertBefore(d,el); d.appendChild(el); }); }
+(function(){ const st=document.createElement("style"); st.textContent=`details.hint{margin:2px 0 6px}details.hint>summary{display:inline-block;cursor:pointer;font-size:11px;color:#777;border:1px solid #333;border-radius:10px;padding:0 8px;line-height:18px;list-style:none}details.hint>summary::-webkit-details-marker{display:none}details.hint>summary::before{content:"+ "}details.hint[open]>summary::before{content:"- "}details.hint[open]>summary{margin-bottom:4px}`; document.head.appendChild(st); })();
 /* ================= COACH GUIDE (weakness report + recommendations) ================= */
 const GD_ROLEKEY={duelist:["entry","fire","aim"],initiator:["util","entry"],controller:["util","cons"],sentinel:["cons","aim"],flex:["aim","util"]};
 const GD_TRAIN={aim:"aim",fire:"aim",entry:"entry",util:"util",cons:"clutch",exp:"vod"};
@@ -3157,11 +3207,13 @@ function guidePlan(kind){ const now=absNow(), nm=nextMatchAbs(), tf=teamFat(); G
 const GD_LV={3:["긴급","#ef4444"],2:["중요","#f59e0b"],1:["참고","#60a5fa"]};
 function guideHTML(compact){ const g=coachGuide(); const items=compact?g.slice(0,3):g;
   const card=it=>`<div class="gdc" style="--gc:${GD_LV[it.lv][1]}"><div class="gdh"><span class="gdl">${GD_LV[it.lv][0]}</span><span class="gdt">${esc(it.tag)}</span><b>${esc(it.title)}</b></div>
-    <div class="gdd">${esc(it.diag)}</div><div class="gdw">${it.why}</div>${it.acts.length?`<div class="gda">${it.acts.map(([l,js])=>`<button class="sbtn" onclick="${/openSheet/.test(js)?"closeM();":""}${js};gdRefresh()">${esc(l)}</button>`).join("")}</div>`:""}</div>`;
-  return `<div class="gdbox"><div class="gdtop"><b>코치 추천 가이드</b><span class="mute">지금 팀 상태를 보고 우선순위대로 정리했습니다. 버튼을 누르면 바로 적용됩니다.</span>
+    <div class="gdd">${esc(it.diag)}</div>${compact?`<details class="gdwhy"><summary>이유 보기</summary><div class="gdw">${it.why}</div></details>`:`<div class="gdw">${it.why}</div>`}${it.acts.length?`<div class="gda">${it.acts.map(([l,js])=>`<button class="sbtn" onclick="${/openSheet/.test(js)?"closeM();":""}${js};gdRefresh()">${esc(l)}</button>`).join("")}</div>`:""}</div>`;
+  return `<div class="gdbox"><div class="gdtop"><b>코치 추천 가이드</b><span class="mute">급한 순서대로, 버튼을 누르면 바로 적용</span>
     <span style="flex:1"></span><button class="sbtn on" onclick="guidePlan('auto')">추천대로 7일 일정 짜기</button>${compact?`<button class="sbtn" onclick="openGuide()">전체 보기 (${g.length})</button>`:""}</div>
     ${items.length?items.map(card).join(""):`<p class="mute" style="padding:8px 2px">눈에 띄는 약점이 없습니다. 다음 상대 맵 위주로 스크림을 이어가세요.</p>`}</div>`; }
 function gdRefresh(){ setTimeout(()=>{ if($("#ov").classList.contains("on")&&$("#md .gdbox")) openGuide(); },30); }
+function coachTipRender(){ const el=$("#coachTip"); if(!el||!G) return; const g=coachGuide().slice(0,2);
+  el.innerHTML=`<div class="sub" style="display:flex;justify-content:space-between;align-items:center">코치 한마디<a class="lk" style="font-size:11px" onclick="openGuide()">전체 보기</a></div>`+(g.length?g.map(it=>`<div class="ctip" onclick="openGuide()"><span class="gdl" style="background:${GD_LV[it.lv][1]}">${GD_LV[it.lv][0]}</span><b>${esc(it.title)}</b></div>`).join(""):`<div class="ctip mute" onclick="openGuide()">눈에 띄는 약점이 없습니다.</div>`); }
 function openGuide(){ $("#md").style.setProperty("--c","var(--red)");
   $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><div style="padding:22px 24px">${guideHTML(false)}</div>`; $("#ov").classList.add("on"); }
 (function(){ if(document.getElementById("gdCss")) return; const s=document.createElement("style"); s.id="gdCss"; s.textContent=`
@@ -3170,7 +3222,10 @@ function openGuide(){ $("#md").style.setProperty("--c","var(--red)");
 .gdh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.gdl{font-size:11px;font-weight:700;color:#111;background:var(--gc);padding:0 6px;border-radius:3px;line-height:18px}
 .gdt{font-size:11px;color:#bbb;border:1px solid #333;padding:0 6px;border-radius:3px;line-height:18px}.gdh b{font-size:14px}
 .gdd{font-size:13px;color:#e5e5e5;margin-top:6px;line-height:1.55}.gdw{font-size:12px;color:#9a9a9a;margin-top:4px;line-height:1.6}.gdw b{color:#fff}
-.gda{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}`; document.head.appendChild(s); })();
+.gda{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.gdwhy summary{cursor:pointer;font-size:11.5px;color:#7a7a7a;margin-top:4px;list-style:none}.gdwhy summary::before{content:"+ "}.gdwhy[open] summary::before{content:"- "}
+#coachTip .ctip{display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;background:#151517;border:1px solid #2a2a2a;border-radius:4px;cursor:pointer;font-size:12.5px;line-height:1.35}
+#coachTip .ctip:hover{border-color:#555}#coachTip .ctip b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#coachTip .gdl{flex:none}`; document.head.appendChild(s); })();
 
 function squadHTML(){
   const trainBox=guideHTML(true)+trainHTML();
@@ -3205,9 +3260,76 @@ function poolList(){
   const mine=new Set(G.roster.map(r=>r.id)), gone=new Set(G.signedElsewhere||[]);
   const own=ownedSet(); return allPlayers().filter(p=>isFree(p) && !own.has(p.id));
 }
+/* ================= STOVE LEAGUE (offseason FA watch) ================= */
+function stoveOn(){ if(!G||!G.sea) return false; const p0=curPhase(); if(p0.type==="off") return true;
+  return G.sea.pi===0&&(G.twin||0)>0&&!((G.sea.ph&&G.sea.ph.round)>0); }
+function stoveCfg(){ G.stv=G.stv||{watch:[],regs:[],roles:[],mode:"smart",log:[],seen:null,rel:{},mine:[]}; const c=G.stv; c.watch=c.watch||[]; c.regs=c.regs||[]; c.roles=c.roles||[]; c.log=c.log||[]; c.rel=c.rel||{}; return c; }
+function isWatched(id){ return !!(G&&G.stv&&G.stv.watch.includes(id)); }
+function stoveWatch(id,ev){ if(ev) ev.stopPropagation(); const c=stoveCfg(), i=c.watch.indexOf(id);
+  if(i>=0){ c.watch.splice(i,1); toast(`${P(id).name} 찜 해제`); } else { c.watch.push(id); toast(`${P(id).name} 찜. FA로 풀리면 바로 알려드립니다.`); }
+  save(); document.querySelectorAll(`[data-w="${CSS.escape(id)}"]`).forEach(b=>{ const on=c.watch.includes(id); b.classList.toggle("on",on); b.textContent=on?"찜 해제":"찜"; }); }
+function wBtn(id){ const on=isWatched(id); return `<button class="sbtn wbtn ${on?"on":""}" data-w="${esc(id)}" onclick="stoveWatch('${esc(id)}',event)">${on?"찜 해제":"찜"}</button>`; }
+/* AI release candidate: same rule aiRelease uses (weakest starter by ovr + exp/20) */
+function relCandidate(k){ const ros=(G.rosters[k]||[]); if(ros.length<5) return null; return ros.slice(0,5).slice().sort((a,b)=>(P(a).ovr+(P(a).A.exp||50)/20)-(P(b).ovr+(P(b).A.exp||50)/20))[0]; }
+function stoveStatus(id){ const p=P(id), tk=teamOf(id);
+  if(tk===G.team) return ["내 구단","mute"];
+  if(!tk&&isFree(p)&&!ownedSet().has(id)) return ["FA, 지금 영입 가능","pos"];
+  if(tk){ const ros=G.rosters[tk]||[], bench=ros.indexOf(id)>=5; return relCandidate(tk)===id?[`${T(tk).name} | 방출 1순위(팀 주전 중 최하위)`,"warn"]:bench?[`${T(tk).name} | 벤치`,"warn"]:[`${T(tk).name} | 주전`,"mute"]; }
+  return ["다른 리그 소속","mute"]; }
+function stoveDay(b){ const c=stoveCfg();
+  c.mine=G.roster.map(r=>r.id).concat((c.mine||[]).slice(0,30));
+  if(!stoveOn()){ c.seen=null; return; }
+  /* AI clubs reshuffle rosters during the stove league: about one release every 2~4 days, at most one per club */
+  const yk=G.sea.yr+(curPhase().type==="off"?"o":"p");
+  if(Math.random()<(curPhase().type==="off"?0.45:0.3)){ const ks=Object.keys(G.rosters).filter(k=>k!==G.team&&(G.rosters[k]||[]).length>=5&&!c.rel[k+yk]);
+    if(ks.length){ const k=ks[Math.floor(Math.random()*ks.length)]; try{ if(aiRelease(k,"스토브리그 로스터 정리")) c.rel[k+yk]=1; }catch(e){ console.error(e); } } }
+  const fr=G.freed||[]; if(!c.seen){ c.seen=fr.slice(); return; }
+  const seen=new Set(c.seen), mine=new Set(c.mine), own=ownedSet();
+  const nw=[...new Set(fr.filter(id=>!seen.has(id)&&!mine.has(id)&&!own.has(id)&&!G.roster.some(r=>r.id===id)))];
+  c.seen=fr.slice(); if(!nw.length) return;
+  const now=absNow(); nw.forEach(id=>c.log.unshift({id,abs:now,from:(G.relBy||{})[id]||null})); c.log=c.log.slice(0,80);
+  const hasPref=c.regs.length||c.roles.length;
+  const match=id=>{ const p=P(id); return c.watch.includes(id)||(c.regs.length&&c.regs.includes(p.region))||(c.roles.length&&c.roles.includes(p.role)); };
+  const hits=c.mode==="all"?nw:c.mode==="off"?nw.filter(id=>c.watch.includes(id)):nw.filter(id=>match(id)||(!hasPref&&nw.length<=3));
+  b.push(`스토브리그: 새 FA ${nw.length}명 (${nw.slice(0,4).map(id=>`${P(id).name} ${P(id).ovr}`).join(", ")}${nw.length>4?" 외":""}).${hits.length?"":" 알림 조건에 맞는 선수는 없습니다."}`);
+  if(hits.length) G.stovePop=(G.stovePop||[]).concat(hits.filter(id=>!(G.stovePop||[]).includes(id)));
+}
+function stoveHasWatchedPop(){ return (G.stovePop||[]).some(id=>isWatched(id)); }
+function stoveShow(){ const q=(G.stovePop||[]).filter(id=>isFree(P(id))&&!ownedSet().has(id)&&!G.roster.some(r=>r.id===id)); G.stovePop=[];
+  if(!q.length||FAST) return; if($("#ov").classList.contains("on")) { G.stovePop=q; return; }
+  $("#md").style.setProperty("--c","#f59e0b");
+  $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><div style="padding:22px 24px">
+    <div class="stvhd"><span class="stvtag">STOVE LEAGUE</span><h2 style="margin:6px 0 4px">FA 시장에 새 선수가 나왔습니다</h2><p class="mute" style="font-size:13px">${mdOf(absNow())} | 알림 조건(찜, 관심 권역, 관심 포지션)에 맞는 선수 ${q.length}명. 다른 구단도 바로 영입에 나설 수 있습니다.</p></div>
+    <table class="tbl" style="margin-top:10px"><tr><th>선수</th><th>이전 팀</th><th>포지션</th><th>국적</th><th>OVR</th><th>희망 연봉</th><th></th></tr>
+    ${q.map(id=>{ const p=P(id), fk=(G.relBy||{})[id]; return `<tr${isWatched(id)?' style="background:rgba(245,158,11,.12)"':""}><td><b>${plink(id)}</b>${isWatched(id)?' <span class="tbadge" style="border-color:#f59e0b;color:#f59e0b">찜</span>':""}</td><td>${fk?esc(T(fk).name):esc(lastTeamName(p)||"-")}</td><td>${ricon(p.role,13)} ${ROLE[p.role].k}</td><td>${esc(p.nat)}</td><td class="num">${p.ovr}</td><td class="num">${short(marketAsk(p))}</td>
+      <td style="white-space:nowrap"><button class="sbtn on" onclick="closeM();openNego('${esc(id)}')">협상</button> <button class="sbtn" onclick="openPlayer('${esc(id)}')">정보</button></td></tr>`; }).join("")}</table>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px"><span class="mute" style="font-size:12px">알림 조건은 이적시장 맨 위 스토브리그 칸에서 바꿀 수 있습니다.</span><button class="ghost" onclick="closeM();openSheet('market')">이적시장 열기</button></div></div>`;
+  $("#ov").classList.add("on"); }
+function stoveSet(kind,v){ const c=stoveCfg();
+  if(kind==="mode") c.mode=v; else { const a=c[kind], i=a.indexOf(v); i>=0?a.splice(i,1):a.push(v); }
+  save(); openSheet("market",true); }
+let stvOpen=false, mfMore=false;
+function stoveHTML(){ const c=stoveCfg(), on=stoveOn();
+  const chip=(kind,v,l)=>`<button class="sbtn ${c[kind].includes(v)?"on":""}" onclick="stoveSet('${kind}','${v}')">${l}</button>`;
+  const wl=c.watch.map(id=>{ const [t,cl]=stoveStatus(id), p=P(id); return `<div class="stvw"><span>${ricon(p.role,12)} <b>${plink(id)}</b> <span class="mute">${p.ovr}</span></span><span class="${cl}" style="font-size:12px">${esc(t)}</span><span>${isFree(p)&&!teamOf(id)&&!ownedSet().has(id)?`<button class="sbtn on" onclick="openNego('${esc(id)}')">협상</button> `:""}<button class="sbtn" onclick="stoveWatch('${esc(id)}');openSheet('market',true)">해제</button></span></div>`; }).join("");
+  const lg=c.log.slice(0,12).map(x=>{ const p=P(x.id), free=isFree(p)&&!teamOf(x.id)&&!ownedSet().has(x.id); return `<div class="stvw"><span class="mute" style="font-size:12px">${mdOf(x.abs)}</span><span>${ricon(p.role,12)} <b>${plink(x.id)}</b> <span class="mute">${p.ovr} | ${esc(p.nat)}${x.from?` | 전 ${esc(T(x.from).name)}`:""}</span></span><span style="font-size:12px" class="${free?"pos":"mute"}">${free?"FA":"계약 완료"}</span></div>`; }).join("");
+  return `<details class="fold stv" ${stvOpen?"open":""} ontoggle="stvOpen=this.open"><summary><b>스토브리그${on?' <span class="stvtag">진행 중</span>':""}</b><span class="fsum">${on?`이적시장 마감까지 D-${curPhase().type==="off"?G.dday:G.twin}`:"오프시즌에 열립니다"} | 찜 ${c.watch.length}명 | 알림 ${c.mode==="all"?"모든 FA":c.mode==="off"?"찜한 선수만":"관심 조건"}</span><span class="fbtn">열기</span></summary>
+    <p class="mute" style="font-size:12px;margin:6px 0 8px">이 기간엔 다른 구단이 며칠마다 주전 최하위 선수를 방출합니다. "찜"한 선수나 관심 조건에 맞는 FA가 나오면 알림이 뜹니다.</p>
+    <div class="stvrow"><span class="mute">알림 방식</span>${[["smart","관심 조건"],["all","모든 FA"],["off","찜한 선수만"]].map(([k,l])=>`<button class="sbtn ${c.mode===k?"on":""}" onclick="stoveSet('mode','${k}')">${l}</button>`).join("")}</div>
+    <div class="stvrow"><span class="mute">관심 권역</span>${Object.keys(REG).map(r=>chip("regs",r,REG[r].n)).join("")}</div>
+    <div class="stvrow"><span class="mute">관심 포지션</span>${Object.keys(ROLE).map(r=>chip("roles",r,ROLE[r].k)).join("")}</div>
+    <div class="stvcols"><div><div class="sub" style="margin:8px 0 4px">찜한 선수 (${c.watch.length})</div>${wl||'<p class="mute" style="font-size:12px">아직 없습니다. 소속 선수도 찜할 수 있고, "방출 1순위"로 표시되면 곧 풀릴 가능성이 큽니다.</p>'}</div>
+    <div><div class="sub" style="margin:8px 0 4px">최근 FA 공시</div>${lg||'<p class="mute" style="font-size:12px">스토브리그 기간에 새로 풀린 선수가 여기에 쌓입니다.</p>'}</div></div></details>`; }
+(function(){ if(document.getElementById("stvCss")) return; const s=document.createElement("style"); s.id="stvCss"; s.textContent=`
+.stvtag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;color:#111;background:#f59e0b;padding:0 6px;border-radius:3px;line-height:17px;vertical-align:middle}
+.stv{margin-bottom:12px}.stvrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:5px 0}.stvrow>.mute{font-size:12px;min-width:72px}
+.stvcols{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:800px){.stvcols{grid-template-columns:1fr}}
+.stvw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #222;font-size:13px}
+.stvw .warn{color:#f59e0b}.stvw .pos{color:#4ade80}.wbtn.on{border-color:#f59e0b!important;color:#f59e0b!important}`; document.head.appendChild(s); })();
+
 function marketHTML(){
   const all=poolList();
-  const nats=[...new Set(all.map(p=>p.nat))].sort((a,b)=>a.localeCompare(b,"ko"));
+  const nats=[...new Set(all.concat(Object.keys(G.rosters||{}).flatMap(k=>(G.rosters[k]||[]).map(id=>P(id)).filter(Boolean))).map(p=>p.nat))].sort((a,b)=>a.localeCompare(b,"ko"));
   const teams=[...new Set(all.map(p=>p.team))].filter(Boolean).sort();
   let list=all.filter(p=>
     (mf.pool==="ALL"||(mf.pool==="GEN"?p.gen:mf.pool==="FA"?(!p.gen&&p.status!=="T2"):(!p.gen&&p.status==="T2"))) &&
@@ -3218,6 +3340,10 @@ function marketHTML(){
     (!mf.ovr||p.ovr>=+mf.ovr) &&
     (!mf.smin||salUnit(marketAsk(p))>=+mf.smin) && (!mf.smax||salUnit(marketAsk(p))<=+mf.smax));
   list.forEach(p=>{ delete p._own; });
+  if(mf.pool==="TEAMED") list.length=0;
+  if(mf.pool==="TEAMED"||mf.pool==="EVERY"){ const mine=new Set(G.roster.map(r=>r.id)), inL=new Set(list.map(p=>p.id));
+    Object.keys(G.rosters||{}).forEach(k=>{ if(k===G.team) return; const tn=T(k).name; (G.rosters[k]||[]).forEach(id=>{ if(inL.has(id)||mine.has(id)) return; const p=P(id); if(!p) return;
+      if((mf.reg==="ALL"||p.region===mf.reg)&&(mf.nat==="ALL"||p.nat===mf.nat)&&(mf.role==="ALL"||p.role===mf.role)&&(!mf.q||p.name.toLowerCase().includes(mf.q.toLowerCase()))&&(!mf.ovr||p.ovr>=+mf.ovr)&&(!mf.team||tn.toLowerCase().includes(mf.team.toLowerCase()))){ p._own="team"; list.push(p); inL.add(id); } }); }); }
   if(mf.q){ const inList=new Set(list.map(p=>p.id)), mine=new Set(G.roster.map(r=>r.id)), q=mf.q.toLowerCase();
     allPlayers().filter(p=>!inList.has(p.id)&&p.name.toLowerCase().includes(q)).forEach(p=>{ p._own=mine.has(p.id)?"mine":"team"; list.push(p); }); }
   const key={ovr:p=>p.ovr,ask:p=>marketAsk(p),name:p=>p.name.toLowerCase(),r:p=>p.s?p.s.r:0,nat:p=>p.nat,team:p=>p.team}[mf.sort];
@@ -3231,21 +3357,22 @@ function marketHTML(){
       <td><span class="tbadge">${p._own==="mine"?"내 구단":"소속"}</span></td>
       <td style="white-space:nowrap">${ricon(p.role,15)} ${ROLE[p.role].k}</td><td>${esc(p.nat)}</td><td>${REG[p.region]?REG[p.region].n:"-"}</td>
       <td class="num">${p.ovr}</td><td class="num" style="color:${scoutInfo(p.id)?"#93B4FF":"#666"}">${potText(p.id)}</td><td class="num">${p.s?p.s.r.toFixed(2):"-"}</td><td class="num mute">-</td>
-      <td><button class="sbtn" onclick="event.stopPropagation();openPlayer('${esc(p.id)}')">정보</button></td></tr>`; }
+      <td style="white-space:nowrap"><button class="sbtn" onclick="event.stopPropagation();openPlayer('${esc(p.id)}')">정보</button>${p._own==="team"&&tk?` <button class="sbtn" onclick="event.stopPropagation();openTrade('${tk}','${esc(p.id)}')">트레이드</button> ${wBtn(p.id)}`:""}</td></tr>`; }
     return `<tr data-tip="${esc(statTip(p.id))}">
       <td style="display:flex;align-items:center;gap:8px">${avatar(p.name,regColor(p),p.nat)}<div><b>${plink(p.id)}</b><div class="mute" style="font-size:11px">${esc(curTeamTag(p))}</div></div></td>
       <td>${p.gen?'<span class="tbadge gen">신예</span>':p.status==="T2"?'<span class="tbadge t2">2부</span>':'<span class="tbadge fa">FA</span>'}</td>
       <td style="white-space:nowrap">${ricon(p.role,15)} ${ROLE[p.role].k}</td><td>${esc(p.nat)}</td><td>${REG[p.region]?REG[p.region].n:"-"}</td>
       <td class="num">${p.ovr}</td><td class="num" style="color:${scoutInfo(p.id)?"#93B4FF":"#666"}">${potText(p.id)}</td><td class="num">${p.s?p.s.r.toFixed(2):"-"}</td><td class="num">${short(marketAsk(p))}</td>
-      <td>${(G.banned||{})[p.id]?`<span class="neg" style="font-size:11px">영입 불가</span>`:locked?`<span class="mute" style="font-size:11px">협상 거부 ${locked}일</span>`:`<button class="sbtn" onclick="event.stopPropagation();openNego('${esc(p.id)}')">협상</button>`}</td></tr>`; }).join("");
-  return offerHTML()+`<div class="filters2">
-    <select id="fPool"><option value="ALL">전체 (FA + 2부 + 신예)</option><option value="FA" ${mf.pool==="FA"?"selected":""}>VCT FA</option><option value="T2" ${mf.pool==="T2"?"selected":""}>2부 리그 스카우트</option><option value="GEN" ${mf.pool==="GEN"?"selected":""}>가상 신예</option></select>
+      <td>${(G.banned||{})[p.id]?`<span class="neg" style="font-size:11px">영입 불가</span>`:locked?`<span class="mute" style="font-size:11px">협상 거부 ${locked}일</span>`:`<button class="sbtn" onclick="event.stopPropagation();openNego('${esc(p.id)}')">협상</button>`} ${wBtn(p.id)}</td></tr>`; }).join("");
+  return stoveHTML()+offerHTML()+`<div class="filters2">
+    <select id="fPool"><option value="ALL">전체 (FA + 2부 + 신예)</option><option value="FA" ${mf.pool==="FA"?"selected":""}>VCT FA</option><option value="T2" ${mf.pool==="T2"?"selected":""}>2부 리그 스카우트</option><option value="GEN" ${mf.pool==="GEN"?"selected":""}>가상 신예</option><option value="TEAMED" ${mf.pool==="TEAMED"?"selected":""}>VCT 구단 소속 선수</option><option value="EVERY" ${mf.pool==="EVERY"?"selected":""}>전부 (영입 가능 + 구단 소속)</option></select>
     <select id="fReg"><option value="ALL">전체 권역</option>${Object.keys(REG).map(r=>`<option value="${r}" ${mf.reg===r?"selected":""}>${REG[r].n}</option>`).join("")}</select>
     <select id="fNat"><option value="ALL">전체 국적</option>${nats.map(n=>`<option ${mf.nat===n?"selected":""}>${esc(n)}</option>`).join("")}</select>
-    <input id="fTeam" list="teamList" placeholder="이전/소속 팀" value="${esc(mf.team)}"><datalist id="teamList">${teams.map(t=>`<option value="${esc(t)}">`).join("")}</datalist>
+    <button class="sbtn ${mfMore?"on":""}" onclick="mfMore=!mfMore;openSheet('market',true)">상세 필터</button>
+    <span style="display:${mfMore?"contents":"none"}"><input id="fTeam" list="teamList" placeholder="이전/소속 팀" value="${esc(mf.team)}"><datalist id="teamList">${teams.map(t=>`<option value="${esc(t)}">`).join("")}</datalist>
     <select id="fRole"><option value="ALL">전체 포지션</option>${Object.keys(ROLE).map(r=>`<option value="${r}" ${mf.role===r?"selected":""}>${ROLE[r].k}</option>`).join("")}</select>
     <input id="fSmin" type="number" min="0" placeholder="연봉 최소 (만원)" value="${mf.smin}">
-    <input id="fSmax" type="number" min="0" placeholder="연봉 최대 (만원)" value="${mf.smax}">
+    <input id="fSmax" type="number" min="0" placeholder="연봉 최대 (만원)" value="${mf.smax}"></span>
     <input id="fOvr" type="number" min="40" max="99" placeholder="OVR 이상" value="${mf.ovr}">
     <input id="fQ" placeholder="선수 이름 검색" value="${esc(mf.q)}">
   </div>
@@ -3555,21 +3682,15 @@ function ivSummaryHTML(){
 
 /* ---------- other sheets ---------- */
 function tacticHTML(){
-  return `<div class="sub">맵 숙련도</div>${MAPS.map(m=>`<div class="mrow"><b>${m}</b><div class="bar" style="height:8px"><i style="width:${G.maps[m]}%;background:${G.maps[m]>=70?'var(--mint)':G.maps[m]>=50?'#f5c542':'var(--red)'}"></i></div><span class="osw">${G.maps[m]}</span>
-    <span class="mute" style="font-size:12px">${G.maps[m]>=70?"픽 우선":G.maps[m]<45?"밴 추천":"상황별"}</span></div>`).join("")}
-    <div class="sub" style="margin-top:18px">팀 합 ${G.synergy} / 100</div>
-    <div class="bar" style="height:8px"><i style="width:${G.synergy}%;background:var(--mint)"></i></div>
-    <div class="sub" style="margin-top:18px">주전 포지션 구성</div>
+  return `<div class="sub">맵 숙련도 <span class="mute" style="font-size:11px;font-weight:400">눌러서 스크림 맵 지정 (숙련 12마다 그 맵 경기력 +-1)</span></div>
+    <div class="mpgrid">${MAPS.map(m=>{ const v=G.maps[m], c=v>=70?'var(--mint)':v>=50?'#f5c542':'var(--red)'; return `<div class="mcell ${m===scrimMap()?"on":""}" onclick="setScrimMap('${m}')"><div class="mtop"><b>${m}</b><span class="osw" style="color:${c}">${v}</span></div><div class="bar" style="height:5px"><i style="width:${v}%;background:${c}"></i></div><small class="mute">${m===scrimMap()?"스크림 맵":v>=70?"픽 우선":v<45?"밴 추천":"상황별"}</small></div>`; }).join("")}</div>
+    <div class="trow2"><div style="flex:1"><div class="sub">팀 합 ${G.synergy} / 100</div><div class="bar" style="height:6px"><i style="width:${G.synergy}%;background:var(--mint)"></i></div></div>
+      <button class="sbtn" onclick="drill()">팀 합 집중 훈련 (+3, 피로 +12, 356만원)</button></div>
+    <div class="sub" style="margin-top:14px">주전 포지션 구성</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">${starters().map(r=>{const p=P(r.id);return `<span class="tag">${ricon(p.role,14)} ${esc(p.name)} | ${topAgents(p,2)}</span>`}).join("")||'<span class="mute">주전이 없습니다.</span>'}</div>
-    <div class="gcards" style="margin-top:16px">
-      <div class="gc"><h5>팀 합 집중 훈련</h5><p>팀 합 +3, 전원 피로 +12</p><div class="r"><span class="mute">356만원</span><button class="sbtn" onclick="drill()">진행</button></div></div>
-      </div>
-    <div class="sub" style="margin-top:18px">스크림 연습 맵</div>
-    <p class="mute" style="font-size:12px;margin-bottom:6px">모든 스크림(일정 스크림, 제의 스크림)은 고른 맵에서 진행합니다. 그 맵 숙련도와, 아래 맵별 요원 조합에서 그 맵에 정해 둔 요원들의 숙련도가 함께 오릅니다. 숙련도가 낮은 요원일수록 빨리 오릅니다.</p>
-    <div class="calrow">${MAPS.map(m=>`<span class="${m===scrimMap()?"cur":""}" style="cursor:pointer" onclick="setScrimMap('${m}')">${m} ${G.maps[m]}</span>`).join("")}</div>
     <p class="mute" style="font-size:12px;margin:-2px 0 6px">${scrimMap()} 조합: ${starters().length>=5?Object.entries(myComp(scrimMap())).map(([id,a])=>`${esc(P(id).name)} ${agNm(DB.agents[a])}(${P(id).prof[a]})`).join(", "):"주전 5명이 필요합니다"} <a class="lk" onclick="compMap='${scrimMap()}';openSheet('tactic',true)">조합 바꾸기</a></p>
     <div class="sub" style="margin-top:18px">스크림 제의 (오늘 남은 횟수 ${G.scrimLeft??2}회)</div>
-    <p class="mute" style="font-size:12px;margin-bottom:6px">강팀일수록 거절 확률이 높고, 성사되면 주전 경험치와 능력치 상승폭이 큽니다. 거절당하면 3일 동안 다시 제의할 수 없습니다.</p>
+    <p class="mute" style="font-size:12px;margin-bottom:6px">강팀일수록 잘 거절하지만 성사되면 성장이 큽니다. 거절되면 3일간 재제의 불가.</p>
     <table class="tbl"><tr><th>팀</th><th>OVR</th><th>명성</th><th>최근 5경기</th><th>수락 가능성</th><th>XP 배율</th><th>비용</th><th></th></tr>${scrimRows()}</table>${compHTML()}`;
 }
 function drill(){ if(G.budget<8000) return toast("자금이 부족합니다."); G.budget-=8000; G.synergy=Math.min(100,G.synergy+3); starters().forEach(r=>r.fat=Math.min(100,r.fat+12)); toast("팀 합 훈련 완료"); renderAll(); save(); }
@@ -4423,7 +4544,7 @@ function rating(pl,R){
 }
 const AST_ROLE={initiator:0.5,controller:0.4,sentinel:0.3,flex:0.38,duelist:0.22};
 /* saving only makes sense when money carries into the next round: never on the last round of a half, in overtime, or when either side is on map point */
-function saveMakesSense(team){ const rn=MX.rn, [a,b]=MX.score; if(rn===0||rn===12) return false; if(rn===11||rn===23||rn>=24) return false;
+function saveMakesSense(team){ const rn=MX.rn, [a,b]=MX.score; if(rn===0||rn===1||rn===12||rn===13) return false; if(team&&MX.R&&MX.R.buy&&MX.R.buy[team]==="pistol") return false; if(rn===11||rn===23||rn>=24) return false;
   if(team&&MX.R&&MX.R.buy){ const R=MX.R, by=R.buy[team]; if(by!=="full"&&by!=="half") return false;
     if(((MX.cash||{})[team]||0)>=3900) return false;   /* rich enough to rebuy: no reason to save */
     R.saveRoll=R.saveRoll||{}; if(R.saveRoll[team]==null) R.saveRoll[team]=Math.random()<0.6; if(!R.saveRoll[team]) return false; } if(a>=12||b>=12) return false; return true; }
@@ -5801,7 +5922,7 @@ function runAuto(){
   autoFxOpen();
   const end=()=>{ FAST=false; autoFxClose();
     G.brief=[`자동 진행 완료: ${n}일 진행${played?`, 경기 ${played}번 자동 처리`:""}. ${why}`].concat(log.slice(-24)); G.bi=0;
-    AUTO=null; renderAll(); save();
+    AUTO=null; renderAll(); save(); if((G.stovePop||[]).length) setTimeout(stoveShow,500);
     if(G.pendingTrophy){ const id=G.pendingTrophy; G.pendingTrophy=null; save(); setTimeout(()=>trophyFX(id),300); } };
   const tick=()=>{
     if(!AUTO) return; if(AUTO.stop){ why="직접 멈췄습니다."; return end(); }
@@ -5833,6 +5954,7 @@ function runAuto(){
     let kind="day";
     if(G.record.w!==w0||G.record.l!==l0){ kind="match"; const win=G.record.w>w0; AUTO.res.push(win?"W":"L"); win?AUTO.w++:AUTO.l++; }
     try{ autoFxUpdate(kind,n,played,log.slice(ld)); }catch(e){}
+    if(r!=="stop"&&stoveHasWatchedPop()){ why="찜한 선수가 FA로 풀려 멈췄습니다."; return setTimeout(end,250); }
     if(r==="stop") return setTimeout(end,kind==="match"?700:250);
     setTimeout(tick,kind==="match"?650:(AUTO.total>60?30:80));
   };
@@ -5849,7 +5971,7 @@ function ensureAutoBtn(){
   let sk=$("#skipBtn");
   if(!sk&&g){ sk=document.createElement("button"); sk.id="skipBtn"; sk.className="ghost"; sk.textContent="경기 스킵 (결과만, 보상 50%)"; sk.onclick=skipMatchNow; g.parentNode.insertBefore(sk,g.nextSibling); }
   if(sk) sk.style.display=m?"":"none";
-  if(!$("#guideBtn")&&g){ const gb=document.createElement("button"); gb.id="guideBtn"; gb.className="ghost"; gb.textContent="추천 가이드"; gb.onclick=openGuide; g.parentNode.insertBefore(gb,g.nextSibling); }
+  try{ coachTipRender(); }catch(e){}
   if($("#autoBtn")||!g) return;
   const b=document.createElement("button"); b.id="autoBtn"; b.className="ghost"; b.textContent="자동 진행"; b.onclick=openAuto;
   g.parentNode.insertBefore(b,g.nextSibling);
