@@ -2171,9 +2171,21 @@ function aiPick(k){
   }
   return best;
 }
+/* AI clubs: contracts run out each offseason; the club keeps the ones it values, the rest go to free agency */
+function L_(a,b,c,d){ return L(a,b,c,d); }
+function jo2(w){ const c=String(w).charCodeAt(String(w).length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28?"과":"와"; }
+function aiYrs(id){ G.aiY=G.aiY||{}; if(G.aiY[id]==null) G.aiY[id]=1+hash(id+"cy")%3; return G.aiY[id]; }
+function aiExpire(L){ const out=[]; for(const k in G.rosters){ const ros=G.rosters[k]; if(!ros) continue;
+    ros.slice().forEach((id,i)=>{ const y=aiYrs(id)-1; if(y>0){ G.aiY[id]=y; return; } const p=P(id); if(!p) return;
+      const a=ageOf(id), st=i<5; let keep=(st?0.62:0.22)+(p.ovr>=85?0.15:p.ovr<75?-0.15:0)-(a>=29?0.15:0)+(potOf(id)-p.ovr>=6?0.1:0);
+      if(Math.random()<keep){ G.aiY[id]=1+Math.floor(Math.random()*2); return; }
+      G.rosters[k]=G.rosters[k].filter(x=>x!==id); delete G.aiY[id]; G.freed=(G.freed||[]).concat([id]); if(G.lock) delete G.lock[id];
+      txNews(`${p.name}, ${T(k).name}${jo2(T(k).name)} 계약 만료. FA 시장으로`); out.push(`${p.name}(${T(k).name})`); });
+    try{ sortRoster(k); }catch(e){} }
+  if(out.length){ const ls=out.slice(0,6).join(", "), more=out.length-6; L.push(L_(`다른 구단 계약 만료로 FA가 된 선수 ${out.length}명: ${ls}${more>0?` 외 ${more}명`:""}.`,`${out.length} players left other clubs as free agents: ${ls}${more>0?` and ${more} more`:""}.`,`他クラブの契約満了でFAになった選手${out.length}人: ${ls}${more>0?` ほか${more}人`:""}。`,`其他俱乐部合同到期成为自由球员${out.length}人: ${ls}${more>0?` 等${more}人`:""}。`)); } }
 function aiSign(k, quiet){
   const p=aiPick(k); if(!p) return null;
-  G.rosters[k].push(p.id);
+  G.rosters[k].push(p.id); G.aiY=G.aiY||{}; G.aiY[p.id]=1+Math.floor(Math.random()*3);
   if(G.freed) G.freed=G.freed.filter(x=>x!==p.id);
   if(G.nego&&G.nego[p.id]){ delete G.nego[p.id]; G.brief&&G.brief.push(L(`협상 중이던 ${p.name} 선수가 ${T(k).name}와 계약했습니다.`,`${p.name}, who you were negotiating with, signed with ${T(k).name}.`,`交渉中だった${p.name}が${T(k).name}と契約しました。`,`正在谈判的${p.name}与${T(k).name}签约了。`)); }
   if(!quiet) txNews(`${T(k).name}, ${p.name} 영입 (${ROLE[p.role].k}, ${p.nat})`);
@@ -2219,7 +2231,7 @@ function placeBid(k,rep){ const p=aiPick(k); if(!p) return null; const t=T(k);
   return p; }
 function aiSignId(k,id,b,quiet){ const p=P(id), t=T(k);
   if(b&&b.rep&&G.rosters[k].includes(b.rep)){ G.rosters[k]=G.rosters[k].filter(x=>x!==b.rep); G.freed.push(b.rep); }
-  G.rosters[k].push(id); if(G.freed) G.freed=G.freed.filter(x=>x!==id);
+  G.rosters[k].push(id); G.aiY=G.aiY||{}; G.aiY[id]=b&&b.y?b.y:1+Math.floor(Math.random()*3); if(G.freed) G.freed=G.freed.filter(x=>x!==id);
   if(G.nego&&G.nego[id]){ delete G.nego[id]; G.brief&&G.brief.push(L(`협상 중이던 ${p.name} 선수가 ${t.name}와 계약했습니다.`,`${p.name}, who you were negotiating with, signed with ${t.name}.`,`交渉中だった${p.name}が${t.name}と契約しました。`,`正在谈判的${p.name}与${t.name}签约了。`)); }
   if(!quiet) txNews(b&&b.rep?`${t.name}, ${P(b.rep).name} 방출하고 ${p.name} 영입`:`${t.name}, ${p.name} 영입 (${ROLE[p.role].k}, ${p.nat})`);
   sortRoster(k); return p; }
@@ -4104,6 +4116,7 @@ function advancePhase(){
   G.sea.pi=(G.sea.pi+1)%PHASES.length;
   const prevPh=PHASES[(G.sea.pi+PHASES.length-1)%PHASES.length]; if(prevPh.type==="intl"){ G.twin=14; } if(G.sea.pi===0) G.twin=0;
   const L=[]; if(prevPh.type==="intl") L.push(`${prevPh.n} 종료. 이적시장이 14일 동안 열립니다.`);
+  { const nx=PHASES[(G.sea.pi+1)%PHASES.length]; if(nx&&nx.type==="off"){ const ex=G.roster.filter(r=>(r.years||1)<=1).map(r=>P(r.id).name); if(ex.length) L.push(L_(`이번 시즌이 끝나면 ${ex.join(", ")} 선수의 계약이 끝나 FA가 됩니다. 붙잡으려면 선수단 탭에서 재계약하세요.`,`When this season ends, ${ex.join(", ")} will be out of contract and become free agents. Re-sign them in the Squad tab to keep them.`,`今シーズン終了で${ex.join("、")}の契約が切れFAになります。残すなら選手団タブで再契約してください。`,`本赛季结束后${ex.join("、")}合同到期成为自由球员。想留下请在阵容页续约。`)); } }
   if(G.sea.pi===0){ try{ roleShift(L); }catch(e){ console.error(e); } G.sea.yr++; L.push(`${G.sea.yr} 시즌이 시작됐습니다.`); if((G.jobs||[]).length){ G.jobs=[]; L.push("단장 제의 기간이 끝났습니다."); } }
   return L.concat(startPhase(false));
 }
@@ -4194,10 +4207,10 @@ function offseason(){
   try{ potSeason(L); }catch(e){ console.error(e); }
   try{ jobOffers(L); }catch(e){ console.error(e); }
   G.roster.forEach(r=>{ r.years=Math.max(0,(r.years||1)-1);
-    if(r.years===0){ const p=P(r.id), m=morOf(r);
-      if(m<35){ r.leave=true; L.push(`${p.name} 계약 만료. 사기가 ${m}까지 떨어져 재계약을 거부하고 FA로 떠났습니다.`); return; }
-      const mul=m<55?1.15:m>=80?0.97:1.05, ns=Math.round(Math.max(r.salary,marketAsk(p))*mul/1000)*1000; r.years=1; r.salary=ns; r.reD=absNow(); L.push(`${p.name} 계약 만료, 1년 재계약 (연 ${short(ns)}${m<55?", 사기가 낮아 연봉을 더 요구":m>=80?", 사기가 높아 할인":""}).`); } });
-  const gone=G.roster.filter(r=>r.leave); if(gone.length){ G.roster=G.roster.filter(r=>!r.leave); gone.forEach(r=>{ delete r.leave; G.freed=(G.freed||[]).concat([r.id]); G.lock[r.id]=30; G.log.push(`${P(r.id).name} 재계약 거부, FA`); if(G.iglId===r.id) G.iglId=null; txNews(`${P(r.id).name}, ${T(G.team).name}와 재계약 거부. FA 시장으로`); }); }
+    if(r.years===0){ const p=P(r.id), m=morOf(r); r.leave=m<35?"mor":"exp";
+      L.push(m<35?L_(`${p.name} 계약 만료. 사기가 ${m}까지 떨어져 FA로 떠났고, 30일 동안 다시 협상할 수 없습니다.`,`${p.name}'s contract expired. Morale fell to ${m}, so he left as a free agent and can't be approached for 30 days.`,`${p.name}契約満了。士気が${m}まで下がりFAで去り、30日間交渉できません。`,`${p.name}合同到期。士气降到${m}，以自由球员身份离队，30天内无法谈判。`):L_(`${p.name} 계약 만료로 FA가 됐습니다. 이적시장에서 다시 협상할 수 있지만 다른 구단도 영입에 나섭니다.`,`${p.name}'s contract expired and he is a free agent. You can negotiate again in the market, but other clubs will bid too.`,`${p.name}が契約満了でFAになりました。移籍市場で再交渉できますが、他クラブも獲得に動きます。`,`${p.name}合同到期成为自由球员。可在转会市场重新谈判，但其他俱乐部也会出手。`)); } });
+  const gone=G.roster.filter(r=>r.leave); if(gone.length){ G.roster=G.roster.filter(r=>!r.leave); gone.forEach(r=>{ const why=r.leave; delete r.leave; G.freed=(G.freed||[]).concat([r.id]); if(why==="mor") G.lock[r.id]=30; else delete G.lock[r.id]; G.log.push(`${P(r.id).name} 계약 만료, FA`); if(G.iglId===r.id) G.iglId=null; txNews(why==="mor"?`${P(r.id).name}, ${T(G.team).name}와 재계약 거부. FA 시장으로`:`${P(r.id).name}, ${T(G.team).name}${jo2(T(G.team).name)} 계약 만료. FA 시장으로`); }); }
+  try{ aiExpire(L); }catch(e){ console.error(e); }
   { const sl=sponsorSlots(); if(G.sponsors.length>sl){ const lost=G.sponsors.splice(sl); L.push(`인지도가 떨어져 스폰서 ${lost.map(x=>x.n).join(", ")}와 계약이 끝났습니다. (스폰서 자리 ${sl}개)`); } }
   G.sea.q={};
   return L;
@@ -6007,6 +6020,7 @@ const HL=[
  [/^(.+?), (.+?) 방출(.*)$/,(m,a,b,c)=>X3(`${a} release ${b}`,`${a}、${b}を放出`,`${a}裁掉${b}`)+(c?trText(c):"")],
  [/^(.+?), (\d+)세에 현역 은퇴 발표$/,(m,a,b)=>X3(`${a} announces retirement at ${b}`,`${a}、${b}歳で現役引退を発表`,`${a}宣布${b}岁退役`)],
  [/^(.+?)\((.+?)\), 병역 문제로 인해 은퇴를 선택함$/,(m,a,b)=>X3(`${a} (${b}) retires due to military service`,`${a}(${b})、兵役のため引退を選択`,`${a}(${b})因兵役选择退役`)],
+ [/^(.+?), (.+?)[와과] 계약 만료\. FA 시장으로$/,(m,a,b)=>X3(`${a}'s contract with ${b} expires, heads to free agency`,`${a}、${b}との契約満了でFA市場へ`,`${a}与${b}合同到期，进入自由市场`)],
  [/^(.+?), (.+?)[와과] 재계약 거부\. FA 시장으로$/,(m,a,b)=>X3(`${a} rejects a new deal with ${b}, heads to free agency`,`${a}、${b}との再契約を拒否しFA市場へ`,`${a}拒绝与${b}续约，进入自由市场`)],
  [/^(.+?), (.+?)[와과] 2년 연장 계약$/,(m,a,b)=>X3(`${a} extend ${b} for two years`,`${a}、${b}と2年の延長契約`,`${a}与${b}续约两年`)],
  [/^(.+?), (.+?)[와과] 스폰서 계약$/,(m,a,b)=>X3(`${a} sign a sponsorship with ${b}`,`${a}、${b}とスポンサー契約`,`${a}与${b}签订赞助合同`)],
