@@ -1161,7 +1161,7 @@ function natName(k){ if(LANG==="ko") return k; const i=LI[LANG]; if(REGION_W[k])
   try{ _dnR=_dnR||new Intl.DisplayNames([LANG],{type:"region"}); return NAT_ISO[k]?_dnR.of(NAT_ISO[k]):null; }catch(e){ return null; } }
 function langName(k){ try{ _dnL=_dnL||new Intl.DisplayNames([LANG],{type:"language"}); return LANG_ISO[k]?_dnL.of(LANG_ISO[k]):null; }catch(e){ return null; } }
 /* --- phrase dictionary: ko -> [en, ja, zh] --- */
-const TD={"속도":["Speed","速度","速度"],"인원 배치":["Split","人数配置","人数分配"],"목표 지점":["Target","目標地点","目标点"],"스타팅 지점":["Start site","スタート地点","起始点"],"패턴":["Pattern","パターン","套路"],"스토브리그":["Stove league","ストーブリーグ","休赛期"],"정리":["Cleanup","整理","整理"],"약점":["Weakness","弱点","短板"],"회복":["Recovery","回復","恢复"],"찜":["Watch","ウォッチ","关注"],"훈련으로":["training","練習に","训练"],"포지션 평균":["role avg","ポジション平均","位置平均"],"타격대":["Duelist","デュエリスト","决斗者"],"척후대":["Initiator","イニシエーター","先锋"],"전략가":["Controller","コントローラー","控场"],"감시자":["Sentinel","センチネル","哨卫"],"평균":["avg","平均","平均"],"조합":["Comp","構成","阵容"],"종":["types","種","种"],"핵심 능력 부족":["key attribute gaps","主要能力不足","核心能力不足"],"포지션 핵심 능력 부족":["Role key-attribute gaps","ポジションの主要能力不足","位置核心能力不足"],"참고":["Note","参考","参考"],"없음":["None","なし","无"],"로스터 없음":["no roster","ロスターなし","无阵容"],"출전":["played","出場","出场"],"포함":["incl.","込み","含"],"선수단 소통":["squad comms","選手団の意思疎通","阵容沟通"],"이적 기록":["Transfer note","移籍記録","转会记录"],"팀 언어":["team language","チーム言語","队伍语言"],"주는 것":["gives","渡すもの","给出"],"요청":["wants","要求","要求"],"현금":["cash","現金","现金"],"최근 라운드":["Recent rounds","直近ラウンド","最近回合"],"공격 속도":["Attack speed", "攻撃速度", "进攻速度"],"백업 속도":["Rotation speed", "カバー速度", "回防速度"],"각 체크":["Angle checks", "クリアリング", "角度检查"],"최종 목표 지점":["Final target", "最終目標地点", "最终目标点"],"수비 스타팅 지점":["Defense start site", "守備スタート地点", "防守起始点"],"공격로별 인원":["Players per lane", "ルート別人数", "各路线人数"],"사이트별 수비 인원":["Defenders per site", "サイト別守備人数", "各包点防守人数"],"대표 공격 패턴":["Main attack pattern", "主な攻撃パターン", "主要进攻套路"],"대표 수비 패턴":["Main defense pattern", "主な守備パターン", "主要防守套路"],"매우 느리게":["Very slow", "とても遅く", "非常慢"],"느리게":["Slow", "遅く", "慢"],"보통":["Normal", "普通", "普通"],"빠르게":["Fast", "速く", "快"],"매우 빠르게":["Very fast", "とても速く", "非常快"],"다양하게":["Thorough", "広く", "全面"],"적당히":["Moderate", "適度に", "适度"],"사이트 먼저":["Site first", "サイト優先", "先看包点"],"디폴트":["Default", "デフォルト", "默认"],"러시":["Rush", "ラッシュ", "速攻"],"꼬리 운영":["Lurk", "裏取り", "偷袭"],"양각 진입":["Split", "挟み撃ち", "分推"],"컨택":["Contact", "コンタクト", "接触推进"],"페이크":["Fake", "フェイク", "假打"],"홀딩":["Hold", "ホールド", "架守"],"리테이크":["Retake", "リテイク", "回防"],"전진 수비":["Aggressive push", "前進守備", "前压防守"],"스택":["Stack", "スタック", "堆叠"],"미드":["Mid", "ミッド", "中路"],"공격 시":["On attack", "攻撃時", "进攻时"],"수비 시":["On defense", "守備時", "防守时"],"전부 IGL":["All IGL", "全部IGL", "全部IGL"],"전부 직접":["All direct", "全部直接", "全部直接"],"IGL 판단":["IGL call", "IGL判断", "IGL决定"],"직접 지시":["Direct order", "直接指示", "直接指挥"],"IGL 자율":["IGL free", "IGL任せ", "IGL自主"],"작전":["Plan", "作戦", "战术"],"작전 변경":["Change plan", "作戦変更", "调整战术"],"흐름이 넘어갔습니다. 작전 변경":["Momentum lost. Change the plan", "流れが傾きました。作戦変更", "局势逆转，调整战术"],"상대가 흐름을 끊었습니다. 작전과 한마디":["The opponent broke the momentum. Plan and a word", "相手が流れを切りました。作戦とひと言", "对手打断了节奏，调整战术并鼓舞"],"공수교대":["Side swap", "攻守交代", "攻防互换"],"공수교대 작전 지시 (타임아웃 차감 없음)":["Side-swap plan (no timeout used)", "攻守交代の作戦指示 (タイムアウト消費なし)", "攻防互换战术 (不消耗暂停)"],"연장 공수교대 작전 지시 (타임아웃 차감 없음)":["Overtime side-swap plan (no timeout used)", "延長の攻守交代指示 (タイムアウト消費なし)", "加时攻防互换战术 (不消耗暂停)"],"경기 전 작전 회의":["Pre-match meeting", "試合前の作戦会議", "赛前战术会议"],"기본 공수 전술":["Default plans", "基本攻守戦術", "基础攻防战术"],"전술 타임아웃":["Tactical timeout", "作戦タイムアウト", "战术暂停"],"선수들에게 한마디":["A word to the players", "選手へのひと言", "对选手说一句"],"전술만 바꾸기":["Plan only", "戦術だけ変更", "只改战术"],"지시 전달":["Send orders", "指示を伝える", "下达指令"],"그대로 진행":["Continue as is", "そのまま進行", "照常进行"],"침착하게. 트레이드부터 맞추자":["Stay calm. Trade first", "落ち着こう。トレードから合わせよう", "冷静，先打好补枪"],"먼저 쳐. 엔트리 공격적으로":["Hit first. Aggressive entries", "先に仕掛けろ。エントリーは積極的に", "先手，突破要凶"],"멘탈 리셋. 한 라운드만 생각하자":["Mental reset. One round at a time", "メンタルリセット。1ラウンドずつ", "重置心态，一回合一回合打"],"하던 대로 가자. 흐름은 우리 거다":["Keep going. The momentum is ours", "いつも通り行こう。流れはこっちだ", "照旧打，节奏在我们手里"],"상대가 바꿀 거다. 대비하자":["They'll adjust. Be ready", "相手は変えてくる。備えよう", "对手会变阵，做好准备"],"방심하지 마. 끝까지 집중":["Don't relax. Focus to the end", "油断するな。最後まで集中", "别松懈，专注到底"],"이 맵 결과로 (보상 50%)":["Sim this map (50% reward)", "このマップを結果のみで (報酬50%)", "模拟本图 (奖励50%)"],"타임아웃":["Timeout", "タイムアウト", "暂停"],"이번 세트":["this map", "このマップ", "本局"],"백업":["Rotate", "カバー", "回防"],"전체 보기":["View all", "すべて表示", "查看全部"],"중요":["Important", "重要", "重要"],"요원마다 갈 위치를 직접 정할 수 있습니다. 숫자 버튼으로 인원을 바꾸면 배치는 역할 순서로 다시 자동 배정됩니다.":["Set each agent's position. Changing counts with the number buttons re-assigns positions by role.", "エージェントごとの位置を決められます。人数ボタンで数を変えると役割順に再配置されます。", "可直接设定每个特工的位置。用数字按钮改人数会按职责重新分配。"],"항목마다 \"IGL 판단 / 직접 지시\"를 바꿀 수 있습니다. IGL 판단 항목은 경기 흐름과 상대 전술에 맞춰 IGL이 라운드마다 정합니다.":["Each item can be 'IGL call' or 'Direct order'. IGL-call items are decided every round by the IGL based on the flow and the opponent.", "項目ごとに「IGL判断/直接指示」を切り替えられます。IGL判断の項目は流れと相手に合わせてIGLが毎ラウンド決めます。", "每项可切换IGL决定/直接指挥。IGL决定的项会由指挥根据局势与对手每回合决定。"],"사이트에 스킬 소리":["Utility heard on site", "サイトにスキル音", "包点有技能声"],
+const TD={"스카우터실":["Scouting room","スカウト室","球探室"],"홍보팀":["PR team","広報チーム","宣传团队"],"속도":["Speed","速度","速度"],"인원 배치":["Split","人数配置","人数分配"],"목표 지점":["Target","目標地点","目标点"],"스타팅 지점":["Start site","スタート地点","起始点"],"패턴":["Pattern","パターン","套路"],"스토브리그":["Stove league","ストーブリーグ","休赛期"],"정리":["Cleanup","整理","整理"],"약점":["Weakness","弱点","短板"],"회복":["Recovery","回復","恢复"],"찜":["Watch","ウォッチ","关注"],"훈련으로":["training","練習に","训练"],"포지션 평균":["role avg","ポジション平均","位置平均"],"타격대":["Duelist","デュエリスト","决斗者"],"척후대":["Initiator","イニシエーター","先锋"],"전략가":["Controller","コントローラー","控场"],"감시자":["Sentinel","センチネル","哨卫"],"평균":["avg","平均","平均"],"조합":["Comp","構成","阵容"],"종":["types","種","种"],"핵심 능력 부족":["key attribute gaps","主要能力不足","核心能力不足"],"포지션 핵심 능력 부족":["Role key-attribute gaps","ポジションの主要能力不足","位置核心能力不足"],"참고":["Note","参考","参考"],"없음":["None","なし","无"],"로스터 없음":["no roster","ロスターなし","无阵容"],"출전":["played","出場","出场"],"포함":["incl.","込み","含"],"선수단 소통":["squad comms","選手団の意思疎通","阵容沟通"],"이적 기록":["Transfer note","移籍記録","转会记录"],"팀 언어":["team language","チーム言語","队伍语言"],"주는 것":["gives","渡すもの","给出"],"요청":["wants","要求","要求"],"현금":["cash","現金","现金"],"최근 라운드":["Recent rounds","直近ラウンド","最近回合"],"공격 속도":["Attack speed", "攻撃速度", "进攻速度"],"백업 속도":["Rotation speed", "カバー速度", "回防速度"],"각 체크":["Angle checks", "クリアリング", "角度检查"],"최종 목표 지점":["Final target", "最終目標地点", "最终目标点"],"수비 스타팅 지점":["Defense start site", "守備スタート地点", "防守起始点"],"공격로별 인원":["Players per lane", "ルート別人数", "各路线人数"],"사이트별 수비 인원":["Defenders per site", "サイト別守備人数", "各包点防守人数"],"대표 공격 패턴":["Main attack pattern", "主な攻撃パターン", "主要进攻套路"],"대표 수비 패턴":["Main defense pattern", "主な守備パターン", "主要防守套路"],"매우 느리게":["Very slow", "とても遅く", "非常慢"],"느리게":["Slow", "遅く", "慢"],"보통":["Normal", "普通", "普通"],"빠르게":["Fast", "速く", "快"],"매우 빠르게":["Very fast", "とても速く", "非常快"],"다양하게":["Thorough", "広く", "全面"],"적당히":["Moderate", "適度に", "适度"],"사이트 먼저":["Site first", "サイト優先", "先看包点"],"디폴트":["Default", "デフォルト", "默认"],"러시":["Rush", "ラッシュ", "速攻"],"꼬리 운영":["Lurk", "裏取り", "偷袭"],"양각 진입":["Split", "挟み撃ち", "分推"],"컨택":["Contact", "コンタクト", "接触推进"],"페이크":["Fake", "フェイク", "假打"],"홀딩":["Hold", "ホールド", "架守"],"리테이크":["Retake", "リテイク", "回防"],"전진 수비":["Aggressive push", "前進守備", "前压防守"],"스택":["Stack", "スタック", "堆叠"],"미드":["Mid", "ミッド", "中路"],"공격 시":["On attack", "攻撃時", "进攻时"],"수비 시":["On defense", "守備時", "防守时"],"전부 IGL":["All IGL", "全部IGL", "全部IGL"],"전부 직접":["All direct", "全部直接", "全部直接"],"IGL 판단":["IGL call", "IGL判断", "IGL决定"],"직접 지시":["Direct order", "直接指示", "直接指挥"],"IGL 자율":["IGL free", "IGL任せ", "IGL自主"],"작전":["Plan", "作戦", "战术"],"작전 변경":["Change plan", "作戦変更", "调整战术"],"흐름이 넘어갔습니다. 작전 변경":["Momentum lost. Change the plan", "流れが傾きました。作戦変更", "局势逆转，调整战术"],"상대가 흐름을 끊었습니다. 작전과 한마디":["The opponent broke the momentum. Plan and a word", "相手が流れを切りました。作戦とひと言", "对手打断了节奏，调整战术并鼓舞"],"공수교대":["Side swap", "攻守交代", "攻防互换"],"공수교대 작전 지시 (타임아웃 차감 없음)":["Side-swap plan (no timeout used)", "攻守交代の作戦指示 (タイムアウト消費なし)", "攻防互换战术 (不消耗暂停)"],"연장 공수교대 작전 지시 (타임아웃 차감 없음)":["Overtime side-swap plan (no timeout used)", "延長の攻守交代指示 (タイムアウト消費なし)", "加时攻防互换战术 (不消耗暂停)"],"경기 전 작전 회의":["Pre-match meeting", "試合前の作戦会議", "赛前战术会议"],"기본 공수 전술":["Default plans", "基本攻守戦術", "基础攻防战术"],"전술 타임아웃":["Tactical timeout", "作戦タイムアウト", "战术暂停"],"선수들에게 한마디":["A word to the players", "選手へのひと言", "对选手说一句"],"전술만 바꾸기":["Plan only", "戦術だけ変更", "只改战术"],"지시 전달":["Send orders", "指示を伝える", "下达指令"],"그대로 진행":["Continue as is", "そのまま進行", "照常进行"],"침착하게. 트레이드부터 맞추자":["Stay calm. Trade first", "落ち着こう。トレードから合わせよう", "冷静，先打好补枪"],"먼저 쳐. 엔트리 공격적으로":["Hit first. Aggressive entries", "先に仕掛けろ。エントリーは積極的に", "先手，突破要凶"],"멘탈 리셋. 한 라운드만 생각하자":["Mental reset. One round at a time", "メンタルリセット。1ラウンドずつ", "重置心态，一回合一回合打"],"하던 대로 가자. 흐름은 우리 거다":["Keep going. The momentum is ours", "いつも通り行こう。流れはこっちだ", "照旧打，节奏在我们手里"],"상대가 바꿀 거다. 대비하자":["They'll adjust. Be ready", "相手は変えてくる。備えよう", "对手会变阵，做好准备"],"방심하지 마. 끝까지 집중":["Don't relax. Focus to the end", "油断するな。最後まで集中", "别松懈，专注到底"],"이 맵 결과로 (보상 50%)":["Sim this map (50% reward)", "このマップを結果のみで (報酬50%)", "模拟本图 (奖励50%)"],"타임아웃":["Timeout", "タイムアウト", "暂停"],"이번 세트":["this map", "このマップ", "本局"],"백업":["Rotate", "カバー", "回防"],"전체 보기":["View all", "すべて表示", "查看全部"],"중요":["Important", "重要", "重要"],"요원마다 갈 위치를 직접 정할 수 있습니다. 숫자 버튼으로 인원을 바꾸면 배치는 역할 순서로 다시 자동 배정됩니다.":["Set each agent's position. Changing counts with the number buttons re-assigns positions by role.", "エージェントごとの位置を決められます。人数ボタンで数を変えると役割順に再配置されます。", "可直接设定每个特工的位置。用数字按钮改人数会按职责重新分配。"],"항목마다 \"IGL 판단 / 직접 지시\"를 바꿀 수 있습니다. IGL 판단 항목은 경기 흐름과 상대 전술에 맞춰 IGL이 라운드마다 정합니다.":["Each item can be 'IGL call' or 'Direct order'. IGL-call items are decided every round by the IGL based on the flow and the opponent.", "項目ごとに「IGL判断/直接指示」を切り替えられます。IGL判断の項目は流れと相手に合わせてIGLが毎ラウンド決めます。", "每项可切换IGL决定/直接指挥。IGL决定的项会由指挥根据局势与对手每回合决定。"],"사이트에 스킬 소리":["Utility heard on site", "サイトにスキル音", "包点有技能声"],
 "닫기":["Close","閉じる","关闭"],"취소":["Cancel","キャンセル","取消"],"저장":["Save","保存","保存"],"삭제":["Delete","削除","删除"],"수락":["Accept","承諾","接受"],"거절":["Decline","拒否","拒绝"],"조정":["Adjust","調整","调整"],"보류":["Hold","保留","搁置"],"진행":["Proceed","進行","进行"],"자동":["Auto","自動","自动"],"설정":["Settings","設定","设置"],"열기":["Open","開く","展开"],"바꾸기":["Change","変更","更改"],"나가기":["Exit","終了","退出"],"초기화":["Reset","リセット","重置"],"지우기":["Clear","消去","清除"],"이전으로":["Back","戻る","返回"],"제의":["Offer","オファー","邀约"],"정보":["Info","情報","信息"],"내놓기":["List","放出","挂牌"],"협상":["Negotiate","交渉","谈判"],"내리기":["Remove","取り下げ","撤下"],
 "월":["Mon","月","一"],"화":["Tue","火","二"],"수":["Wed","水","三"],"목":["Thu","木","四"],"금":["Fri","金","五"],"토":["Sat","土","六"],"일":["Sun","日","日"],
 "월요일":["Monday","月曜日","星期一"],"화요일":["Tuesday","火曜日","星期二"],"수요일":["Wednesday","水曜日","星期三"],"목요일":["Thursday","木曜日","星期四"],"금요일":["Friday","金曜日","星期五"],"토요일":["Saturday","土曜日","星期六"],"일요일":["Sunday","日曜日","星期日"],
@@ -1267,6 +1267,15 @@ const DIFFS={
    d:["기존에 있는 모든 선수와 감독까지 FA로 풀리고 시작하며, 선수 영입 예산이 60% 이상 감소하고, 종합적인 예산이 80% 이상 감소합니다. 상대 AI 수준은 하드보다 2배 이상 어려워지며, 상대 코치진의 명성이 모두 고급 이상으로 고정됩니다. 다른 팀의 영입 예산은 35% 이상 증가합니다. 오프시즌 선수 영입 이후 다음 오프시즌까지 선수 영입이 불가하며, 유망주들의 성장 효율이 40% 이상 감소합니다.","Every player and coach starts as a free agent. Signing budget -60%+, overall budget -80%+. Opponent AI is over twice as hard as Hard, and every rival coach is fixed at Senior reputation or higher. Other clubs get +35% signing budget. After the offseason signing period you cannot sign anyone until the next offseason. Prospect growth -40%+.","全選手と監督がFAになって始まります。獲得予算60%以上、全体予算80%以上減少。相手AIはハードの2倍以上強く、相手監督の名声はすべて上級以上に固定。他チームの獲得予算は35%以上増加。オフシーズンの獲得期間後は次のオフシーズンまで選手を獲得できません。若手の成長効率は40%以上減少します。","所有选手和教练以自由身份开局。引援预算减少60%以上，总预算减少80%以上。对手AI比困难强两倍以上，对手教练声望全部固定在高级以上。其他队伍引援预算增加35%以上。休赛期引援结束后直到下个休赛期都无法签人。新秀成长效率降低40%以上。"]}};
 const DIFF_KEYS=["basic","chal","rebuild","hard","imp"];
 function diffPref(){ try{ const d=localStorage.getItem("vctmgr_diff"); return DIFFS[d]?d:"basic"; }catch(e){ return "basic"; } }
+/* other clubs' players grow toward their potential every phase; stronger on harder modes */
+const AI_GROW={basic:1,rebuild:1,chal:1.25,hard:1.5,imp:1.8};
+function aiGrowPass(){ const m=AI_GROW[(G&&G.diff)||"basic"]||1, mine=new Set(G.roster.map(r=>r.id)), done=new Set(G.retired||[]);
+  for(const k in G.rosters) (G.rosters[k]||[]).forEach(id=>{ if(mine.has(id)||done.has(id)) return; const p=P(id); if(!p) return; const gap=potOf(id)-p.ovr, a=ageOf(id);
+    const af=a<=20?1.2:a<=23?1:a<=25?0.7:a<=27?0.4:0.15; let n=0; const ch=Math.min(0.95,(0.12+Math.max(0,gap)*0.05)*af*m);
+    if(gap>0&&Math.random()<ch) n=1; if(gap>=6&&Math.random()<ch*0.35*m) n++; if(gap<=0&&m>1.2&&a<=26&&Math.random()<(m-1.2)*0.15) n=1;
+    if(!n) return; const ks=Object.keys(p.A).sort(()=>Math.random()-0.5).slice(0,2);
+    if(p.gen){ p.ovr=Math.min(99,p.ovr+n); ks.forEach(x=>p.A[x]=Math.min(99,p.A[x]+n)); }
+    else { G.dev=G.dev||{}; const d=G.dev[id]=G.dev[id]||{xp:0,pts:0,A:{},ovr:0}; d.ovr=(d.ovr||0)+n; ks.forEach(x=>d.A[x]=(d.A[x]||0)+n); p.ovr=Math.min(99,p.ovr+n); ks.forEach(x=>p.A[x]=Math.min(99,p.A[x]+n)); } }); }
 function DF(){ return DIFFS[(G&&G.diff)||"basic"]||DIFFS.basic; }
 function diffName(k){ return DIFFS[k].n[LI_ALL()]; }
 function diffDesc(k){ return DIFFS[k].d[LI_ALL()]; }
@@ -1381,7 +1390,9 @@ function salary(ovr){ const x=Math.max(0,(ovr-55)/40); return Math.round((20000+
 const FAC_FX={
   gear:{icon:'<rect x="3" y="5" width="18" height="12" rx="1"/><path d="M8 21h8M12 17v4M7 9h4M7 12h7"/>',eff:l=>`훈련 효과 +${l*8}%`,eff2:l=>`스크림 일정 팀 합 +${l*8}%`},
   dorm:{icon:'<path d="M3 20V9l9-5 9 5v11"/><path d="M7 20v-6h10v6M7 14h10"/>',eff:l=>`휴식일 피로 회복 +${l*10}%`,eff2:l=>`피로 누적 감소 ${8+l*3}%`},
-  lab:{icon:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8 11h6M11 8v6"/>',eff:l=>`전술/맵 숙련 +${l*8}%`,eff2:l=>`스크림 경험치 +${l*5}%`}
+  lab:{icon:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8 11h6M11 8v6"/>',eff:l=>`전술/맵 숙련 +${l*8}%`,eff2:l=>`스크림 경험치 +${l*5}%`},
+  scout:{icon:'<circle cx="9" cy="9" r="5"/><path d="M13 13l7 7M6 9h6"/><path d="M18 4v5M15.5 6.5h5"/>',eff:l=>L(`스카우트 비용 -${l*6}%`,`Scouting cost -${l*6}%`,`スカウト費用 -${l*6}%`,`球探费用 -${l*6}%`),eff2:l=>L(`영입 요구 연봉 -${(l*1.5).toFixed(1).replace(/\.0$/,"")}%`,`Signing salary asks -${(l*1.5).toFixed(1).replace(/\.0$/,"")}%`,`獲得時の要求年俸 -${(l*1.5).toFixed(1).replace(/\.0$/,"")}%`,`签约要价 -${(l*1.5).toFixed(1).replace(/\.0$/,"")}%`)},
+  promo:{icon:'<path d="M3 10v4h4l6 4V6L7 10H3z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',eff:l=>L(`팬 증가 +${l*8}%`,`Fan growth +${l*8}%`,`ファン増加 +${l*8}%`,`粉丝增长 +${l*8}%`),eff2:l=>L(`명성 증가 +${l*5}%`,`Fame growth +${l*5}%`,`名声上昇 +${l*5}%`,`名声增长 +${l*5}%`)}
 };
 function sfxUp(){
   try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=new A(); const t=c.currentTime;
@@ -1401,11 +1412,11 @@ function upgradeFX(k, from, to, cost){
     <div class="fx-card">
       <div class="fx-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${fx.icon}</svg></div>
       <div class="fx-kick">FACILITY UPGRADED</div>
-      <div class="fx-name">${f.n}</div>
+      <div class="fx-name">${facNm(f)}</div>
       <div class="fx-lv"><span class="o">LV.${from}</span><span class="ar">&gt;&gt;</span><span class="n">LV.${to}</span></div>
-      <div class="fx-pips">${[1,2,3,4,5].map(l=>`<i class="${l<=from?'on':l<=to?'new':''}" style="--i:${l}"></i>`).join("")}</div>
+      <div class="fx-pips">${Array.from({length:FAC_MAX},(_,i)=>i+1).map(l=>`<i class="${l<=from?'on':l<=to?'new':''}" style="--i:${l}"></i>`).join("")}</div>
       <div class="fx-eff"><div><span>${fx.eff(from)}</span><b>${fx.eff(to)}</b></div><div><span>${fx.eff2(from)}</span><b>${fx.eff2(to)}</b></div></div>
-      <div class="fx-foot">투자 ${short(cost)} | ${to>=5?"최대 레벨 달성":"다음 단계 "+short(upCost(k))}</div>
+      <div class="fx-foot">투자 ${short(cost)} | ${to>=FAC_MAX?"최대 레벨 달성":"다음 단계 "+short(upCost(k))}</div>
     </div>`;
   el.className="on"; sfxUp();
   document.body.classList.add("fx-shake"); setTimeout(()=>document.body.classList.remove("fx-shake"),420);
@@ -1434,7 +1445,7 @@ const SCOUT=[
   {k:"pro",n:"전문 스카우트",d:"추정치 하나(오차 2 안팎)와 팀 적합도, 리스크, 결론까지 담은 상세 리포트",cost:p=>((p.tier===1&&!p.gen?14000:7000)+p.ovr*80)*5.5,r:3}
 ];
 const SC_R={basic:1,adv:2,pro:3,chief:3};
-function scoutCost(id,k){ if(k==="chief") k="pro"; return Math.round(SCOUT.find(s=>s.k===k).cost(P(id))/1000)*1000; }
+function scoutCost(id,k){ if(k==="chief") k="pro"; return Math.round(SCOUT.find(s=>s.k===k).cost(P(id))*scoutCostMul()/1000)*1000; }
 function scoutInfo(id){ const s=(G&&G.scouted||{})[id]; if(s) return s; return G&&DF().freePot?freePotInfo(id):undefined; }
 function potText(id){ const s=scoutInfo(id); if(!s) return "?"; return s.lo===s.hi?String(s.lo):`${s.lo}-${s.hi}`; }
 function potComment(id){ const gap=potOf(id)-P(id).ovr;
@@ -1607,7 +1618,8 @@ function confirmBox(title, html, okLabel, onOk){
 
 
 /* ================= TROPHIES ================= */
-function trophySVG(kind,big){
+function trophySVG(kind,big){ const u=(typeof TRO3D!=="undefined")?TRO3D.img(kind):null; if(u) return `<img class="tsvg" src="${u}" alt="" draggable="false">`; return trophySVG0(kind,big); }
+function trophySVG0(kind,big){
   const id="g"+kind+(big?"b":"")+Math.floor(Math.random()*1e6);
   const gold=`<linearGradient id="${id}a" x1="0" x2="1"><stop offset="0" stop-color="#8A6A1E"/><stop offset=".45" stop-color="#F7D774"/><stop offset=".6" stop-color="#FFF2B0"/><stop offset="1" stop-color="#9C7623"/></linearGradient>`;
   const silver=`<linearGradient id="${id}s" x1="0" x2="1"><stop offset="0" stop-color="#6E747C"/><stop offset=".45" stop-color="#E6EAEF"/><stop offset=".6" stop-color="#FFFFFF"/><stop offset="1" stop-color="#7B828B"/></linearGradient>`;
@@ -1647,14 +1659,6 @@ function awardTrophy(kind){
   G.trophies=(G.trophies||[]).concat([tr]); G.pendingTrophy=tr.id;
   return `트로피 획득: ${tr.name}. 전시장 탭에 전시됐습니다.`;
 }
-function trophyFX(id){
-  const tr=(G.trophies||[]).find(t=>t.id===id); if(!tr) return;
-  let el=$("#tfx"); if(!el){ el=document.createElement("div"); el.id="tfx"; document.body.appendChild(el); }
-  const rays=Array.from({length:16},(_,i)=>`<i style="transform:rotate(${i*22.5}deg)"></i>`).join("");
-  el.innerHTML=`<div class="tfx-rays">${rays}</div><div class="tfx-card"><div class="tk">${tr.yr} ${esc(tr.event)} CHAMPION</div>${trophySVG(tr.kind,true)}<h3>${esc(tr.name)}</h3><p>${tr.final?`결승 ${esc(tr.final.s)} vs ${esc(tr.final.opp)}`:""}</p><small>전시장에서 꾹 누르면 기록을 볼 수 있습니다</small></div>`;
-  el.className="on"; sfxUp();
-  const close=()=>{ el.className=""; el.innerHTML=""; }; el.onclick=close; clearTimeout(el._h); el._h=setTimeout(close,5000);
-}
 const SHELF=["HG","KO","M1","S1","M2","S2","CH"];
 function trophyRoomHTML(){
   const list=G.trophies||[];
@@ -1676,15 +1680,284 @@ function bindTrophies(){
 function openTrophy(id){
   const t=(G.trophies||[]).find(x=>x.id===id); if(!t) return;
   $("#pmBox").innerHTML=`<button class="x" onclick="closePM()">x</button>
-   <div class="tdet"><div class="tbig">${trophySVG(t.kind,true)}</div>
+   <div class="tdet"><div class="tbig" id="tbig3d">${trophySVG(t.kind,true)}<div class="t3hint">${L("꾹 눌러 3D 보기","Hold for 3D","長押しで3D","长按查看3D")}</div></div>
     <div><div class="tk">${t.yr} ${esc(t.event)}</div><h3>${esc(t.name)}</h3>
      ${t.final?`<div class="tfin"><span>결승</span><b>${esc(T(G.team).name)} ${esc(t.final.s)} ${esc(t.final.opp)}</b><small>${t.final.maps.map(esc).join(" | ")}</small></div>`:""}
      ${t.mvp?`<p class="mute" style="font-size:12px;margin-top:6px">대회 MVP ${esc(t.mvp.name)} (${t.mvp.k}킬)</p>`:""}</div></div>
    <div class="mgrid"><div class="mg"><h4>우승 로스터</h4>${t.roster.map(r=>`<div class="trow">${avatar(r.name,"#1E1E1E",r.nat)}${ricon(r.role,14)}<b>${esc(r.name)}</b><span class="mute">${esc(r.nat)}</span><span class="osw">${r.ovr}</span></div>`).join("")}</div>
    <div class="mg"><h4>우승까지의 여정</h4>${t.path.map(m=>`<div class="tpath ${m.win?"w":"l"}"><span>${esc(m.label)}</span><b>${esc(m.s)} vs ${esc(m.opp)}</b><small>${m.maps.map(esc).join(", ")}</small></div>`).join("")}</div></div>`;
   $("#pm").classList.add("on");
+  const tb=$("#tbig3d"); if(tb){ let tm=null; const end=()=>{ clearTimeout(tm); tb.classList.remove("hold"); };
+    tb.addEventListener("pointerdown",e=>{ e.preventDefault(); tb.classList.add("hold"); tm=setTimeout(()=>{ end(); open3D(t.kind,t.yr,t.event); },600); });
+    tb.addEventListener("pointerup",end); tb.addEventListener("pointerleave",end); tb.addEventListener("contextmenu",e=>e.preventDefault()); }
 }
 
+/* ================= TROPHY 3D (original designs, WebGL, no libraries) ================= */
+const TRO3D=(()=>{
+  const MAT={
+    gold:{c:[1.0,0.74,0.30],m:1,r:.16}, goldD:{c:[.72,.48,.16],m:1,r:.35},
+    silver:{c:[.93,.95,.98],m:1,r:.12}, steel:{c:[.42,.45,.50],m:1,r:.28},
+    black:{c:[.03,.03,.035],m:.25,r:.22}, onyx:{c:[.05,.04,.06],m:.5,r:.12},
+    red:{c:[.82,.08,.1],m:.3,r:.25}, blue:{c:[.12,.3,.92],m:.3,r:.25},
+    redGlow:{c:[1,.2,.2],m:0,r:.5,e:[2.2,.18,.15]}, amber:{c:[1,.6,.15],m:0,r:.5,e:[2.2,1.0,.25]},
+    white:{c:[.96,.96,.96],m:0,r:.4}, plate:{c:[.06,.06,.06],m:0,r:.4,tex:1}};
+  /* ---------- tiny 3x3 transforms ---------- */
+  const R3={x:a=>[1,0,0,0,Math.cos(a),-Math.sin(a),0,Math.sin(a),Math.cos(a)], y:a=>[Math.cos(a),0,Math.sin(a),0,1,0,-Math.sin(a),0,Math.cos(a)], z:a=>[Math.cos(a),-Math.sin(a),0,Math.sin(a),Math.cos(a),0,0,0,1]};
+  const I3=[1,0,0,0,1,0,0,0,1];
+  const ap=(m,v)=>[m[0]*v[0]+m[1]*v[1]+m[2]*v[2],m[3]*v[0]+m[4]*v[1]+m[5]*v[2],m[6]*v[0]+m[7]*v[1]+m[8]*v[2]];
+  const nz=v=>{ const l=Math.hypot(v[0],v[1],v[2])||1; return [v[0]/l,v[1]/l,v[2]/l]; };
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  function Bld(){ const parts={}; const P=k=>parts[k]=parts[k]||{p:[],n:[],u:[]};
+    const tf=(T,v,isN)=>{ if(!T) return v; const r=ap(T.m||I3,v); return isN?nz(r):[r[0]+(T.t?T.t[0]:0),r[1]+(T.t?T.t[1]:0),r[2]+(T.t?T.t[2]:0)]; };
+    function tri(mat,a,b,c,na,nb,nc,ua,ub,uc,T){ const q=P(mat); [[a,na,ua],[b,nb,ub],[c,nc,uc]].forEach(([p,n,u])=>{ const pp=tf(T,p), nn=tf(T,n,1); q.p.push(...pp); q.n.push(...nn); q.u.push(...(u||[0,0])); }); }
+    function flatTri(mat,a,b,c,T){ const n=nz(cross(sub(b,a),sub(c,a))); tri(mat,a,b,c,n,n,n,0,0,0,T); }
+    /* lathe: profile [[r,y]...], seg around; flat=true gives cut-gem facets */
+    function lathe(prof,seg,mat,o){ o=o||{}; const a0=o.a0||0, T=o.T;
+      const pt=(r,y,a)=>[r*Math.sin(a),y,r*Math.cos(a)];
+      for(let j=0;j<prof.length-1;j++){ const [r0,y0]=prof[j],[r1,y1]=prof[j+1];
+        const sn=[y1-y0,-(r1-r0)]; const l=Math.hypot(sn[0],sn[1])||1; sn[0]/=l; sn[1]/=l;
+        for(let i=0;i<seg;i++){ const a=a0+i/seg*Math.PI*2, b=a0+(i+1)/seg*Math.PI*2;
+          const A=pt(r0,y0,a),B=pt(r0,y0,b),C=pt(r1,y1,b),D=pt(r1,y1,a);
+          if(o.flat){ flatTri(mat,A,B,C,T); flatTri(mat,A,C,D,T); }
+          else { const na=[sn[0]*Math.sin(a),sn[1],sn[0]*Math.cos(a)], nb=[sn[0]*Math.sin(b),sn[1],sn[0]*Math.cos(b)];
+            tri(mat,A,B,C,na,nb,nb,0,0,0,T); tri(mat,A,C,D,na,nb,na,0,0,0,T); } } } }
+    function torus(R,r,a0,a1,sa,sb,mat,T){ for(let i=0;i<sa;i++) for(let j=0;j<sb;j++){
+        const u0=a0+(a1-a0)*i/sa,u1=a0+(a1-a0)*(i+1)/sa,v0=j/sb*Math.PI*2,v1=(j+1)/sb*Math.PI*2;
+        const pt=(u,v)=>[(R+r*Math.cos(v))*Math.cos(u),(R+r*Math.cos(v))*Math.sin(u),r*Math.sin(v)], nm=(u,v)=>[Math.cos(v)*Math.cos(u),Math.cos(v)*Math.sin(u),Math.sin(v)];
+        tri(mat,pt(u0,v0),pt(u1,v0),pt(u1,v1),nm(u0,v0),nm(u1,v0),nm(u1,v1),0,0,0,T); tri(mat,pt(u0,v0),pt(u1,v1),pt(u0,v1),nm(u0,v0),nm(u1,v1),nm(u0,v1),0,0,0,T); } }
+    /* extrude a star-shaped 2D polygon (x,y) between z0..z1, optional bevel-free */
+    function extrude(poly,z0,z1,mat,T,capMat){ const cx=poly.reduce((s,p)=>s+p[0],0)/poly.length, cy=poly.reduce((s,p)=>s+p[1],0)/poly.length;
+      for(let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length];
+        flatTri(capMat||mat,[cx,cy,z1],[a[0],a[1],z1],[b[0],b[1],z1],T); flatTri(capMat||mat,[cx,cy,z0],[b[0],b[1],z0],[a[0],a[1],z0],T);
+        flatTri(mat,[a[0],a[1],z0],[b[0],b[1],z0],[b[0],b[1],z1],T); flatTri(mat,[a[0],a[1],z0],[b[0],b[1],z1],[a[0],a[1],z1],T); } }
+    function box(x0,y0,z0,x1,y1,z1,mat,T){ extrude([[x0,y0],[x1,y0],[x1,y1],[x0,y1]],z0,z1,mat,T); }
+    function quadTex(x0,y0,x1,y1,z,mat,T){ const n=[0,0,1]; tri(mat,[x0,y0,z],[x1,y0,z],[x1,y1,z],n,n,n,[0,1],[1,1],[1,0],T); tri(mat,[x0,y0,z],[x1,y1,z],[x0,y1,z],n,n,n,[0,1],[1,0],[0,0],T); }
+    function star(cx,cy,ro,ri,n){ const o=[]; for(let i=0;i<n*2;i++){ const a=Math.PI/2+i*Math.PI/n, r=i%2?ri:ro; o.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]); } return o; }
+    function sphere(cx,cy,r,seg,rings,mat,flat,T){ const pr=[]; for(let i=0;i<=rings;i++){ const t=-Math.PI/2+Math.PI*i/rings; pr.push([r*Math.cos(t),cy+r*Math.sin(t)]); } pr[0][0]=0; pr[rings][0]=0; lathe(pr,seg,mat,{flat,T:T||(cx?{t:[cx,0,0]}:null)}); }
+    return {parts,lathe,torus,extrude,box,quadTex,star,sphere,tri,flatTri}; }
+  /* ---------- the designs ---------- */
+  function base(b,o){ o=o||{}; const top=o.top||0.56, sg=o.seg||6, a0=Math.PI/sg;
+    b.lathe([[0,0],[1.0,0],[1.0,0.16],[0.93,0.22],[0.93,top-0.06],[0.84,top],[0,top]],sg,"black",{flat:1,a0});
+    b.lathe([[0.94,0.30],[0.95,0.31],[0.95,0.36],[0.94,0.37]],sg,o.trim||"gold",{flat:1,a0});
+    b.lathe([[1.005,0.155],[1.012,0.16],[1.012,0.175],[1.005,0.18]],sg,o.trim||"gold",{flat:1,a0});
+    const fz=0.93*Math.cos(Math.PI/sg)+0.004, hw=0.93*Math.sin(Math.PI/sg)*0.78; b.quadTex(-hw,0.385,hw,top-0.075,fz,"plate"); }
+  const DES={
+    CH(b){ base(b,{seg:8,top:0.6});
+      b.lathe([[0,0.6],[0.66,0.6],[0.52,0.78],[0.26,0.98],[0.17,1.32],[0,1.32]],8,"onyx",{flat:1,a0:Math.PI/8});
+      b.lathe([[0.25,0.95],[0.31,0.97],[0.31,1.02],[0.25,1.04]],8,"gold",{flat:1,a0:Math.PI/8});
+      b.lathe([[0.17,1.3],[0.25,1.34],[0.25,1.43],[0.17,1.47]],8,"gold",{flat:1,a0:Math.PI/8});
+      b.lathe([[0.16,1.46],[0.11,1.6],[0.115,1.74],[0.21,1.82],[0.12,1.92]],24,"gold");
+      b.lathe([[0.12,1.92],[0.36,2.02],[0.63,2.32],[0.79,2.78],[0.83,3.08],[0.87,3.13],[0.81,3.15],[0.75,3.08],[0.71,2.78],[0.56,2.37],[0.31,2.12],[0,2.07]],8,"gold",{flat:1,a0:Math.PI/8});
+      b.lathe([[0.692,2.47],[0.726,2.48],[0.752,2.64],[0.718,2.65]],8,"onyx",{flat:1,a0:Math.PI/8});
+      b.lathe([[0.728,2.545],[0.742,2.55],[0.745,2.575],[0.731,2.58]],8,"redGlow",{flat:1,a0:Math.PI/8});
+      const wing=[[0.70,2.98],[1.12,3.28],[1.20,2.78],[1.03,2.36],[0.60,2.32]];
+      b.extrude(wing,-0.045,0.045,"gold"); b.extrude(wing.map(p=>[-p[0],p[1]]),-0.045,0.045,"gold");
+      b.extrude([[0.78,2.86],[1.08,3.08],[1.12,2.80],[0.98,2.48],[0.72,2.48]],0.045,0.06,"onyx"); b.extrude([[-0.78,2.86],[-1.08,3.08],[-1.12,2.80],[-0.98,2.48],[-0.72,2.48]],0.045,0.06,"onyx");
+      b.lathe([[0.035,2.07],[0.035,3.18],[0.07,3.22],[0,3.24]],12,"gold");
+      b.extrude(b.star(0,3.48,0.3,0.13,5),-0.06,0.06,"gold"); b.extrude(b.star(0,3.48,0.17,0.075,5),0.06,0.075,"redGlow"); },
+    M1(b){ orbDesign(b,{metal:"silver",prong:"silver",ped:"steel",glow:"redGlow",n:3,orb:"silver",seg:10}); },
+    M2(b){ orbDesign(b,{metal:"gold",prong:"steel",ped:"onyx",glow:"amber",n:4,orb:"gold",seg:12,ring2:1}); },
+    KO(b){ base(b,{trim:"silver"}); cup(b,{m:"silver",bands:[["red",2.28,2.38]]}); },
+    HG(b){ base(b,{trim:"silver"}); cup(b,{m:"silver",bands:[["red",2.22,2.3],["blue",2.32,2.38]],tall:1}); },
+    S1(b){ shield(b,"blue",1); }, S2(b){ shield(b,"red",2); }};
+  function orbDesign(b,o){ base(b,{trim:o.metal==="gold"?"gold":"silver"});
+    b.lathe([[0,0.56],[0.56,0.56],[0.42,0.78],[0.2,0.98],[0.15,1.5],[0.24,1.6],[0.1,1.66],[0,1.66]],6,o.ped,{flat:1,a0:Math.PI/6});
+    b.lathe([[0.2,0.97],[0.225,0.99],[0.225,1.05],[0.2,1.07]],6,o.glow,{flat:1,a0:Math.PI/6});
+    const pr=[[0.1,1.56],[0.3,1.68],[0.64,2.18],[0.62,2.86],[0.52,2.3],[0.2,1.76]];
+    for(let i=0;i<o.n;i++) b.extrude(pr,-0.035,0.035,o.prong,{m:R3.y(i*Math.PI*2/o.n+Math.PI/2)});
+    b.sphere(0,2.45,0.46,o.seg,8,o.orb,1);
+    b.torus(0.475,0.022,0,Math.PI*2,48,8,o.glow,{m:R3.x(Math.PI/2),t:[0,2.45,0]});
+    if(o.ring2) b.torus(0.49,0.018,0,Math.PI*2,48,8,o.metal==="gold"?"goldD":"steel",{m:R3.x(0.5),t:[0,2.45,0]});
+    b.lathe([[0,2.86],[0.07,2.9],[0.02,3.2],[0,3.22]],6,o.metal,{flat:1}); }
+  function cup(b,o){ const m=o.m, t=o.tall?0.12:0;
+    b.lathe([[0,0.56],[0.44,0.56],[0.44,0.62],[0.3,0.72],[0.12,0.86],[0.09,1.0],[0.09,1.36],[0.15,1.43],[0.1,1.5]],10,m,{flat:1});
+    b.lathe([[0.1,1.5],[0.2,1.57],[0.47,1.78],[0.6,2.12+t/2],[0.64,2.6+t],[0.67,2.68+t],[0.61,2.7+t],[0.58,2.62+t],[0.52,2.2],[0.3,1.95],[0,1.9]],10,m,{flat:1});
+    o.bands.forEach(([c,y0,y1])=>{ const r=0.6+((y0+y1)/2-2.12)*0.08; b.lathe([[r,y0],[r+0.025,y0+0.01],[r+0.03,y1-0.01],[r,y1]],10,c,{flat:1}); });
+    b.torus(0.22,0.04,-Math.PI/2,Math.PI/2,20,10,m,{t:[0.6,2.3,0]}); b.torus(0.22,0.04,Math.PI/2,Math.PI*1.5,20,10,m,{t:[-0.6,2.3,0]}); }
+  function shield(b,col,num){ base(b,{trim:"silver"});
+    b.lathe([[0,0.56],[0.36,0.56],[0.36,0.62],[0.22,0.72],[0.1,0.84],[0.08,1.32],[0,1.32]],8,"silver",{flat:1});
+    const sh=[[-0.66,2.92],[0,3.1],[0.66,2.92],[0.66,2.2],[0.52,1.74],[0.3,1.44],[0,1.24],[-0.3,1.44],[-0.52,1.74],[-0.66,2.2]];
+    b.extrude(sh.map(p=>[p[0]*1.07,2.2+(p[1]-2.2)*1.06]),-0.1,0.06,"steel"); b.extrude(sh,-0.08,0.1,"silver");
+    b.extrude(sh.map(p=>[p[0]*0.74,2.2+(p[1]-2.2)*0.74]),0.1,0.14,col);
+    const w=0.1; if(num===1) b.box(-w/2,1.98,0.14,w/2,2.5,0.19,"white"); else { b.box(-0.15,1.98,0.14,-0.05,2.5,0.19,"white"); b.box(0.05,1.98,0.14,0.15,2.5,0.19,"white"); }
+    b.box(-0.24,2.5,0.14,0.24,2.56,0.19,"white"); b.box(-0.24,1.92,0.14,0.24,1.98,0.19,"white"); }
+  const GEO={}; function geo(kind){ if(GEO[kind]) return GEO[kind]; const b=Bld(); (DES[kind]||DES.CH)(b); return GEO[kind]=b.parts; }
+  const LABEL={CH:"CHAMPIONS",M1:"MASTERS I",M2:"MASTERS II",KO:"KICKOFF",S1:"STAGE I",S2:"STAGE II",HG:"HOME GROUND"};
+  /* ---------- WebGL ---------- */
+  const VS=`attribute vec3 aP;attribute vec3 aN;attribute vec2 aU;uniform mat4 uM;uniform mat4 uVP;varying vec3 vN;varying vec3 vP;varying vec2 vU;
+   void main(){ vec4 w=uM*vec4(aP,1.0); vP=w.xyz; vN=mat3(uM)*aN; vU=aU; gl_Position=uVP*w; }`;
+  const FS=`precision mediump float;varying vec3 vN;varying vec3 vP;varying vec2 vU;uniform vec3 uC;uniform vec3 uE;uniform float uMt;uniform float uR;uniform float uTx;uniform float uSh;uniform sampler2D uT;uniform vec3 uEye;
+   vec3 env(vec3 d){ float y=d.y; vec3 top=vec3(1.5,1.4,1.25); vec3 hor=vec3(.62,.58,.54); vec3 bot=vec3(.10,.09,.08);
+     vec3 c= y>0.0? mix(hor,top,pow(y,.55)) : mix(hor,bot,pow(-y,.5));
+     c+=vec3(1.3,1.2,1.05)*smoothstep(.7,1.0,dot(d,normalize(vec3(.2,.35,1.0))));
+     c+=vec3(.9,.95,1.1)*smoothstep(.75,1.0,dot(d,normalize(vec3(-1.0,.2,-.2))));
+     c+=vec3(.9,.95,1.1)*smoothstep(.75,1.0,dot(d,normalize(vec3(1.0,.2,-.2))));
+     c+=vec3(3.0,2.8,2.5)*smoothstep(.975,1.0,dot(d,normalize(vec3(.55,.55,.62))));
+     c+=vec3(1.4,1.6,2.2)*smoothstep(.96,1.0,dot(d,normalize(vec3(-.75,.25,.35))));
+     c+=vec3(2.2,.5,.4)*smoothstep(.97,1.0,dot(d,normalize(vec3(.1,-.1,-1.0))));
+     c+=vec3(1.3)*smoothstep(.03,.0,abs(y-.12)); return c; }
+   void main(){ if(uSh>0.5){ float r=length(vU*2.0-1.0); gl_FragColor=vec4(0.0,0.0,0.0,.6*(1.0-smoothstep(.15,1.0,r))); return; }
+     vec3 N=normalize(vN); vec3 V=normalize(uEye-vP); if(dot(N,V)<0.0) N=-N; vec3 R=reflect(-V,N);
+     vec3 base=uC; float em=0.0; if(uTx>0.5){ vec4 t=texture2D(uT,vU); base=mix(base,t.rgb,t.a); em=t.a*.6; }
+     float F=pow(1.0-max(dot(N,V),0.0),5.0); vec3 L1=normalize(vec3(.6,.8,.7)); float df=max(dot(N,L1),0.0)*.75+.25;
+     vec3 H=normalize(L1+V); float sp=pow(max(dot(N,H),0.0),mix(260.0,24.0,uR));
+     vec3 rf=env(R); vec3 rfB=mix(rf,vec3(dot(rf,vec3(.33))),uR*.6);
+     vec3 metal=base*rfB*(1.0+F)+sp*mix(base,vec3(1.0),.3)*2.0;
+     vec3 diel=base*df+rfB*mix(.04,.9,F)*(1.0-uR*.7)+sp*.6+base*em;
+     vec3 col=mix(diel,metal,uMt)+uE; col=col/(col+vec3(.75))*1.55; gl_FragColor=vec4(pow(col,vec3(.92)),1.0); }`;
+  function M4(){ return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]); }
+  function mul(a,b){ const o=new Float32Array(16); for(let c=0;c<4;c++) for(let r=0;r<4;r++){ let s=0; for(let k=0;k<4;k++) s+=a[k*4+r]*b[c*4+k]; o[c*4+r]=s; } return o; }
+  function persp(f,a,n,fa){ const t=1/Math.tan(f/2), o=new Float32Array(16); o[0]=t/a; o[5]=t; o[10]=(fa+n)/(n-fa); o[11]=-1; o[14]=2*fa*n/(n-fa); return o; }
+  function look(e,c){ const z=nz(sub(e,c)), x=nz(cross([0,1,0],z)), y=cross(z,x); return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1]); }
+  function rotY4(a){ const m=M4(); m[0]=Math.cos(a); m[2]=-Math.sin(a); m[8]=Math.sin(a); m[10]=Math.cos(a); return m; }
+  function rotX4(a){ const m=M4(); m[5]=Math.cos(a); m[6]=Math.sin(a); m[9]=-Math.sin(a); m[10]=Math.cos(a); return m; }
+  function tr4(x,y,z){ const m=M4(); m[12]=x; m[13]=y; m[14]=z; return m; }
+  function plateTex(kind,yr){ const c=document.createElement("canvas"); c.width=512; c.height=128; const x=c.getContext("2d");
+    const g=x.createLinearGradient(0,0,0,128); g.addColorStop(0,"#1a1a1a"); g.addColorStop(1,"#050505"); x.fillStyle=g; x.fillRect(0,0,512,128);
+    x.strokeStyle="#c9a227"; x.lineWidth=5; x.strokeRect(6,6,500,116);
+    x.fillStyle="#f2cf62"; x.textAlign="center"; x.textBaseline="middle"; x.font="bold 46px Oswald, Anton, Arial Narrow, sans-serif"; x.fillText(LABEL[kind]||"CHAMPION",256,yr?50:64);
+    if(yr){ x.font="28px Oswald, Arial, sans-serif"; x.fillStyle="#d8d8d8"; x.fillText(String(yr),256,96); } return c; }
+  function make(canvas,kind,o){ o=o||{}; const gl=canvas.getContext("webgl",{antialias:true,alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:!!o.keep}); if(!gl) return null;
+    const sh=(t,s)=>{ const x=gl.createShader(t); gl.shaderSource(x,s); gl.compileShader(x); return x; };
+    const pg=gl.createProgram(); gl.attachShader(pg,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(pg,sh(gl.FRAGMENT_SHADER,FS)); gl.linkProgram(pg); if(!gl.getProgramParameter(pg,gl.LINK_STATUS)) return null; gl.useProgram(pg);
+    const A={p:gl.getAttribLocation(pg,"aP"),n:gl.getAttribLocation(pg,"aN"),u:gl.getAttribLocation(pg,"aU")}; const U={}; ["uM","uVP","uC","uE","uMt","uR","uTx","uSh","uT","uEye"].forEach(k=>U[k]=gl.getUniformLocation(pg,k));
+    let meshes=[], tex=null;
+    function load(kind,yr){ meshes.forEach(m=>{ gl.deleteBuffer(m.bp); gl.deleteBuffer(m.bn); gl.deleteBuffer(m.bu); }); meshes=[]; const g=geo(kind);
+      for(const k in g){ const q=g[k], mk=d=>{ const bf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(d),gl.STATIC_DRAW); return bf; };
+        meshes.push({k,bp:mk(q.p),bn:mk(q.n),bu:mk(q.u),cnt:q.p.length/3}); }
+      const sq=[-1.6,0,-1.6, 1.6,0,-1.6, 1.6,0,1.6, -1.6,0,-1.6, 1.6,0,1.6, -1.6,0,1.6], su=[0,0,1,0,1,1,0,0,1,1,0,1], sn=[];for(let i=0;i<6;i++) sn.push(0,1,0);
+      const mk=d=>{ const bf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(d),gl.STATIC_DRAW); return bf; };
+      meshes.push({k:"_shadow",bp:mk(sq.map((v,i)=>i%3===1?0.002:v)),bn:mk(sn),bu:mk(su),cnt:6});
+      if(tex) gl.deleteTexture(tex); tex=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,plateTex(kind,yr));
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE); }
+    load(kind,o.yr);
+    function draw(yaw,pitch,dist){ const w=canvas.width,h=canvas.height; gl.viewport(0,0,w,h); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+      const cy=1.75, d=dist||7.2, eye=[0,cy+0.55,d]; const vp=mul(persp(0.62,w/h,0.1,50),look(eye,[0,cy,0]));
+      const M=mul(tr4(0,cy,0),mul(rotX4(pitch||0),mul(rotY4(yaw||0),tr4(0,-cy,0))));
+      gl.uniformMatrix4fv(U.uVP,false,vp); gl.uniform3fv(U.uEye,eye); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tex); gl.uniform1i(U.uT,0);
+      const order=meshes.slice().sort((a,b)=>(a.k==="_shadow")-(b.k==="_shadow")).reverse();
+      order.forEach(m=>{ const s=m.k==="_shadow", mt=MAT[m.k]||MAT.silver; gl.uniformMatrix4fv(U.uM,false,s?M4():M); gl.uniform1f(U.uSh,s?1:0);
+        gl.uniform3fv(U.uC,mt.c); gl.uniform3fv(U.uE,mt.e||[0,0,0]); gl.uniform1f(U.uMt,mt.m); gl.uniform1f(U.uR,mt.r); gl.uniform1f(U.uTx,mt.tex?1:0);
+        if(s) gl.depthMask(false);
+        [[A.p,m.bp,3],[A.n,m.bn,3],[A.u,m.bu,2]].forEach(([l,bf,n])=>{ gl.bindBuffer(gl.ARRAY_BUFFER,bf); gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l,n,gl.FLOAT,false,0,0); });
+        gl.drawArrays(gl.TRIANGLES,0,m.cnt); if(s) gl.depthMask(true); }); }
+    function destroy(){ try{ const x=gl.getExtension("WEBGL_lose_context"); if(x) x.loseContext(); }catch(e){} }
+    return {draw,load,destroy,gl}; }
+  /* cached 2D renders for the shelf and lists */
+  const IMG={}; let thumbC=null, thumbV=null;
+  function img(kind){ if(IMG[kind]!==undefined) return IMG[kind]; try{
+      if(!thumbC){ thumbC=document.createElement("canvas"); thumbC.width=360; thumbC.height=480; thumbV=make(thumbC,kind,{keep:1}); } else thumbV&&thumbV.load(kind);
+      if(!thumbV) return IMG[kind]=null; thumbV.draw(0.42,0.06,6.1); IMG[kind]=thumbC.toDataURL("image/png"); }catch(e){ IMG[kind]=null; } return IMG[kind]; }
+  return {make,img,LABEL}; })();
+
+/* ---------- 3D viewer (opened by long-pressing the big trophy in a trophy record) ---------- */
+function open3D(kind,yr,title){ let el=$("#t3d"); if(!el){ el=document.createElement("div"); el.id="t3d"; document.body.appendChild(el); }
+  el.innerHTML=`<div class="t3-bg"></div><canvas></canvas><div class="t3-top"><div class="tk">${yr?yr+" ":""}${esc(title||"")}</div><h3>${esc(TRO3D.LABEL[kind]||"")}</h3></div>
+   <div class="t3-bot"><span>${L("드래그: 회전 | 휠, 두 손가락: 확대","Drag: rotate | wheel or pinch: zoom","ドラッグ: 回転 | ホイール/ピンチ: 拡大","拖动: 旋转 | 滚轮/双指: 缩放")}</span><button class="ghost" id="t3auto">${L("자동 회전","Auto spin","自動回転","自动旋转")}</button><button class="ghost" id="t3x">${L("닫기","Close","閉じる","关闭")}</button></div>`;
+  el.classList.add("on"); const cv=el.querySelector("canvas"); const fit=()=>{ const d=Math.min(2,window.devicePixelRatio||1); cv.width=cv.clientWidth*d; cv.height=cv.clientHeight*d; }; fit();
+  const v=TRO3D.make(cv,kind,{yr}); if(!v){ el.classList.remove("on"); return toast(L("이 기기에서는 3D 보기를 지원하지 않습니다.","3D view isn't supported on this device.","この端末では3D表示に対応していません。","此设备不支持3D查看。")); }
+  let yaw=0.4, pitch=0.05, dist=7.2, vy=0.006, vx=0, auto=true, drag=null, pin=null, alive=true, last=performance.now(), idle=0;
+  const loop=t=>{ if(!alive) return; const dt=Math.min(50,t-last); last=t; if(!drag){ if(auto&&idle>1500) vy+=(0.006-vy)*0.03; yaw+=vy*dt/16; pitch+=vx*dt/16; vy*=auto?1:0.95; vx*=0.9; idle+=dt; }
+    pitch=Math.max(-0.45,Math.min(0.6,pitch)); v.draw(yaw,pitch,dist); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+  const pts=new Map();
+  cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]); if(pts.size===1){ drag={x:e.clientX,y:e.clientY}; vy=0; vx=0; } else { const a=[...pts.values()]; pin={d:Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]),dist}; drag=null; } };
+  cv.onpointermove=e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pin&&pts.size>=2){ const a=[...pts.values()]; const d=Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1]); dist=Math.max(4,Math.min(12,pin.dist*pin.d/d)); return; }
+    if(drag){ const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag={x:e.clientX,y:e.clientY}; yaw+=dx*0.01; pitch+=dy*0.006; vy=dx*0.01; vx=dy*0.006; idle=0; } };
+  cv.onpointerup=cv.onpointercancel=e=>{ pts.delete(e.pointerId); if(pts.size<2) pin=null; if(!pts.size) drag=null; idle=0; };
+  cv.onwheel=e=>{ e.preventDefault(); dist=Math.max(4,Math.min(12,dist*(1+Math.sign(e.deltaY)*0.08))); };
+  const close=()=>{ alive=false; v.destroy(); el.classList.remove("on"); el.innerHTML=""; window.removeEventListener("resize",fit); };
+  window.addEventListener("resize",fit); $("#t3x").onclick=close; $("#t3auto").onclick=()=>{ auto=!auto; $("#t3auto").classList.toggle("on",auto); idle=2000; }; $("#t3auto").classList.add("on"); }
+
+/* ---------- championship celebration ---------- */
+function trophyFX(id){
+  const tr=(G.trophies||[]).find(t=>t.id===id); if(!tr) return;
+  let el=$("#tfx"); if(!el){ el=document.createElement("div"); el.id="tfx"; document.body.appendChild(el); }
+  const ttl=L("우승","CHAMPIONS","優勝","冠军"), letters=[...ttl].map((c,i)=>`<i style="--i:${i}">${c===" "?"&nbsp;":esc(c)}</i>`).join("");
+  el.innerHTML=`<div class="tf2-bg"></div><div class="tf2-rays"></div><div class="tf2-rays r2"></div><div class="tf2-ring"></div><div class="tf2-ring b"></div><div class="tf2-ring c"></div>
+   <canvas class="tf2-pc"></canvas><div class="tf2-flash"></div>
+   <div class="tf2-wrap"><div class="tf2-kick">${tr.yr} ${esc(tr.event)}</div><div class="tf2-stage"><canvas class="tf2-3d"></canvas></div>
+    <div class="tf2-title">${letters}</div><div class="tf2-name">${esc(tr.name)}</div>
+    ${tr.final?`<div class="tf2-fin">${esc(T(G.team).name)} <b>${esc(tr.final.s)}</b> ${esc(tr.final.opp)}</div>`:""}
+    <div class="tf2-ros">${(tr.roster||[]).map((r,i)=>`<span style="--i:${i}">${esc(r.name)}</span>`).join("")}</div>
+    <div class="tf2-hint">${L("화면을 누르면 닫힙니다 | 전시장에서 트로피를 꾹 누르면 기록과 3D 보기","Tap to close | Long-press it in the trophy room for the record and 3D view","タップで閉じる | 展示室で長押しすると記録と3D表示","点击关闭 | 在陈列室长按可查看记录与3D")}</div></div>`;
+  el.className="on tf2"; const t0=performance.now(); let alive=true;
+  const cv=el.querySelector(".tf2-3d"), pc=el.querySelector(".tf2-pc"); const dpr=Math.min(2,window.devicePixelRatio||1);
+  const fit=()=>{ cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr; pc.width=innerWidth*dpr; pc.height=innerHeight*dpr; }; fit();
+  let v=null; try{ v=TRO3D.make(cv,tr.kind,{yr:tr.yr}); }catch(e){}
+  if(!v){ cv.outerHTML=trophySVG(tr.kind,true); }
+  const cx=pc.getContext("2d"), P=[], gold=["#FFE08A","#F7C948","#FFF6D5","#E0A526","#ffffff","#DC2626"];
+  const burst=(n,x,y,sp)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, s=(2+Math.random()*sp)*dpr; P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3*dpr,r:(2+Math.random()*4)*dpr,c:gold[i%gold.length],rot:Math.random()*6,vr:(Math.random()-.5)*.3,l:1,f:Math.random()<.35}); } };
+  const rain=()=>{ for(let i=0;i<6;i++) P.push({x:Math.random()*pc.width,y:-20,vx:(Math.random()-.5)*dpr,vy:(1.5+Math.random()*2.5)*dpr,r:(2+Math.random()*4)*dpr,c:gold[i%gold.length],rot:Math.random()*6,vr:(Math.random()-.5)*.25,l:1.4,f:false}); };
+  setTimeout(()=>{ burst(140,pc.width/2,pc.height*0.42,12); },650); setTimeout(()=>{ burst(70,pc.width*0.2,pc.height*0.7,9); burst(70,pc.width*0.8,pc.height*0.7,9); },1100);
+  const loop=t=>{ if(!alive) return; const e=(t-t0)/1000;
+    if(v){ const k=Math.min(1,e/1.1), ease=1-Math.pow(1-k,3); v.draw(-2.6+ease*2.6+e*0.5, 0.05, 7.2+(1-ease)*9); }
+    cx.clearRect(0,0,pc.width,pc.height); if(e>1&&e<6) rain();
+    for(let i=P.length-1;i>=0;i--){ const p=P[i]; p.vy+=0.12*dpr; p.vx*=0.99; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.l-=0.004; if(p.l<=0||p.y>pc.height+30){ P.splice(i,1); continue; }
+      cx.save(); cx.globalAlpha=Math.min(1,p.l); cx.translate(p.x,p.y); cx.rotate(p.rot); cx.fillStyle=p.c;
+      if(p.f){ cx.shadowColor=p.c; cx.shadowBlur=12*dpr; cx.beginPath(); cx.arc(0,0,p.r*.6,0,7); cx.fill(); } else cx.fillRect(-p.r,-p.r*.35,p.r*2,p.r*.7); cx.restore(); }
+    requestAnimationFrame(loop); }; requestAnimationFrame(loop);
+  champSound();
+  const close=()=>{ if(!alive) return; alive=false; v&&v.destroy(); el.className=""; el.innerHTML=""; window.removeEventListener("resize",fit); };
+  window.addEventListener("resize",fit); el.onclick=close; clearTimeout(el._h); el._h=setTimeout(close,9000);
+}
+function champSound(){ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=new A(), t=c.currentTime, out=c.createGain(); out.gain.value=0.5; out.connect(c.destination);
+    const note=(f,s,d,type,v)=>{ const o=c.createOscillator(), g=c.createGain(); o.type=type||"sawtooth"; o.frequency.value=f; const lp=c.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=2400;
+      g.gain.setValueAtTime(0,t+s); g.gain.linearRampToValueAtTime(v||0.07,t+s+0.03); g.gain.exponentialRampToValueAtTime(0.0001,t+s+d); o.connect(lp).connect(g).connect(out); o.start(t+s); o.stop(t+s+d+0.05); };
+    const boom=c.createOscillator(), bg=c.createGain(); boom.type="sine"; boom.frequency.setValueAtTime(120,t+0.6); boom.frequency.exponentialRampToValueAtTime(35,t+1.4); bg.gain.setValueAtTime(0.5,t+0.6); bg.gain.exponentialRampToValueAtTime(0.0001,t+1.6); boom.connect(bg).connect(out); boom.start(t+0.6); boom.stop(t+1.7);
+    [[392,0],[523,.16],[659,.32]].forEach(([f,s])=>note(f,s+.1,.35,"square",.05));
+    [523,659,784,1047].forEach(f=>{ note(f,.62,2.2,"sawtooth",.045); note(f*1.005,.62,2.2,"sawtooth",.03); });
+    [1319,1568,2093].forEach((f,i)=>note(f,1.0+i*.12,.6,"triangle",.04));
+    const len=c.sampleRate*2.6, nb=c.createBuffer(1,len,c.sampleRate), d=nb.getChannelData(0); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.min(1,i/(c.sampleRate*.5))*(1-i/len);
+    const ns=c.createBufferSource(), nf=c.createBiquadFilter(), ng=c.createGain(); ns.buffer=nb; nf.type="bandpass"; nf.frequency.value=1200; nf.Q.value=0.6; ng.gain.value=0.12; ns.connect(nf).connect(ng).connect(out); ns.start(t+0.6);
+  }catch(e){} }
+(function(){ const st=document.createElement("style"); st.textContent=`
+#tfx.tf2{display:block;cursor:pointer;background:#000;overflow:hidden}
+.tf2-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,rgba(120,80,10,.55),rgba(20,12,4,.92) 45%,#000 75%);animation:tf2Fade .6s}
+.tf2-rays{position:absolute;left:50%;top:42%;width:240vmax;height:240vmax;margin:-120vmax 0 0 -120vmax;background:repeating-conic-gradient(from 0deg,rgba(255,214,120,.16) 0 4deg,transparent 4deg 15deg);animation:tf2Spin 26s linear infinite,tf2Fade 1.2s;mask:radial-gradient(circle,#000 8%,transparent 46%);-webkit-mask:radial-gradient(circle,#000 8%,transparent 46%)}
+.tf2-rays.r2{background:repeating-conic-gradient(from 7deg,rgba(220,38,38,.12) 0 2deg,transparent 2deg 22deg);animation:tf2Spin 40s linear infinite reverse,tf2Fade 1.6s}
+.tf2-ring{position:absolute;left:50%;top:42%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:3px solid rgba(255,220,130,.9);box-shadow:0 0 40px rgba(255,200,90,.8);opacity:0;animation:tf2Ring 1.4s .6s cubic-bezier(.2,.7,.2,1) forwards}
+.tf2-ring.b{animation-delay:.8s;border-color:rgba(220,38,38,.8)} .tf2-ring.c{animation-delay:1.05s}
+.tf2-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,#fff,rgba(255,230,160,.6) 25%,transparent 60%);opacity:0;animation:tf2Flash 1s .55s ease-out;pointer-events:none}
+.tf2-pc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.tf2-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;text-align:center;padding:12px}
+.tf2-kick{font:600 13px var(--body);letter-spacing:6px;color:#F7D774;text-transform:uppercase;opacity:0;animation:tf2Up .6s 1.2s forwards}
+.tf2-stage{position:relative;width:min(46vh,78vw);height:min(52vh,90vw);margin:4px 0}
+.tf2-3d,.tf2-stage svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 30px rgba(255,190,70,.45))}
+.tf2-shine{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%);background-size:250% 100%;mix-blend-mode:overlay;animation:tf2Shine 2.6s 1.4s ease-in-out infinite;pointer-events:none}
+.tf2-title{font-family:Anton,Oswald,var(--head),sans-serif;font-size:clamp(46px,9vw,108px);line-height:1;letter-spacing:4px;filter:drop-shadow(0 4px 18px rgba(255,170,40,.55))}
+.tf2-title i{background:linear-gradient(180deg,#FFF6CF,#F7C948 45%,#B7791F 55%,#FFE08A);-webkit-background-clip:text;background-clip:text;color:transparent;padding:0 2px}
+.tf2-title i{font-style:normal;display:inline-block;opacity:0;transform:translateY(40px) scale(1.6);animation:tf2Let .55s calc(1.1s + var(--i)*.06s) cubic-bezier(.2,1.4,.4,1) forwards}
+.tf2-name{font:500 18px var(--body);color:#fff;margin-top:6px;opacity:0;animation:tf2Up .6s 1.8s forwards}
+.tf2-fin{font:15px var(--mono);color:#d4d4d4;margin-top:6px;opacity:0;animation:tf2Up .6s 2s forwards} .tf2-fin b{color:#F7D774;font-size:20px;margin:0 6px}
+.tf2-ros{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.tf2-ros span{border:1px solid rgba(247,215,116,.5);background:rgba(0,0,0,.45);padding:5px 12px;border-radius:999px;font:600 13px var(--body);color:#FFF2C2;opacity:0;animation:tf2Up .45s calc(2.2s + var(--i)*.1s) forwards}
+.tf2-hint{font-size:11px;color:#8a8a8a;margin-top:14px;opacity:0;animation:tf2Up .6s 3s forwards}
+@keyframes tf2Spin{to{transform:rotate(360deg)}} @keyframes tf2Fade{from{opacity:0}}
+@keyframes tf2Ring{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(40)}}
+@keyframes tf2Flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes tf2Up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes tf2Let{to{opacity:1;transform:none}}
+@keyframes tf2Shine{0%{background-position:150% 0}60%,100%{background-position:-60% 0}}
+#t3d{position:fixed;inset:0;z-index:400;display:none;background:#050505}
+#t3d.on{display:block;animation:fxIn .25s}
+.t3-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,#2a2216,#0b0906 55%,#000);pointer-events:none}
+#t3d canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+#t3d canvas:active{cursor:grabbing}
+.t3-top{position:absolute;left:0;right:0;top:18px;text-align:center;pointer-events:none}
+.t3-top .tk{font:500 12px var(--body);letter-spacing:3px;color:#F87171} .t3-top h3{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:34px;letter-spacing:3px;color:#F7D774}
+.t3-bot{position:absolute;left:0;right:0;bottom:18px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+.t3-bot span{font-size:12px;color:#9a9a9a} .t3-bot button.on{border-color:#F7D774;color:#F7D774}
+.tbig{cursor:pointer;position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.tbig.hold img,.tbig.hold svg{transform:scale(1.06);filter:drop-shadow(0 0 16px rgba(247,215,116,.8))}
+.tbig .t3hint{position:absolute;left:0;right:0;bottom:-16px;font-size:10px;color:#F7D774;text-align:center;white-space:nowrap}
+img.tsvg{object-fit:contain}
+.titem img.tsvg{height:110px;width:auto;transition:transform .12s}
+.titem:hover img.tsvg{transform:translateY(-3px)}
+.titem.hold img.tsvg{transform:scale(1.06)}
+.tbig img.tsvg{height:100%;width:100%;transition:transform .15s}
+`; document.head.appendChild(st); })();
 
 /* ================= IGL (in-game leader) ================= */
 function iglVal(p){ return (((p.A||{}).cons||40)+((p.A||{}).exp||40))/2; }
@@ -2528,11 +2801,25 @@ function renderCalendar(){ const now=absNow(), nm=nextMatchAbs(), proj=seasonPro
 
 function mediaFat(){ return [1,2,3,4][mediaTier()]; }
 function mediaGain(){ const f=G.fame, t=mediaTier();
-  return {fans:Math.round((1200+f*45)*[0.8,1,1.25,1.5][t]), fee:[0,6000,12000,22000][t], spon:[8,14,18,22][t], fame:f<35?1:Math.random()<[1,0.7,0.5,0.4][t]?1:0}; }
+  return {fans:Math.round((1200+f*45)*[0.8,1,1.25,1.5][t]), fee:[0,6000,12000,22000][t], spon:[8,14,18,22][t], fame:f<35?0.8:Math.random()<[0.6,0.35,0.22,0.15][t]?1:0}; }
 function mediaNote(){ const t=mediaTier(); return ["인지도가 낮아 미디어 일정이 2주에 1번입니다. 대신 피로가 적게 쌓입니다.","미디어 일정 주 1회.","인기 구단이라 미디어 일정이 주 2회입니다.","최고 인기 구단이라 미디어 일정이 주 3회입니다. 보상이 크지만 피로도 많이 쌓입니다."][t]; }
 const SCHED_K = {scrim:"스크림",train:"훈련",media:"미디어",rest:"휴식",match:"경기"};
 const DAYS = ["월","화","수","목","금","토","일"];
-const FAC = [{k:"gear",n:"연습실 장비",d:"훈련 효과 +8%/Lv"},{k:"dorm",n:"숙소",d:"피로 회복 +10%/Lv"},{k:"lab",n:"분석실",d:"전술 숙련 +8%/Lv"}];
+const FAC_MAX=10;
+const FAC = [{k:"gear",n:"연습실 장비",d:"훈련 효과 +8%/Lv"},{k:"dorm",n:"숙소",d:"피로 회복 +10%/Lv"},{k:"lab",n:"분석실",d:"전술 숙련 +8%/Lv"},
+  {k:"scout",n:"스카우터실",d:"스카우트 비용 -6%/Lv"},{k:"promo",n:"홍보팀",d:"팬 증가 +8%/Lv"}];
+function facNm(f){ return f.k==="scout"?L("스카우터실","Scouting room","スカウト室","球探室"):f.k==="promo"?L("홍보팀","PR team","広報チーム","宣传团队"):f.n; }
+function facDs(f){ return f.k==="scout"?L("스카우트 비용 -6%/Lv, 영입 요구 연봉 -1.5%/Lv","Scouting cost -6%/Lv, signing asks -1.5%/Lv","スカウト費用 -6%/Lv、獲得要求年俸 -1.5%/Lv","球探费用 -6%/Lv，签约要价 -1.5%/Lv"):f.k==="promo"?L("팬 증가 +8%/Lv, 명성 증가 +5%/Lv","Fan growth +8%/Lv, fame growth +5%/Lv","ファン増加 +8%/Lv、名声上昇 +5%/Lv","粉丝增长 +8%/Lv，名声增长 +5%/Lv"):f.d; }
+function facLv(k){ return (G&&G.fac&&G.fac[k])||0; }
+function facFix(){ if(!G||!G.fac) return; ["gear","dorm","lab","scout","promo"].forEach(k=>{ if(G.fac[k]==null) G.fac[k]=0; }); }
+/* scout room: cheaper scouting and slightly cheaper signings; promo team: more fans and fame from every source */
+function scoutCostMul(){ return 1-facLv("scout")*0.06; }
+function scoutAskMul(){ return 1-facLv("scout")*0.015; }
+function promoFanMul(){ return 1+facLv("promo")*0.08; }
+function promoFameMul(){ return 1+facLv("promo")*0.05; }
+const FAME_G=0.6, FAN_G=0.6;
+function addFame(x){ if(x<=0) return 0; G.fameAcc=(G.fameAcc||0)+x*FAME_G*promoFameMul(); const w=Math.floor(G.fameAcc); G.fameAcc-=w; const b=G.fame; G.fame=Math.min(100,G.fame+w); return G.fame-b; }
+function addFans(x){ if(x<=0) return 0; const v=Math.round(x*FAN_G*promoFanMul()); G.fans+=v; return v; }
 const MAPS = ["Bind","Haven","Lotus","Sunset","Abyss","Corrode","Summit"];
 const MAXR = 10;
 
@@ -2556,7 +2843,7 @@ function newGame(k){
     v:3, diff:diffPref(), team:k, day:0, week:1, dday:21, budget:startBudget(k),
     roster: kept.slice(0,MAXR).map(n=>({id:n, cond:80+hash(n)%18, fat:10+hash(n+"f")%25, salary:Math.round(marketAsk(P(n))*0.95/1000)*1000, years:1+hash(n+"y")%2})),
     fame, fans: fame*14000 + hash(k)%9000,
-    fac:{gear:2,dorm:2,lab:1}, synergy:50,
+    fac:{gear:2,dorm:2,lab:1,scout:0,promo:0}, synergy:50,
     maps: Object.fromEntries(MAPS.map(m=>[m,40+hash(k+m)%35])),
     sponsors:[
       {n:"HEXA ENERGY",d:"에너지 드링크",pay:t.partner?29000:12000,goal:"주간 팬 +3,000",prog:35},
@@ -2891,7 +3178,7 @@ function drawBg(){
 function weekly(){
   const pay = G.roster.reduce((s,r)=>s+r.salary,0)/52;
   const coachPay = G.co&&myCoach()?Math.round(coSal(myCoach())/52):0;
-  const staff = 18000+coachPay+Math.round(pcWeekCost()), facCost = (G.fac.gear+G.fac.dorm+G.fac.lab)*2500;
+  const staff = 18000+coachPay+Math.round(pcWeekCost()), facCost = (facLv('gear')+facLv('dorm')+facLv('lab')+facLv('scout')+facLv('promo'))*2500;
   const sp = G.sponsors.reduce((s,x)=>s+x.pay,0);
   const stipend = Math.round((T(G.team).partner?42000:12000)*DF().bud);
   const merch = Math.round(G.fans*0.07);
@@ -2942,11 +3229,11 @@ function renderRoster(){
     {n:"멘탈",v:`-${8+f.dorm*3}%`,t:"피로 누적 감소",svg:'<path d="M12 21s-8-5-8-11a5 5 0 0 1 8-4 5 5 0 0 1 8 4c0 6-8 11-8 11z"/>'}];
   $("#staff").innerHTML=staff.map(s=>`<div class="st" data-tip="<h6>${s.n} 코치</h6>${s.t} ${s.v}"><svg viewBox="0 0 24 24" fill="none" stroke="#00F5D4" stroke-width="1.8">${s.svg}</svg>${s.n}<b>${s.v}</b></div>`).join("");
 }
-function upCost(k){ return 60000*G.fac[k]*G.fac[k]; }
+function upCost(k){ const l=Math.max(1,facLv(k)); return 60000*l*l; }
 function renderRight(){
   $("#sponsors").innerHTML=G.sponsors.map(s=>`<div class="spn" data-tip="<h6>${s.n}</h6><div class='g'><span>분야</span><span>${s.d}</span><span>주간 지급</span><span>${short(s.pay)}</span><span>목표</span><span>${s.goal}</span><span>달성도</span><span>${s.prog}%</span></div>">
     <div class="r1"><span class="lg">${s.n}</span><span class="pos osw">${short(s.pay)}/주</span></div><div class="spbar"><i style="width:${s.prog}%"></i></div></div>`).join("");
-  $("#fac").innerHTML=FAC.map(f=>`<div data-tip="<h6>${f.n} Lv.${G.fac[f.k]}</h6>${f.d}<div class='ft'>업그레이드: ${short(upCost(f.k))}</div>">${f.n}<b>Lv.${G.fac[f.k]}</b><div class="lv">${[1,2,3,4,5].map(l=>`<i class="${l<=G.fac[f.k]?'on':''}"></i>`).join("")}</div></div>`).join("");
+  facFix(); $("#fac").innerHTML=FAC.map(f=>`<div data-tip="<h6>${facNm(f)} Lv.${facLv(f.k)}</h6>${facDs(f)}<div class='ft'>업그레이드: ${short(upCost(f.k))}</div>">${facNm(f)}<b>Lv.${facLv(f.k)}</b><div class="lv">${Array.from({length:FAC_MAX},(_,i)=>i+1).map(l=>`<i class="${l<=facLv(f.k)?'on':''}"></i>`).join("")}</div></div>`).join("");
   $("#cal").innerHTML=DAYS.map((d,i)=>{ const left=(i-G.day+7)%7; const isMatch = G.sea&&G.sea.next==="match" && (G.dday>0 && left===G.dday ? true : (G.dday===0 && i===G.day));
     const ev=isMatch?"match":schedOf(i);
     return `<div class="${i===G.day?'today':''}"><b>${d}</b>${i===G.day?'<span class="pos" style="font-size:9px">TODAY</span>':''}<span class="ev ${ev}" title="${SCHED_K[ev]}">${LANG==="ko"?SCHED_K[ev]:(SCHED_AB[ev]||[])[LI[LANG]]||SCHED_K[ev]}</span></div>`; }).join("");
@@ -3143,7 +3430,7 @@ function advance(){
     const pr=G.roster.length>=5?scrimPractice(Math.max(1,Math.round(1.5*tr)),1):null;
     b.push(L(`스크림 완료 (운영비 ${short(sc)}). 팀 합 ${G.synergy}.${pr?` ${pr.m} 숙련 ${G.maps[pr.m]}.`:""}`,`Scrim done (cost ${short(sc)}). Synergy ${G.synergy}.${pr?` ${pr.m} mastery ${G.maps[pr.m]}.`:""}`,`スクリム完了 (運営費 ${short(sc)})。連携 ${G.synergy}。${pr?`${pr.m}熟練度 ${G.maps[pr.m]}。`:""}`,`训练赛完成 (费用 ${short(sc)})。默契 ${G.synergy}。${pr?`${pr.m}熟练度 ${G.maps[pr.m]}。`:""}`)); if(pr&&pr.tac&&pr.tac.length) b.push(L(`택틱 연습: ${pr.tac.join(", ")}.`,`Tactic practice: ${pr.tac.join(", ")}.`,`タクティク練習: ${pr.tac.join(", ")}。`,`战术练习: ${pr.tac.join(", ")}。`)); if(pr&&pr.out.length) b.push(L(`요원 숙련: ${pr.out.join(", ")}.`,`Agent mastery: ${trText(pr.out.join(", "))}.`,`エージェント熟練: ${trText(pr.out.join(", "))}。`,`英雄熟练: ${trText(pr.out.join(", "))}。`)); }
   if(ev==="train"){ runTraining(b,tr); }
-  if(ev==="media"){ const g=mediaGain(); G.fans+=g.fans; G.budget+=g.fee; G.fame=Math.min(100,G.fame+g.fame); bump("HEXA ENERGY",g.spon); b.push(L(`미디어 데이: 팬 +${g.fans.toLocaleString()}${g.fee?`, 출연료 +${short(g.fee)}`:""}${g.fame?", 명성 +1":""}. 선수 피로 +${mediaFat()}.`,`Media day: fans +${g.fans.toLocaleString()}${g.fee?`, appearance fee +${short(g.fee)}`:""}${g.fame?", fame +1":""}. Player fatigue +${mediaFat()}.`,`メディアデー: ファン +${g.fans.toLocaleString()}${g.fee?`、出演料 +${short(g.fee)}`:""}${g.fame?"、名声 +1":""}。選手の疲労 +${mediaFat()}。`,`媒体日: 粉丝 +${g.fans.toLocaleString()}${g.fee?`，出场费 +${short(g.fee)}`:""}${g.fame?"，名气 +1":""}。选手疲劳 +${mediaFat()}。`)); }
+  if(ev==="media"){ const g=mediaGain(); g.fans=addFans(g.fans); G.budget+=g.fee; g.fame=addFame(g.fame); bump("HEXA ENERGY",g.spon); b.push(L(`미디어 데이: 팬 +${g.fans.toLocaleString()}${g.fee?`, 출연료 +${short(g.fee)}`:""}${g.fame?", 명성 +1":""}. 선수 피로 +${mediaFat()}.`,`Media day: fans +${g.fans.toLocaleString()}${g.fee?`, appearance fee +${short(g.fee)}`:""}${g.fame?", fame +1":""}. Player fatigue +${mediaFat()}.`,`メディアデー: ファン +${g.fans.toLocaleString()}${g.fee?`、出演料 +${short(g.fee)}`:""}${g.fame?"、名声 +1":""}。選手の疲労 +${mediaFat()}。`,`媒体日: 粉丝 +${g.fans.toLocaleString()}${g.fee?`，出场费 +${short(g.fee)}`:""}${g.fame?"，名气 +1":""}。选手疲劳 +${mediaFat()}。`)); }
   if(ev==="rest") b.push(L("휴식일. 선수단 피로가 회복됐습니다.","Rest day. The squad recovered from fatigue.","休養日。選手団の疲労が回復しました。","休息日，队伍疲劳得到恢复。"));
   const tired=starters().filter(r=>r.fat>=70);
   if(tired.length) b.push(L(`${tired.map(r=>P(r.id).name).join(", ")} 선수의 피로도가 높습니다. 휴식을 고려하세요.`,`${tired.map(r=>P(r.id).name).join(", ")}: fatigue is high. Consider resting.`,`${tired.map(r=>P(r.id).name).join("、")}の疲労度が高いです。休養を検討してください。`,`${tired.map(r=>P(r.id).name).join("、")}疲劳度较高，请考虑休息。`));
@@ -3518,7 +3805,7 @@ function reservation(p,years){
   const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years];
   return Math.round(ask*f*yf*DF().ask*(NG&&NG.id===p.id?ivDisc():1)/1000)*1000;
 }
-function askFor(p,years){ const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf*DF().ask/1000)*1000; }
+function askFor(p,years){ const yf = p.ovr>=85 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf*DF().ask*scoutAskMul()/1000)*1000; }
 function buyout(p){ if(rfaFee(p.id)) return rfaFee(p.id); return p.status==="T2" ? Math.round(marketAsk(p)*0.7*DF().ask*(NG&&NG.id===p.id?ivFDisc():1)/1000)*1000 : 0; }
 function openNego(id){
   const p=P(id); if(!(G.rfa&&G.rfa[id])&&!(emergNeed()>0&&!teamOf(id))&&needWindow()) return;
@@ -3816,14 +4103,14 @@ function scrimNow(){ if(G.budget<5000) return toast("스크림 비용이 부족�
   starters().forEach(r=>r.fat=Math.min(100,r.fat+6)); bump("PIXELFORGE",4);
   toast(`스크림 vs ${o.name}: ${w?"승리":"패배"}`); G.log.push(`스크림 vs ${o.name} ${w?"승":"패"}`); renderAll(); save(); }
 function clubHTML(){
-  return `<div class="sub">시설 업그레이드</div><div class="gcards">${FAC.map(f=>`<div class="gc"><h5>${f.n} Lv.${G.fac[f.k]}</h5><div class="lvbar">${[1,2,3,4,5].map(l=>`<i class="${l<=G.fac[f.k]?"on":""}"></i>`).join("")}</div><p>${f.d}<br><span class="pos">현재: ${FAC_FX[f.k].eff(G.fac[f.k])}, ${FAC_FX[f.k].eff2(G.fac[f.k])}</span></p><div class="r"><span class="mute">${G.fac[f.k]>=5?"최대 레벨":short(upCost(f.k))}</span><button class="sbtn" ${G.fac[f.k]>=5||G.budget<upCost(f.k)?"disabled":""} onclick="upgrade('${f.k}')">업그레이드</button></div></div>`).join("")}</div>
+  return `<div class="sub">시설 업그레이드</div><div class="gcards">${FAC.map(f=>`<div class="gc"><h5>${facNm(f)} Lv.${facLv(f.k)}</h5><div class="lvbar">${Array.from({length:FAC_MAX},(_,i)=>i+1).map(l=>`<i class="${l<=facLv(f.k)?"on":""}"></i>`).join("")}</div><p>${facDs(f)}<br><span class="pos">${f.k==='scout'||f.k==='promo'?L('현재','Now','現在','当前')+': '+FAC_FX[f.k].eff(facLv(f.k))+', '+FAC_FX[f.k].eff2(facLv(f.k)):`현재: ${FAC_FX[f.k].eff(facLv(f.k))}, ${FAC_FX[f.k].eff2(facLv(f.k))}`}</span></p><div class="r"><span class="mute">${facLv(f.k)>=FAC_MAX?"최대 레벨":short(upCost(f.k))}</span><button class="sbtn" ${facLv(f.k)>=FAC_MAX||G.budget<upCost(f.k)?"disabled":""} onclick="upgrade('${f.k}')">업그레이드</button></div></div>`).join("")}</div>
   <div class="sub" style="margin-top:18px">굿즈 / 스폰서</div><div class="gcards">
     <div class="gc"><h5>시즌 유니폼 굿즈 제작 (${merchUsed()}/${merchCap()})</h5><p>제작비 1780만원. 팬 수에 따라 판매 수익 발생. 팬덤 규모에 따라 시즌당 ${merchCap()}회까지 제작할 수 있고, 새 시즌이 시작되면 초기화됩니다.</p><div class="r"><span class="mute">예상 +${short(Math.round(G.fans*0.42))}</span><button class="sbtn" ${merchUsed()>=merchCap()?"disabled":""} onclick="merch()">제작</button></div></div>
     ${G.sponsors.map((s,i)=>`<div class="gc"><h5>${s.n} 재계약</h5><p>${s.d} | 현재 ${short(s.pay)}/주. 명성 ${G.fame} 기준 제안: ${short(Math.round(s.pay*(1+G.fame/400)))}/주</p><div class="r"><span class="mute">달성도 ${s.prog}%</span><button class="sbtn" onclick="resign(${i})">재계약</button></div></div>`).join("")}
   </div>`;
 }
-function upgrade(k){ if(G.fac[k]>=5) return toast("이미 최대 레벨입니다."); const c=upCost(k); if(G.budget<c) return toast("자금이 부족합니다."); snap(`${FAC.find(x=>x.k===k).n} 업그레이드`); const from=G.fac[k]; G.budget-=c; G.fac[k]++; G.log.push(`${FAC.find(x=>x.k===k).n} Lv.${G.fac[k]} 업그레이드`); renderAll(); save(); upgradeFX(k,from,G.fac[k],c); }
-function merch(){ if(merchUsed()>=merchCap()) return toast(`이번 시즌 굿즈 제작 한도(${merchCap()}회)를 다 썼습니다.`); if(G.budget<40000) return toast("자금이 부족합니다."); G.merch.n++; snap("굿즈 제작"); G.budget-=40000; const r=Math.round(G.fans*0.42); G.budget+=r; G.fame=Math.min(100,G.fame+1); toast(`굿즈 판매 수익 ${short(r)}`); G.log.push(`굿즈 판매 ${short(r)}`); renderAll(); save(); }
+function upgrade(k){ facFix(); if(G.fac[k]>=FAC_MAX) return toast("이미 최대 레벨입니다."); const c=upCost(k); if(G.budget<c) return toast("자금이 부족합니다."); snap(`${FAC.find(x=>x.k===k).n} 업그레이드`); const from=G.fac[k]; G.budget-=c; G.fac[k]++; G.log.push(`${FAC.find(x=>x.k===k).n} Lv.${G.fac[k]} 업그레이드`); renderAll(); save(); upgradeFX(k,from,G.fac[k],c); }
+function merch(){ if(merchUsed()>=merchCap()) return toast(`이번 시즌 굿즈 제작 한도(${merchCap()}회)를 다 썼습니다.`); if(G.budget<40000) return toast("자금이 부족합니다."); G.merch.n++; snap("굿즈 제작"); G.budget-=40000; const r=Math.round(G.fans*0.42); G.budget+=r; addFame(1); toast(`굿즈 판매 수익 ${short(r)}`); G.log.push(`굿즈 판매 ${short(r)}`); renderAll(); save(); }
 function resign(i){ const s=G.sponsors[i]; if(s.signed) return toast("이미 이번 시즌 재계약을 마쳤습니다."); s.pay=Math.round(s.pay*(1+G.fame/400)); s.signed=true; toast(`${s.n} 재계약 완료`); renderAll(); save(); }
 function leagueHTML(){ const r=T(G.team).region; const aw=Object.keys(G.awards||{}); return `<div class="legbox" style="--c:var(--${r})"><b>VCT ${REG[r].n}</b> ${LEAGUE_INTRO[r]}</div>`+(aw.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"><span class="mute" style="font-size:12px;align-self:center">시즌 시상식</span>${aw.map(y=>`<button class="sbtn" onclick="openAwards(${y})">${y} 어워즈</button>`).join("")}</div>`:"")+seasonHTML(); }
 
@@ -3933,7 +4220,7 @@ function hgPlace(){ const h=G.hg, r=h.res;
   if(r.gf&&r.gf.w===G.team) return 1; if(r.gf&&r.gf.l===G.team) return 2; if(r.lbf&&r.lbf.l===G.team) return 3; if(r.lb1&&r.lb1.l===G.team) return 4; return 5; }
 function hgFinish(out){
   const h=G.hg, place=hgPlace(), champ=h.res.gf.w, runner=h.res.gf.l, money=HG_PRIZE[place]||0;
-  G.budget+=money; const fame={1:6,2:3,3:2,4:1}[place]||0; G.fame=Math.min(100,G.fame+fame); G.fans+=fame*5000;
+  G.budget+=money; const fame0={1:6,2:3,3:2,4:1}[place]||0; addFans(fame0*5000); const fame=addFame(fame0);
   const pl=place===1?L("우승","Champions","優勝","冠军"):place===2?L("준우승","Runners-up","準優勝","亚军"):place===3?L("3위","3rd","3位","第三"):place===4?L("4위","4th","4位","第四"):L("조별리그 탈락","Group stage exit","グループ敗退","小组出局");
   out.push(absNow()<h.start+3&&place>2?L(`${hgName()} 일정을 마쳤습니다. 최종 ${pl}, 상금 ${short(money)}. 남은 경기 결과는 ${mdOf(h.start+3)}에 나옵니다.`,`Our ${hgName()} run is over: ${pl}, prize ${short(money)}. Remaining results come out on ${mdOf(h.start+3)}.`,`${hgName()}の日程を終えました。最終${pl}、賞金${short(money)}。残りの結果は${mdOf(h.start+3)}に出ます。`,`${hgName()}赛程结束。最终${pl}，奖金${short(money)}。其余结果将于${mdOf(h.start+3)}公布。`)
     :L(`${hgName()} 종료. 우승 ${T(champ).name}, 준우승 ${T(runner).name}. 우리 팀 ${pl}, 상금 ${short(money)}.`,`${hgName()} is over. Champions ${T(champ).name}, runners-up ${T(runner).name}. We finished: ${pl}, prize ${short(money)}.`,`${hgName()}終了。優勝${T(champ).name}、準優勝${T(runner).name}。我々は${pl}、賞金${short(money)}。`,`${hgName()}结束。冠军${T(champ).name}，亚军${T(runner).name}。我们获得${pl}，奖金${short(money)}。`));
@@ -4117,12 +4404,13 @@ function advancePhase(){
   const prevPh=PHASES[(G.sea.pi+PHASES.length-1)%PHASES.length]; if(prevPh.type==="intl"){ G.twin=14; } if(G.sea.pi===0) G.twin=0;
   const L=[]; if(prevPh.type==="intl") L.push(`${prevPh.n} 종료. 이적시장이 14일 동안 열립니다.`);
   { const nx=PHASES[(G.sea.pi+1)%PHASES.length]; if(nx&&nx.type==="off"){ const ex=G.roster.filter(r=>(r.years||1)<=1).map(r=>P(r.id).name); if(ex.length) L.push(L_(`이번 시즌이 끝나면 ${ex.join(", ")} 선수의 계약이 끝나 FA가 됩니다. 붙잡으려면 선수단 탭에서 재계약하세요.`,`When this season ends, ${ex.join(", ")} will be out of contract and become free agents. Re-sign them in the Squad tab to keep them.`,`今シーズン終了で${ex.join("、")}の契約が切れFAになります。残すなら選手団タブで再契約してください。`,`本赛季结束后${ex.join("、")}合同到期成为自由球员。想留下请在阵容页续约。`)); } }
+  try{ aiGrowPass(); }catch(e){ console.error(e); }
   if(G.sea.pi===0){ try{ roleShift(L); }catch(e){ console.error(e); } G.sea.yr++; L.push(`${G.sea.yr} 시즌이 시작됐습니다.`); if((G.jobs||[]).length){ G.jobs=[]; L.push("단장 제의 기간이 끝났습니다."); } }
   return L.concat(startPhase(false));
 }
 function phaseRewards(place,ph0){
   const mult={1:1,2:0.5,3:0.25,4:0.25}[place]||0.08, money=Math.round(ph0.prize*mult/1000)*1000;
-  G.budget+=money; const fame={1:ph0.type==="intl"?10:6,2:4,3:2,4:2}[place]||0; G.fame=Math.min(100,G.fame+fame); G.fans+=fame*6000;
+  G.budget+=money; const fame0={1:ph0.type==="intl"?10:6,2:4,3:2,4:2}[place]||0; addFans(fame0*6000); const fame=addFame(fame0);
   return money;
 }
 function finishLeague(champ,runner,semis){
@@ -5063,7 +5351,7 @@ function tacLibHTML(){ const t=tacs(), list=TAC_SLOTS.filter(s=>t[s]);
     ${list.length?`<table class="tbl"><tr><th></th><th>${L("공수","Side","攻守","攻守")}</th><th>${L("이름","Name","名前","名称")}</th><th>${L("순서","Steps","順序","顺序")}</th><th>${L("숙련도","Mastery","熟練度","熟练度")}</th><th>${L("성공률","Success","成功率","成功率")}</th><th></th></tr>${list.map(row).join("")}</table>`:`<p class="mute" style="font-size:12px">${L("저장된 택틱이 없습니다.","No saved tactics.","保存したタクティクがありません。","没有保存的战术。")}</p>`}
     <div style="margin-top:6px"><button class="sbtn" onclick="teOpen()">+ ${L("새 택틱 만들기","New tactic","新規タクティク","新建战术")}</button></div></div>`; }
 
-(function(){ const st=document.createElement('style'); st.textContent=".mbody2{grid-template-columns:150px minmax(0,1fr) 190px!important}\n.mcan canvas{max-height:calc(100vh - 170px)!important}\n.mcol{display:grid;gap:8px;align-content:start}\n.mcol .feed{position:static!important;max-width:none!important;font-size:10.5px!important;max-height:320px;overflow:hidden}\n.mcol .feed div{white-space:normal;line-height:1.3}\n#mt .plan{position:static!important;max-width:none!important;display:flex!important;flex-wrap:wrap;gap:6px;font-size:11px!important;margin-top:6px}\n.hlfx b{font-size:40px!important}.hlfx span{font-size:13px!important}.hlfx{top:14%!important}\n.cotip{border:1px solid #3ddba4;background:rgba(61,219,164,.06);border-radius:4px;padding:8px 10px;margin:8px 0}\n.cotip .cohd{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:4px}.cotip .cohd b{color:#3ddba4}\n.cotip .coln{font-size:12px;line-height:1.5;color:#ddd}\n@media(max-width:900px){.mbody2{grid-template-columns:1fr!important}.mcol .feed{max-height:150px}.mcan canvas{max-height:62vh!important}}"; document.head.appendChild(st); })();
+(function(){ const st=document.createElement('style'); st.textContent=".mbody2{grid-template-columns:150px minmax(0,1fr) 190px!important}\n.mcan canvas{max-height:calc(100vh - 170px)!important}\n.fac .lv{gap:1px}\n.fac .lv i{width:auto;flex:1;max-width:7px}\n.fx-pips i{width:22px}\n.mcol{display:grid;gap:8px;align-content:start}\n.mcol .feed{position:static!important;max-width:none!important;font-size:10.5px!important;max-height:320px;overflow:hidden}\n.mcol .feed div{white-space:normal;line-height:1.3}\n#mt .plan{position:static!important;max-width:none!important;display:flex!important;flex-wrap:wrap;gap:6px;font-size:11px!important;margin-top:6px}\n.hlfx b{font-size:40px!important}.hlfx span{font-size:13px!important}.hlfx{top:14%!important}\n.cotip{border:1px solid #3ddba4;background:rgba(61,219,164,.06);border-radius:4px;padding:8px 10px;margin:8px 0}\n.cotip .cohd{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:4px}.cotip .cohd b{color:#3ddba4}\n.cotip .coln{font-size:12px;line-height:1.5;color:#ddd}\n@media(max-width:900px){.mbody2{grid-template-columns:1fr!important}.mcol .feed{max-height:150px}.mcan canvas{max-height:62vh!important}}"; document.head.appendChild(st); })();
 /* ---------- tactic form ---------- */
 let TF=null;
 const AFIELDS={atk:["speed","check","target","dist","pat"],def:["speed","check","start","dist","pat"]};
@@ -5414,8 +5702,8 @@ function finishSeries(){
   const seaLines=seasonResult(win,MX.series);
   G.myForm=(G.myForm||[]).concat([win?"W":"L"]).slice(-5); if(G.form&&G.form[o.key]) G.form[o.key]=G.form[o.key].concat([win?"L":"W"]).slice(-5);
   const rf=MX.skipped?0.5:1, bonus=Math.round((MX.st.po?40000:20000)*rf);
-  if(win){ G.record.w++; G.fame=Math.min(100,G.fame+Math.round((MX.st.po?5:3)*rf)); G.fans+=Math.round((MX.st.po?15000:9000)*rf); G.budget+=bonus; bump("NORTHGRID",100); }
-  else { G.record.l++; G.fans+=Math.round(2000*rf); }
+  if(win){ G.record.w++; addFame((MX.st.po?5:3)*rf); addFans((MX.st.po?15000:9000)*rf); G.budget+=bonus; bump("NORTHGRID",100); }
+  else { G.record.l++; addFans(2000*rf); }
   const morRows=moraleAfterMatch(win)||[];
   const kills=Object.fromEntries(MX.me.map(p=>[p.id,p.k]));
   let ups=[]; try{ ups=perfGrowth(rf); }catch(e){ console.error(e); }
@@ -7033,7 +7321,7 @@ function seasonAwards(){
   const L=[`${yr} VCT 어워즈가 열렸습니다. 올해의 선수 ${P(A.world.mvp.id).name} (${T(A.world.mvp.k).name}).`];
   txNews(`${yr} VCT 어워즈 올해의 선수: ${P(A.world.mvp.id).name}`);
   ["AM","EM","PA","CN"].forEach(r=>{ const l=A.leagues[r]; if(l) txNews(`VCT ${REG[r].n} ${yr} 시즌 MVP: ${P(l.mvp.id).name} (${T(l.mvp.k).name})`); });
-  if(mine.length){ const fb=mine.length*1; G.fame=Math.min(100,G.fame+fb); G.fans+=mine.length*12000; L.push(`우리 구단 수상: ${mine.join(", ")}. 명성 +${fb}, 팬 +${(mine.length*12000).toLocaleString()}.`); G.log.push(`${yr} 어워즈 수상 ${mine.length}건`); }
+  if(mine.length){ const fb=addFame(mine.length), fn=addFans(mine.length*12000); L.push(`우리 구단 수상: ${mine.join(", ")}. 명성 +${fb}, 팬 +${fn.toLocaleString()}.`); G.log.push(`${yr} 어워즈 수상 ${mine.length}건`); }
   else L.push("우리 구단 선수는 이번 시상식에서 상을 받지 못했습니다.");
   return L;
 }
