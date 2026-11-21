@@ -1427,7 +1427,7 @@ function t2Next(ph,p0,L0){
     order.forEach((k,i)=>{ if(!t2Acad(k)) G.t2pts[k]=(G.t2pts[k]||0)+(T2PTS[i]||0); });
     const champ=order[0]; ph.champ=champ; txNews(`${p0.n} 우승: ${T(champ).name}`); coTitle(champ,p0.n);
     const pl=order.indexOf(G.team)+1; let money=0, tr=[];
-    if(pl>0){ money=Math.round(p0.prize*0.12*({1:1,2:0.5,3:0.3,4:0.2}[pl]||0.08)/1000)*1000; G.budget+=money; addFans(({1:6,2:4,3:2,4:2}[pl]||0.5)*3000); addFame(({1:4,2:2,3:1,4:1}[pl]||0)); if(pl===1) tr=[awardTrophy(p0.k)];
+    if(pl>0){ money=Math.round(p0.prize*0.12*({1:1,2:0.5,3:0.3,4:0.2}[pl]||0.08)/1000)*1000; G.budget+=money; addFans(({1:6,2:4,3:2,4:2}[pl]||0.5)*3000); addFame(({1:4,2:2,3:1,4:1}[pl]||0)); if(pl===1){ tr=[awardTrophy(p0.k)]; const lb=leagueBonus(ph.mem); if(lb){ G.budget+=lb; tr.push(L(`리그 우승 상금 ${short(lb)} (리그 수준과 리그 전체 팬, 명성 반영)`,`League title bonus ${short(lb)} (based on league level, fans and fame)`,`リーグ優勝賞金 ${short(lb)}`,`联赛冠军奖金 ${short(lb)}`)); } }
       G.sea.hist.push(`${G.sea.yr} ${p0.n}: ${pl===1?"우승":pl===2?"준우승":pl+"위"}`);
       L0.push(L(`${p0.n} ${pl}위. 서킷 포인트 +${t2Acad(G.team)?0:(T2PTS[pl-1]||0)} (누적 ${G.t2pts[G.team]||0}), 상금 ${short(money)}.`,`${p0.n}: ${pl}th. Circuit points +${t2Acad(G.team)?0:(T2PTS[pl-1]||0)} (total ${G.t2pts[G.team]||0}), prize ${short(money)}.`,`${p0.n} ${pl}位。サーキットポイント +${T2PTS[pl-1]||0}、賞金 ${short(money)}。`,`${p0.n} 第${pl}名。积分 +${T2PTS[pl-1]||0}，奖金 ${short(money)}。`)); L0.push(...tr); }
     t2FinishVCT(ph,p0);
@@ -2908,17 +2908,21 @@ function openCompare(a,b){ if(!document.getElementById("cmp")){ const d=document
   closePM(); renderCompare(); document.getElementById("cmp").classList.add("on"); }
 function closeCompare(){ const d=document.getElementById("cmp"); if(d) d.classList.remove("on"); }
 function cmpList(side){ const tk=CMP["t"+side], q=(CMP["q"+side]||"").trim().toLowerCase();
-  let ids; if(q) ids=allPlayers().filter(p=>p.name.toLowerCase().includes(q)).sort((x,y)=>y.ovr-x.ovr).slice(0,12).map(p=>p.id);
+  let ids; if(q) ids=allPlayers().filter(p=>p.name.toLowerCase().includes(q)).sort((x,y)=>(y.name.toLowerCase()===q)-(x.name.toLowerCase()===q)||(x.name.toLowerCase().startsWith(q)?-1:0)-(y.name.toLowerCase().startsWith(q)?-1:0)||y.ovr-x.ovr).slice(0,30).map(p=>p.id);
   else if(tk==="__free") ids=allPlayers().filter(p=>isFree(p)&&!teamOf(p.id)).sort((x,y)=>y.ovr-x.ovr).slice(0,12).map(p=>p.id);
+  else if(T2X[tk]&&!G.rosters[tk]) ids=T2X[tk].roster.filter(id=>!(teamOf(id)&&teamOf(id)!==tk));
+  else if(String(tk).startsWith("L:")){ const lg=tk.slice(2), inT=new Set((t2Cat()[lg]||{teams:[]}).teams.flatMap(x=>G.rosters[x.key]||x.roster)); ids=allPlayers().filter(p=>(p.league===lg||inT.has(p.id))&&!(teamOf(p.id)&&!T(teamOf(p.id)).t2)).sort((x,y)=>y.ovr-x.ovr).slice(0,40).map(p=>p.id); }
   else ids=tk===G.team?G.roster.map(r=>r.id):rosterOf(tk);
   return ids; }
 function cmpPanel(side){ const id=CMP[side], tk=CMP["t"+side], col=side==="a"?"#4aa3ff":"#ff4655";
-  const opts=[`<option value="${G.team}" ${tk===G.team?"selected":""}>${L("내 구단","My club","自クラブ","本队")}</option>`,`<option value="__free" ${tk==="__free"?"selected":""}>FA / ${L("2부","Tier 2","2部","二级")}</option>`].concat(DB.teams.filter(t=>t.key!==G.team&&G.rosters[t.key]).map(t=>`<option value="${t.key}" ${tk===t.key?"selected":""}>${esc(t.name)}</option>`)).join("");
-  const list=cmpList(side).map(x=>{ const p=P(x); return `<div class="crow ${x===id?"on":""}" style="--cc:${col}" onclick="CMP.${side}='${esc(x)}';renderCompare()">${ricon(p.role,13)}<span>${esc(p.name)}</span><b>${p.ovr}</b></div>`; }).join("")||`<p class="mute" style="font-size:12px">-</p>`;
+  const opts=[`<option value="${G.team}" ${tk===G.team?"selected":""}>${L("내 구단","My club","自クラブ","本队")}</option>`,`<option value="__free" ${tk==="__free"?"selected":""}>FA / ${L("2부","Tier 2","2部","二级")}</option>`].concat(DB.teams.filter(t=>t.key!==G.team&&G.rosters[t.key]&&!t.t2).map(t=>`<option value="${t.key}" ${tk===t.key?"selected":""}>${esc(t.name)}</option>`))
+    .concat(Object.keys(t2Cat()).map(lg=>`<optgroup label="${esc(t2LgName(lg))}">${t2Cat()[lg].teams.filter(x=>x.key!==G.team).map(x=>`<option value="${esc(x.key)}" ${tk===x.key?"selected":""}>${esc(x.name)}</option>`).join("")}</optgroup>`)).join("");
+  const list=cmpList(side).map(x=>{ const p=P(x); return `<div class="crow ${x===id?"on":""}" style="--cc:${col}" onclick="CMP.${side}='${esc(x)}';renderCompare()">${ricon(p.role,13)}<span>${esc(p.name)}${CMP["q"+side]?` <small class="mute">${esc((teamOf(x)&&T(teamOf(x))?T(teamOf(x)).name:(p.team?p.team+" (FA)":"FA")))}</small>`:""}</span><b>${p.ovr}</b></div>`; }).join("")||`<p class="mute" style="font-size:12px">-</p>`;
   const p=id&&P(id);
   return `<div class="cpan"><div class="chead" style="border-color:${col}">${p?`${avatar(avKey(p),regColor(p),p.nat)}<div class="cinfo"><b>${esc(p.name)}</b><small>${ROLE[p.role]?trText(ROLE[p.role].k):""} | ${esc(natName(p.nat))}</small><small>${esc(curTeamTag(p))}</small></div><div class="big" style="color:${col}">${p.ovr}<small>OVR</small></div>`:`<span class="mute">${L("선수를 고르세요","Pick a player","選手を選んでください","请选择选手")}</span>`}</div>
+    <input type="search" placeholder="${L("선수 이름 검색","Search player","選手名検索","搜索选手")}" style="width:100%;font-size:14px;padding:9px 10px;border:1px solid ${col}" value="${esc(CMP["q"+side]||"")}" oninput="CMP.q${side}=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{renderCompare();const el=document.querySelector('#cmpBox input[data-s=${side}]');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}},250)" data-s="${side}">
+    <div class="mute" style="font-size:11px;margin:6px 0 2px">${L("또는 팀에서 고르기","or pick from a team","またはチームから選択","或从队伍中选择")}</div>
     <select onchange="CMP.t${side}=this.value;CMP.q${side}='';renderCompare()">${opts}</select>
-    <input type="search" placeholder="${L("이름 검색","Search name","名前検索","搜索名字")}" value="${esc(CMP["q"+side]||"")}" oninput="CMP.q${side}=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{renderCompare();const el=document.querySelector('#cmpBox input[data-s=${side}]');if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}},250)" data-s="${side}">
     <div class="clist">${list}</div></div>`; }
 function renderCompare(){ const a=CMP.a&&P(CMP.a), b=CMP.b&&P(CMP.b);
   const pa=a&&CMP.pot&&potKnown(a.id)?potAttrs(a,potKnown(a.id).mid):null, pb=b&&CMP.pot&&potKnown(b.id)?potAttrs(b,potKnown(b.id).mid):null;
@@ -2976,7 +2980,7 @@ function openPlayer(id){
         ${G?`<div style="margin-top:14px">${scoutBox(id)}</div>`:""}</div>
     </div>
     <div class="mf"><span class="mute" style="font-size:12px">${signable?`희망 연봉 수준: 약 ${short(marketAsk(p))}/년${p.status==="T2"?" | 이적료 별도":""}`:""}</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${G?`<button class="ghost" onclick="openCompare(${mine?`'${esc(id)}',null`:`(G.roster.find(r=>P(r.id).role==='${p.role}')||G.roster[0]||{}).id,'${esc(id)}'`})">${L("선수 비교","Compare","選手比較","对比")}</button>`:""}${mine&&!(G.tBlock||{})[id]?`<button class="ghost" onclick="listBlock('${esc(id)}')">트레이드 시장에 내놓기</button>`:""}${(()=>{const tk=G&&teamOf(id); return tk&&tk!==G.team?`<button class="ghost" onclick="openRFA('${esc(id)}')">RFA 영입 제의</button><button class="ghost" onclick="openTrade('${tk}','${esc(id)}')">트레이드 문의</button>`:"";})()}${G&&!mine?`<button class="ghost wbtn ${isWatched(id)?"on":""}" data-w="${esc(id)}" onclick="stoveWatch('${esc(id)}',event)">${isWatched(id)?"찜 해제":"찜"}</button>`:""}${signable?`<button class="go cut" style="padding:10px 20px;font-size:14px" onclick="openNego('${esc(id)}')">협상 시작</button>`:""}<button class="ghost" onclick="closePM()">닫기</button></div></div>`;
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${G?`<button class="ghost" onclick="openCompare(${mine?`'${esc(id)}',null`:`(G.roster.find(r=>P(r.id).role==='${p.role}')||G.roster[0]||{}).id,'${esc(id)}'`})">${L("선수 비교","Compare","選手比較","对比")}</button>`:""}${mine?`<button class="ghost" onclick="reSignId('${esc(id)}')">재계약 제의</button>`:""}${mine&&!(G.tBlock||{})[id]?`<button class="ghost" onclick="listBlock('${esc(id)}')">트레이드 시장에 내놓기</button>`:""}${(()=>{const tk=G&&teamOf(id); return tk&&tk!==G.team?`<button class="ghost" onclick="openRFA('${esc(id)}')">RFA 영입 제의</button><button class="ghost" onclick="openTrade('${tk}','${esc(id)}')">트레이드 문의</button>`:"";})()}${G&&!mine?`<button class="ghost wbtn ${isWatched(id)?"on":""}" data-w="${esc(id)}" onclick="stoveWatch('${esc(id)}',event)">${isWatched(id)?"찜 해제":"찜"}</button>`:""}${signable?`<button class="go cut" style="padding:10px 20px;font-size:14px" onclick="openNego('${esc(id)}')">협상 시작</button>`:""}<button class="ghost" onclick="closePM()">닫기</button></div></div>`;
   $("#pm").classList.add("on");
 }
 function closePM(){ $("#pm").classList.remove("on"); }
@@ -3888,6 +3892,7 @@ function swapStarter(i){
 function care(i){ const r=G.roster[i], abs=G.week*7+G.day; G.mcd=G.mcd||{}; const cost=12000; if(G.budget<cost) return toast("자금이 부족합니다."); const recent=G.mcd[r.id]!=null&&abs-G.mcd[r.id]<4; G.budget-=cost; G.mcd[r.id]=abs; const add=recent?5:12; setMor(r,add); r.cond=Math.min(100,r.cond+10); r.fat=Math.max(0,r.fat-10); toast(`${P(r.id).name} 멘탈 코칭: 사기 +${add}${recent?" (최근 코칭해서 효과 감소)":""}`); renderAll(); save(); }
 /* my club can offer a new deal any time; a player who re-signed within the last ~6 months politely declines */
 function reSignAsk(r,y){ const p=P(r.id), m=morOf(r), base=Math.max(r.salary||0,marketAsk(p)); const mul=(m>=80?0.95:m>=60?1.02:m>=45?1.1:1.2)*(y>=3?1.06:y===2?1.02:1); return Math.round(base*mul/1000)*1000; }
+function reSignId(id){ const i=G.roster.findIndex(r=>r.id===id); if(i>=0) reSign(i); }
 function reSign(i){ const r=G.roster[i]; if(!r) return; const p=P(r.id), now=absNow();
   if(r.reD!=null&&now-r.reD<182){ const left=Math.max(1,Math.ceil((182-(now-r.reD))/30.4));
     return infoBox(L("재계약 제의","Contract offer","再契約の打診","续约提议"),L(`${esc(p.name)} 측에서 정중히 거절했습니다. "얼마 전에 재계약을 마쳤으니, 지금은 경기에 집중하고 싶습니다. 나중에 다시 이야기해요." (마지막 재계약 후 6개월이 지나야 합니다. 약 ${left}개월 남음)`,`${esc(p.name)}'s camp politely declined: "We just signed a new deal. Let's focus on playing and talk again later." (6 months must pass since the last re-signing; about ${left} more month(s).)`,`${esc(p.name)}側が丁重に断りました。「少し前に再契約したばかりなので、今は試合に集中したいです。また後で話しましょう。」(前回の再契約から6か月必要。残り約${left}か月)`,`${esc(p.name)}方面礼貌地拒绝了: "刚续约不久，现在想专心比赛，以后再谈吧。" (距上次续约需满6个月，约剩${left}个月)`)); }
@@ -4674,6 +4679,11 @@ function phaseRewards(place,ph0){
   G.budget+=money; const fame0={1:ph0.type==="intl"?10:6,2:4,3:2,4:2}[place]||0; addFans(fame0*6000); const fame=addFame(fame0);
   return money;
 }
+/* league title bonus: scaled by the league's level (team OVR) and its combined fame / fans */
+function leagueBonus(list){ list=(list||[]).filter(k=>T(k)); if(!list.length) return 0; const ros=k=>k===G.team?G.roster.map(r=>r.id):(G.rosters[k]||[]);
+  const ovr=list.reduce((s,k)=>s+teamOvr(ros(k)),0)/list.length, lvl=Math.max(0.3,Math.min(1.3,(ovr-65)/20));
+  const brand=k=>k===G.team?G.fame:baseBrand(k), fans=list.reduce((s,k)=>s+(k===G.team?G.fans:brand(k)*9000),0), pop=Math.max(0.5,Math.min(1.5,list.reduce((s,k)=>s+brand(k),0)/list.length/55));
+  return Math.round((20000+fans*0.004)*lvl*pop/1000)*1000; }
 function finishLeague(champ,runner,semis){
   const ph=G.sea.ph, p0=curPhase(), my=T(G.team).region; ph.done=true; ph.champ=champ;
   const field=[champ,runner];
@@ -4685,6 +4695,7 @@ function finishLeague(champ,runner,semis){
   const place=champ===G.team?1:runner===G.team?2:semis.includes(G.team)?3:9;
   const money=phaseRewards(place,p0);
   const trL=place===1?[awardTrophy(p0.k)]:[];
+  if(place===1){ const lb=leagueBonus(Object.keys(ph.st||{})); if(lb){ G.budget+=lb; trL.push(`리그 우승 상금 ${short(lb)} (리그 수준과 리그 전체 팬, 명성 반영)`); } }
   G.sea.hist.push(`${G.sea.yr} ${p0.n}: ${place===1?"우승":place===2?"준우승":place===3?"4강":"플레이오프 탈락"}`);
   txNews(`${p0.n} 우승: ${T(champ).name} (준우승 ${T(runner).name})`);
   setPhaseEnd(14);
@@ -6840,7 +6851,9 @@ const HOME_NAT={"100t":"미국","c9":"미국","eg":"미국","furia":"브라질",
  "bbl":"튀르키예","fnc":"유럽","fut":"튀르키예","gx":"유럽","kc":"유럽","pcf":"유럽","navi":"유럽","th":"유럽","tl":"유럽","vit":"유럽","m8":"유럽","ef":"튀르키예",
  "dfm":"일본","drx":"한국","gen":"한국","ge":"인도","prx":"싱가포르","rrq":"인도네시아","t1":"한국","varrel":"일본","ts":"필리핀","zeta":"일본","ns":"한국","fs":"태국"};
 const LV_K=["없음","초급","중급","고급","현지인"], LV_DAYS=[0,90,180,365,545], LV_COMM=[0.3,0.55,0.72,0.92,1];
-function homeLang(k){ const t=T(k); if(!t) return "영어"; const n=HOME_NAT[k]||(t.region==="CN"?"중국":"유럽"); return LANG_OF[n]||"영어"; }
+function homeLang(k){ const t=T(k); if(!t) return "영어"; let n=HOME_NAT[k];
+  if(!n){ const c={}; (t.roster||[]).forEach(id=>{ const p=DB.players[id]; if(p) c[p.nat]=(c[p.nat]||0)+1; }); const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0]; n=top&&top[1]>=3?top[0]:(t.region==="CN"?"중국":"유럽"); }
+  return LANG_OF[n]||"영어"; }
 function langDays(id,l){ return ((G&&G.lx&&G.lx[id])||{})[l]||0; }
 function lvFromDays(d){ let v=0; for(let i=1;i<LV_DAYS.length;i++) if(d>=LV_DAYS[i]) v=i; return v; }
 function langLv(id,l){ const p=P(id); if(langOf(p)===l) return 4; let v=lvFromDays(langDays(id,l)); if(l==="영어"&&engOK(p)) v=Math.max(v,3); return v; }
