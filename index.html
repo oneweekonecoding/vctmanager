@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<style>html,body,button,a,input,select,label,.sbtn,[onclick]{touch-action:manipulation}button,.sbtn,[onclick]{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}</style>
 <meta name="description" content="VCT 2026 실제 선수, 감독 데이터로 발로란트 프로게임단을 운영하는 웹 매니지먼트 게임">
 <meta property="og:title" content="발로란트 프로게임단 키우기 | VCT 매니저">
 <meta property="og:description" content="48개 VCT 팀 중 하나를 맡아 선수 영입, 밴픽, 경기, 시즌 운영까지">
@@ -1273,7 +1274,16 @@ function aiMap(k,m){ const o=G&&G.aiMaps&&G.aiMaps[k]; return o&&o[m]!=null?o[m]
 function aiMapTick(scale){ const mul=(AI_GROW[(G&&G.diff)||"basic"]||1)*scale; G.aiMaps=G.aiMaps||{};
   for(const k in G.rosters){ if(k===G.team) continue; const o=G.aiMaps[k]=G.aiMaps[k]||{};
     ALL_MAPS.forEach(m=>{ const v=aiMap(k,m); if(MAPS.includes(m)){ const pref=aiPref(k,m)>62?1.3:1, room=Math.max(0.15,(97-v)/40); o[m]=Math.min(97,Math.round((v+(1+Math.random()*2.2)*mul*pref*room)*10)/10); }
-      else o[m]=Math.max(35,Math.round((v-0.4*scale)*10)/10); }); } }
+      else o[m]=Math.max(35,Math.round((v-0.4*scale)*10)/10);
+      if(MAPS.includes(m)&&o[m]>70&&Math.random()<0.35) o[m]=Math.round((o[m]-(o[m]-70)*0.02*scale)*10)/10; }); } }
+/* our map mastery slips every week a map goes unpracticed; the higher it is, the faster it slips */
+function mapDecay(b){ if(!G.maps) return; G.mapPrev=G.mapPrev||{}; G.mapIdle=G.mapIdle||{}; const drop=[];
+  ALL_MAPS.forEach(m=>{ const v=G.maps[m]; if(v==null) return; const prev=G.mapPrev[m];
+    if(prev!=null&&v>prev+0.01){ G.mapIdle[m]=0; G.mapPrev[m]=v; return; }
+    const idle=G.mapIdle[m]=(G.mapIdle[m]||0)+1; if(idle<2){ G.mapPrev[m]=v; return; }
+    let d=0.25+Math.max(0,v-45)*0.012+Math.min(0.6,(idle-2)*0.05); if(!MAPS.includes(m)) d*=1.4;
+    const nv=Math.max(28,Math.round((v-d)*10)/10); G.maps[m]=nv; G.mapPrev[m]=nv; if(MAPS.includes(m)&&Math.floor(v)>Math.floor(nv)&&idle>=4) drop.push(m); });
+  if(drop.length&&b) b.push(L(`연습하지 않은 맵 숙련도가 떨어지고 있습니다: ${drop.join(", ")}. 스크림이나 맵 연습으로 유지하세요.`,`Unpracticed maps are slipping: ${drop.join(", ")}. Keep them up with scrims or map practice.`,`練習していないマップの熟練度が下がっています: ${drop.join("、")}`,`未练习的地图熟练度在下降: ${drop.join("、")}`)); }
 function aiGrowPass(){ try{ aiMapTick(1); }catch(e){ console.error(e); } const m=AI_GROW[(G&&G.diff)||"basic"]||1, mine=new Set(G.roster.map(r=>r.id)), done=new Set(G.retired||[]);
   for(const k in G.rosters){ const ac=T(k)&&T(k).t2&&t2Acad(k), mk=ac?Math.min(m,1)*0.55:m; (G.rosters[k]||[]).forEach(id=>{ if(mine.has(id)||done.has(id)) return; const p=P(id); if(!p) return; const gap=potOf(id)-p.ovr, a=ageOf(id); const m=mk;
     const af=a<=20?1.25:a<=23?1.05:a<=25?0.8:a<=27?0.55:a<=29?0.3:0.12; let n=0; const ch=Math.min(0.97,(0.2+Math.max(0,gap)*0.07)*af*m);
@@ -1486,12 +1496,12 @@ function t2Next(ph,p0,L0){
     ph.stage="end"; ph.done=true; setPhaseEnd(14); return "end"; }
   if(ph.stage&&ph.stage.startsWith("a_")) return t2AscNext(ph,p0,L0);
   ph.done=true; setPhaseEnd(14); return "end"; }
-function t2FinishVCT(ph,p0){ const field=[]; ["AM","EM","PA","CN"].forEach(r=>{ const o=ph.others&&ph.others[r]; if(o){ field.push(...finishOther(o,p0)); coTitle(o.champ,`VCT ${REG[r].n} ${p0.n0}`); txNews(`VCT ${REG[r].n} ${p0.n0} 우승: ${T(o.champ).name}`); } });
-  if(p0.to&&p0.to!=="CH") G.sea.q[p0.to]=field; else if(p0.to==="CH") G.sea.q.CH=field; }
+function t2FinishVCT(ph,p0){ const field=[], qr={}; ["AM","EM","PA","CN"].forEach(r=>{ const o=ph.others&&ph.others[r]; if(o){ const got=finishOther(o,p0); qr[r]=got; field.push(...got); coTitle(o.champ,`VCT ${REG[r].n} ${p0.n0}`); txNews(`VCT ${REG[r].n} ${p0.n0} 우승: ${T(o.champ).name}`); } });
+  if(p0.to) intlQualify(p0,qr); }
 /* ---- Ascension, region by region ---- */
 function t2StartAsc(ph0,ph,L0){ const reg=T(G.team).region; ph.reg=reg;
   /* the real Champions runs in the background */
-  const vf=(G.sea.q.CH||[]).filter(k=>T(k)&&!T(k).t2); if(vf.length>1){ const c=simBracket(vf); if(c){ txNews(`Champions ${G.sea.yr} 우승: ${T(c).name}`); coTitle(c,"Champions"); } }
+  const vf=(G.sea.q.CH||[]).filter(k=>T(k)&&!T(k).t2); if(vf.length>1){ try{ const bph={k:"CH",vbg:1}; iStart(PHASES.find(p=>p.k==="CH"),bph,[],true); ph.vctCH=bph.order?bph.order.slice(0,8):null; }catch(e){ console.error(e); } }
   const size={PA:10,AM:9,CN:8,EM:8}[reg]||8; const q=(G.sea.ascQ||[]).filter(k=>T(k));
   const others=(G.t2asc||[]).filter(k=>T(k)&&T(k).t2&&!t2Acad(k)&&!q.includes(k)).sort((a,b)=>tStr(b)-tStr(a));
   const own=myLeagueTeams().filter(k=>!q.includes(k)&&!t2Acad(k)&&k!==G.team).sort((a,b)=>tStr(b)-tStr(a));
@@ -1876,7 +1886,10 @@ function confirmBox(title, html, okLabel, onOk){
 
 
 /* ================= TROPHIES ================= */
-function trophySVG(kind,big){ const u=(typeof TRO3D!=="undefined")?TRO3D.img(kind):null; if(u) return `<img class="tsvg" src="${u}" alt="" draggable="false">`; return trophySVG0(kind,big); }
+function troIdx(y){ const N=12, f=x=>{ let h=hash("stageset"+(G&&G.troSeed||""))^Math.imul(x,0x9E3779B1); h^=h>>>15; h=Math.imul(h,0x2C1B3C6D); h^=h>>>12; h=Math.imul(h,0x297A2D39); h^=h>>>15; return (h>>>0)%N; }; let i=f(y); if(i===f(y-1)) i=(i+1)%N; return i; }
+function troPal(y,kind){ const N=9; let h=hash("pal"+(G&&G.troSeed||""))^Math.imul(y,0x85EBCA6B); h^=h>>>13; h=Math.imul(h,0xC2B2AE35); h^=h>>>16; const a=(h>>>0)%N; if(kind==="S1") return a; return (a+1+((h>>>8)>>>0)%(N-1))%N; }
+function troVar(kind,yr){ if(kind==="S1"||kind==="S2"){ const y=yr||(G&&G.sea?G.sea.yr:2027); return kind+"#"+troIdx(y)+"."+troPal(y,kind); } return kind; }
+function trophySVG(kind,big,yr){ const u=(typeof TRO3D!=="undefined")?TRO3D.img(troVar(kind,yr)):null; if(u) return `<img class="tsvg" src="${u}" alt="" draggable="false">`; return trophySVG0(kind,big); }
 function trophySVG0(kind,big){
   const id="g"+kind+(big?"b":"")+Math.floor(Math.random()*1e6);
   const gold=`<linearGradient id="${id}a" x1="0" x2="1"><stop offset="0" stop-color="#8A6A1E"/><stop offset=".45" stop-color="#F7D774"/><stop offset=".6" stop-color="#FFF2B0"/><stop offset="1" stop-color="#9C7623"/></linearGradient>`;
@@ -1924,7 +1937,7 @@ function trophyRoomHTML(){
   return `<div class="sub">구단 트로피 전시장 | 보유 ${list.length}개</div>
    <p class="mute" style="font-size:12px;margin-bottom:10px">대회에서 우승하면 트로피가 전시됩니다. 트로피를 꾹 누르고 있으면 당시 로스터와 스코어가 나옵니다.</p>
    <div class="troom">${SHELF.map(k=>{ const ts=byKind(k);
-     return `<div class="tshelf"><div class="tlabel">${TROPHY_NAME[k]}</div><div class="titems">${ts.length?ts.map(t=>`<div class="titem" data-tid="${t.id}"><div class="tring"></div>${trophySVG(k)}<span>${t.yr}</span></div>`).join(""):`<div class="titem empty">${trophySVG(k)}<span>미획득</span></div>`}</div><div class="tboard"></div></div>`; }).join("")}</div>`;
+     return `<div class="tshelf"><div class="tlabel">${TROPHY_NAME[k]}</div><div class="titems">${ts.length?ts.map(t=>`<div class="titem" data-tid="${t.id}"><div class="tring"></div>${trophySVG(k,false,t.yr)}<span>${t.yr}</span></div>`).join(""):`<div class="titem empty">${trophySVG(k)}<span>미획득</span></div>`}</div><div class="tboard"></div></div>`; }).join("")}</div>`;
 }
 function bindTrophies(){
   document.querySelectorAll(".titem[data-tid]").forEach(el=>{
@@ -1938,7 +1951,7 @@ function bindTrophies(){
 function openTrophy(id){
   const t=(G.trophies||[]).find(x=>x.id===id); if(!t) return;
   $("#pmBox").innerHTML=`<button class="x" onclick="closePM()">x</button>
-   <div class="tdet"><div class="tbig" id="tbig3d">${trophySVG(t.kind,true)}<div class="t3hint">${L("꾹 눌러 3D 보기","Hold for 3D","長押しで3D","长按查看3D")}</div></div>
+   <div class="tdet"><div class="tbig" id="tbig3d">${trophySVG(t.kind,true,t.yr)}<div class="t3hint">${L("꾹 눌러 3D 보기","Hold for 3D","長押しで3D","长按查看3D")}</div></div>
     <div><div class="tk">${t.yr} ${esc(t.event)}</div><h3>${esc(t.name)}</h3>
      ${t.final?`<div class="tfin"><span>결승</span><b>${esc(T(G.team).name)} ${esc(t.final.s)} ${esc(t.final.opp)}</b><small>${t.final.maps.map(esc).join(" | ")}</small></div>`:""}
      ${t.mvp?`<p class="mute" style="font-size:12px;margin-top:6px">대회 MVP ${esc(t.mvp.name)} (${t.mvp.k}킬)</p>`:""}</div></div>
@@ -1958,7 +1971,11 @@ const TRO3D=(()=>{
     black:{c:[.03,.03,.035],m:.25,r:.22}, onyx:{c:[.05,.04,.06],m:.5,r:.12},
     red:{c:[.82,.08,.1],m:.3,r:.25}, blue:{c:[.12,.3,.92],m:.3,r:.25},
     redGlow:{c:[1,.2,.2],m:0,r:.5,e:[2.2,.18,.15]}, amber:{c:[1,.6,.15],m:0,r:.5,e:[2.2,1.0,.25]},
-    white:{c:[.96,.96,.96],m:0,r:.4}, plate:{c:[.06,.06,.06],m:0,r:.4,tex:1}};
+    white:{c:[.96,.96,.96],m:0,r:.4}, plate:{c:[.06,.06,.06],m:0,r:.4,tex:1},
+    teal:{c:[.1,.85,.78],m:0,r:.45,e:[.15,1.3,1.15]}, blueGlow:{c:[.35,.55,1],m:0,r:.45,e:[.3,.65,2.3]}, pearl:{c:[.9,.92,.95],m:.25,r:.18}, cobalt:{c:[.16,.28,.8],m:.85,r:.14}, gunmetal:{c:[.2,.22,.25],m:.9,r:.22},
+    mintGlow:{c:[.25,1,.82],m:0,r:.4,e:[.35,1.9,1.4]}, crimsonGlow:{c:[1,.1,.18],m:0,r:.4,e:[2.3,.12,.22]}, matteBlack:{c:[.04,.04,.045],m:.1,r:.55}, glossBlack:{c:[.03,.03,.035],m:.6,r:.08},
+    ivory:{c:[.95,.94,.9],m:0,r:.3}, champagne:{c:[.86,.74,.52],m:1,r:.2}, purpleM:{c:[.32,.12,.55],m:.9,r:.16}, violetGlow:{c:[.7,.4,1],m:0,r:.4,e:[1.3,.5,2.2]},
+    bronze:{c:[.5,.32,.18],m:1,r:.3}, deepBlue:{c:[.05,.15,.6],m:.7,r:.1}, matteWhite:{c:[.9,.92,.97],m:0,r:.6}, violetM:{c:[.42,.3,.85],m:.9,r:.12}};
   /* ---------- tiny 3x3 transforms ---------- */
   const R3={x:a=>[1,0,0,0,Math.cos(a),-Math.sin(a),0,Math.sin(a),Math.cos(a)], y:a=>[Math.cos(a),0,Math.sin(a),0,1,0,-Math.sin(a),0,Math.cos(a)], z:a=>[Math.cos(a),-Math.sin(a),0,Math.sin(a),Math.cos(a),0,0,0,1]};
   const I3=[1,0,0,0,1,0,0,0,1];
@@ -1994,7 +2011,7 @@ const TRO3D=(()=>{
     function sphere(cx,cy,r,seg,rings,mat,flat,T){ const pr=[]; for(let i=0;i<=rings;i++){ const t=-Math.PI/2+Math.PI*i/rings; pr.push([r*Math.cos(t),cy+r*Math.sin(t)]); } pr[0][0]=0; pr[rings][0]=0; lathe(pr,seg,mat,{flat,T:T||(cx?{t:[cx,0,0]}:null)}); }
     return {parts,lathe,torus,extrude,box,quadTex,star,sphere,tri,flatTri}; }
   /* ---------- the designs ---------- */
-  function base(b,o){ o=o||{}; const top=o.top||0.56, sg=o.seg||6, a0=Math.PI/sg;
+  let TRIM=null, CURK=null; function base(b,o){ o=o||{}; if(TRIM) o.trim=TRIM; const top=o.top||0.56, sg=o.seg||6, a0=Math.PI/sg;
     b.lathe([[0,0],[1.0,0],[1.0,0.16],[0.93,0.22],[0.93,top-0.06],[0.84,top],[0,top]],sg,"black",{flat:1,a0});
     b.lathe([[0.94,0.30],[0.95,0.31],[0.95,0.36],[0.94,0.37]],sg,o.trim||"gold",{flat:1,a0});
     b.lathe([[1.005,0.155],[1.012,0.16],[1.012,0.175],[1.005,0.18]],sg,o.trim||"gold",{flat:1,a0});
@@ -2018,8 +2035,55 @@ const TRO3D=(()=>{
     KO(b){ base(b,{trim:"silver"}); cup(b,{m:"silver",bands:[["red",2.28,2.38]]}); },
     HG(b){ base(b,{trim:"silver"}); cup(b,{m:"silver",bands:[["red",2.22,2.3],["blue",2.32,2.38]],tall:1}); },
     S1(b){ shield(b,"blue",1); }, S2(b){ shield(b,"red",2); },
-    CS(b){ base(b,{trim:"silver"}); cup(b,{m:"steel",bands:[["blue",2.28,2.38]]}); },
-    AS(b){ base(b,{trim:"gold"}); cup(b,{m:"gold",bands:[["red",2.2,2.28],["onyx",2.3,2.4]],tall:1}); b.extrude(b.star(0,3.0,0.2,0.09,5),-0.04,0.04,"gold"); b.lathe([[0.03,1.92],[0.03,2.86],[0,2.88]],8,"gold"); }};
+    /* Ascension: a twisting hexagonal tower that climbs to an upward chevron (original design) */
+    AS(b){ base(b,{trim:"silver",seg:6});
+      for(let i=0;i<14;i++){ const y=0.62+i*0.15, r=0.34-i*0.012; b.lathe([[0,y],[r,y],[r,y+0.12],[0,y+0.12]],6,i%2?"gunmetal":"silver",{flat:1,a0:i*0.11}); if(i%3===1) b.lathe([[r+0.005,y+0.12],[r+0.02,y+0.125],[r+0.02,y+0.145],[r+0.005,y+0.15]],6,"teal",{flat:1,a0:i*0.11}); }
+      const ch=[[0,3.55],[0.62,2.92],[0.46,2.86],[0,3.27],[-0.46,2.86],[-0.62,2.92]];
+      b.extrude(ch,-0.07,0.07,"silver"); b.extrude(ch.map(p=>[p[0]*0.7,2.98+(p[1]-2.98)*0.7]),0.07,0.1,"teal");
+      b.extrude(ch.map(p=>[p[0],p[1]-0.34]),-0.05,0.05,"gunmetal"); },
+    /* Challengers: an upright ring on a short pillar with a glowing core and a four-point star (original design) */
+    CS(b){ base(b,{trim:"silver",seg:8});
+      b.lathe([[0,0.56],[0.3,0.56],[0.3,0.64],[0.16,0.74],[0.11,1.3],[0.18,1.36],[0,1.38]],8,"gunmetal",{flat:1,a0:Math.PI/8});
+      b.torus(0.78,0.09,0,Math.PI*2,56,12,"silver",{t:[0,2.2,0]}); b.torus(0.66,0.035,0,Math.PI*2,56,8,"teal",{t:[0,2.2,0.05]}); b.torus(0.66,0.035,0,Math.PI*2,56,8,"teal",{t:[0,2.2,-0.05]});
+      b.extrude(b.star(0,2.2,0.5,0.13,4),-0.06,0.06,"steel"); b.extrude(b.star(0,2.2,0.3,0.08,4),0.06,0.085,"teal"); b.extrude(b.star(0,2.2,0.3,0.08,4),-0.085,-0.06,"teal"); }};
+  /* Stage 1 / Stage 2: each season gets one of these, so the trophy changes year to year */
+  const STAGE_DES=[
+    (b,acc,met)=>{ shield(b,CURK?acc:(acc==="blueGlow"?"blue":"red"),CURK?(CURK==="S1"?1:2):(acc==="blueGlow"?1:2)); },
+    (b,acc,met)=>{ base(b,{trim:met,seg:8}); b.lathe([[0,0.56],[0.3,0.56],[0.26,1.0],[0.18,2.6],[0.07,3.05],[0,3.1]],8,met,{flat:1,a0:Math.PI/8});
+      b.torus(0.58,0.045,0,Math.PI*2,56,10,acc,{m:R3.x(Math.PI/2),t:[0,2.45,0]}); b.torus(0.66,0.025,0,Math.PI*2,56,8,met,{m:R3.x(Math.PI/2+0.35),t:[0,2.45,0]});
+      b.extrude(b.star(0,3.25,0.2,0.08,6),-0.04,0.04,acc); },
+    (b,acc,met)=>{ base(b,{trim:met}); b.lathe([[0,0.56],[0.08,0.56],[0.07,3.0],[0,3.02]],10,met);
+      for(let i=0;i<22;i++){ const y=0.75+i*0.1, a=i*0.55; [0,Math.PI].forEach(o=>b.box(0.12,y,-0.05,0.42,y+0.05,0.05,i%4===0?acc:met,{m:R3.y(a+o)})); }
+      b.sphere(0,3.15,0.17,12,8,acc,0); },
+    (b,acc,met)=>{ base(b,{trim:met}); cup(b,{m:met,bands:[[acc,2.28,2.36]]});
+      for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4; b.extrude([[0,1.6],[0.3,1.95],[0.36,2.55],[0.2,2.95],[0.06,2.4],[0,1.9]],-0.025,0.025,i%2?acc:met,{m:R3.y(a),t:[0.42*Math.cos(a),0,-0.42*Math.sin(a)]}); } },
+    (b,acc,met)=>{ base(b,{trim:met,seg:6}); b.lathe([[0,0.56],[0.26,0.56],[0.16,0.9],[0.13,1.95],[0.5,2.15],[0.56,2.35],[0.5,2.38],[0,2.3]],12,met,{flat:1});
+      for(let i=0;i<6;i++){ const a=i*Math.PI/3; b.extrude([[-0.1,2.3],[0.1,2.3],[0,i%2?2.95:3.2]],-0.03,0.03,met,{m:R3.y(a+Math.PI/2),t:[0.5*Math.cos(a),0,-0.5*Math.sin(a)]}); }
+      b.sphere(0,2.62,0.24,12,8,acc,1); },
+    (b,acc,met)=>{ base(b,{trim:met}); [[0.5,0.6,0],[0.4,1.62,1],[0.3,2.44,2]].forEach(([s,y,i])=>{ b.box(-s,y,-s,s,y+s*1.8,s,i===1?"gunmetal":met,{m:R3.y(i*Math.PI/4)}); b.box(-s*0.6,y+s*1.8,-s*0.6,s*0.6,y+s*1.8+0.06,s*0.6,acc,{m:R3.y(i*Math.PI/4)}); });
+      b.sphere(0,3.35,0.15,10,8,acc,1); },
+    /* 6: three flame-like wing blades rising around a centre spike */
+    (b,acc,met)=>{ base(b,{trim:met}); b.lathe([[0,0.56],[0.3,0.56],[0.3,0.66],[0.12,0.8],[0.09,1.1],[0.2,1.2],[0,1.24]],10,"onyx",{flat:1});
+      for(let i=0;i<3;i++){ const a=i*2*Math.PI/3; b.extrude([[0,1.15],[0.22,1.35],[0.46,1.9],[0.5,2.5],[0.38,3.05],[0.3,2.55],[0.18,2.1],[0.05,1.6]],-0.035,0.035,met,{m:R3.y(a),t:[0.06*Math.cos(a),0,-0.06*Math.sin(a)]}); }
+      b.lathe([[0,1.2],[0.06,1.2],[0.04,3.2],[0,3.35]],8,acc); },
+    /* 7: armillary - three crossed rings on a slim stem */
+    (b,acc,met)=>{ base(b,{trim:met}); b.lathe([[0,0.56],[0.28,0.56],[0.12,0.75],[0.07,1.45],[0.16,1.55],[0,1.58]],10,met,{flat:1});
+      b.torus(0.7,0.05,0,Math.PI*2,56,10,met,{t:[0,2.3,0]}); b.torus(0.7,0.05,0,Math.PI*2,56,10,met,{m:R3.y(Math.PI/2),t:[0,2.3,0]});
+      b.torus(0.62,0.04,0,Math.PI*2,56,10,acc,{m:R3.x(Math.PI/2),t:[0,2.3,0]}); b.sphere(0,2.3,0.2,14,10,"gunmetal",0); },
+    /* 8: hourglass with a glowing waist and a flat crown disc */
+    (b,acc,met)=>{ base(b,{trim:met,seg:8}); b.lathe([[0,0.56],[0.5,0.56],[0.46,0.8],[0.2,1.7],[0.2,1.82],[0.5,2.75],[0.56,2.95],[0,2.95]],24,met);
+      b.lathe([[0.21,1.66],[0.27,1.7],[0.27,1.82],[0.21,1.86]],24,acc); b.lathe([[0,2.95],[0.66,2.95],[0.66,3.02],[0,3.02]],24,"gunmetal"); },
+    /* 9: upright victory blade with a crossguard */
+    (b,acc,met)=>{ base(b,{trim:met}); b.box(-0.2,0.56,-0.2,0.2,1.0,0.2,"gunmetal"); b.box(-0.08,1.0,-0.08,0.08,1.45,0.08,"onyx");
+      b.extrude([[-0.55,1.45],[0.55,1.45],[0.4,1.6],[-0.4,1.6]],-0.08,0.08,met); b.extrude([[-0.16,1.6],[0.16,1.6],[0.12,3.05],[0,3.4],[-0.12,3.05]],-0.04,0.04,met);
+      b.extrude([[-0.04,1.7],[0.04,1.7],[0.03,3.0],[0,3.2],[-0.03,3.0]],0.04,0.055,acc); },
+    /* 10: arch gate with a floating core */
+    (b,acc,met)=>{ base(b,{trim:met}); b.box(-0.6,0.56,-0.14,-0.42,2.2,0.14,met); b.box(0.42,0.56,-0.14,0.6,2.2,0.14,met);
+      b.torus(0.51,0.09,0,Math.PI,32,10,met,{t:[0,2.2,0]}); b.box(-0.42,0.56,-0.1,0.42,0.7,0.1,"gunmetal"); b.sphere(0,1.75,0.26,16,12,acc,0); },
+    /* 11: stacked discs, pagoda-like */
+    (b,acc,met)=>{ base(b,{trim:met,seg:8}); for(let i=0;i<6;i++){ const y=0.62+i*0.42, r=0.62-i*0.08; b.lathe([[0,y],[r,y],[r,y+0.08],[0,y+0.08]],24,i%2?"gunmetal":met,{flat:1}); b.lathe([[0,y+0.08],[0.12,y+0.08],[0.12,y+0.42],[0,y+0.42]],10,met); b.lathe([[r,y+0.02],[r+0.02,y+0.02],[r+0.02,y+0.06],[r,y+0.06]],24,acc); }
+      b.extrude(b.star(0,3.35,0.18,0.07,4),-0.04,0.04,acc); }];
+  STAGE_DES.forEach((f,i)=>{ DES["S1#"+i]=b=>f(b,"blueGlow",i%2?"gold":"silver"); DES["S2#"+i]=b=>f(b,"redGlow",i%2?"silver":"gold"); });
   function orbDesign(b,o){ base(b,{trim:o.metal==="gold"?"gold":"silver"});
     b.lathe([[0,0.56],[0.56,0.56],[0.42,0.78],[0.2,0.98],[0.15,1.5],[0.24,1.6],[0.1,1.66],[0,1.66]],6,o.ped,{flat:1,a0:Math.PI/6});
     b.lathe([[0.2,0.97],[0.225,0.99],[0.225,1.05],[0.2,1.07]],6,o.glow,{flat:1,a0:Math.PI/6});
@@ -2041,8 +2105,14 @@ const TRO3D=(()=>{
     b.extrude(sh.map(p=>[p[0]*0.74,2.2+(p[1]-2.2)*0.74]),0.1,0.14,col);
     const w=0.1; if(num===1) b.box(-w/2,1.98,0.14,w/2,2.5,0.19,"white"); else { b.box(-0.15,1.98,0.14,-0.05,2.5,0.19,"white"); b.box(0.05,1.98,0.14,0.15,2.5,0.19,"white"); }
     b.box(-0.24,2.5,0.14,0.24,2.56,0.19,"white"); b.box(-0.24,1.92,0.14,0.24,1.98,0.19,"white"); }
-  const GEO={}; function geo(kind){ if(GEO[kind]) return GEO[kind]; const b=Bld(); (DES[kind]||DES.CH)(b); return GEO[kind]=b.parts; }
-  const LABEL={AS:"ASCENSION",CS:"CHALLENGERS",CH:"CHAMPIONS",M1:"MASTERS I",M2:"MASTERS II",KO:"KICKOFF",S1:"STAGE I",S2:"STAGE II",HG:"HOME GROUND"};
+    /* colourways for the stage pool: shape is chosen per year, colours per stage */
+  const PAL=[{met:"silver",acc:"blueGlow",trim:"silver"},{met:"matteBlack",acc:"mintGlow",trim:"silver"},{met:"glossBlack",acc:"crimsonGlow",trim:"red"},
+    {met:"ivory",acc:"cobalt",trim:"champagne"},{met:"purpleM",acc:"violetGlow",trim:"white"},{met:"cobalt",acc:"blueGlow",trim:"silver"},
+    {met:"bronze",acc:"gold",trim:"gold"},{met:"deepBlue",acc:"silver",trim:"gunmetal"},{met:"matteWhite",acc:"violetM",trim:"silver"}];
+  const GEO={}; function geo(kind){ if(GEO[kind]) return GEO[kind]; const b=Bld(); const m=/^S[12]#(\d+)\.(\d+)$/.exec(kind);
+    if(m){ const P=PAL[+m[2]%PAL.length], f=STAGE_DES[+m[1]%STAGE_DES.length]; TRIM=P.trim; CURK=kind.slice(0,2); try{ f(b,P.acc,P.met); } finally{ TRIM=null; CURK=null; } } else (DES[kind]||DES.CH)(b); return GEO[kind]=b.parts; }
+  const LABEL0={AS:"ASCENSION",CS:"CHALLENGERS",CH:"CHAMPIONS",M1:"MASTERS I",M2:"MASTERS II",KO:"KICKOFF",S1:"STAGE I",S2:"STAGE II",HG:"HOME GROUND"};
+  const LABEL=new Proxy(LABEL0,{get:(o,k)=>o[String(k).split("#")[0]]});
   /* ---------- WebGL ---------- */
   const VS=`attribute vec3 aP;attribute vec3 aN;attribute vec2 aU;uniform mat4 uM;uniform mat4 uVP;varying vec3 vN;varying vec3 vP;varying vec2 vU;
    void main(){ vec4 w=uM*vec4(aP,1.0); vP=w.xyz; vN=mat3(uM)*aN; vU=aU; gl_Position=uVP*w; }`;
@@ -2116,7 +2186,7 @@ function open3D(kind,yr,title){ let el=$("#t3d"); if(!el){ el=document.createEle
   el.innerHTML=`<div class="t3-bg"></div><canvas></canvas><div class="t3-top"><div class="tk">${yr?yr+" ":""}${esc(title||"")}</div><h3>${esc(TRO3D.LABEL[kind]||"")}</h3></div>
    <div class="t3-bot"><span>${L("드래그: 회전 | 휠, 두 손가락: 확대","Drag: rotate | wheel or pinch: zoom","ドラッグ: 回転 | ホイール/ピンチ: 拡大","拖动: 旋转 | 滚轮/双指: 缩放")}</span><button class="ghost" id="t3auto">${L("자동 회전","Auto spin","自動回転","自动旋转")}</button><button class="ghost" id="t3x">${L("닫기","Close","閉じる","关闭")}</button></div>`;
   el.classList.add("on"); const cv=el.querySelector("canvas"); const fit=()=>{ const d=Math.min(2,window.devicePixelRatio||1); cv.width=cv.clientWidth*d; cv.height=cv.clientHeight*d; }; fit();
-  const v=TRO3D.make(cv,kind,{yr}); if(!v){ el.classList.remove("on"); return toast(L("이 기기에서는 3D 보기를 지원하지 않습니다.","3D view isn't supported on this device.","この端末では3D表示に対応していません。","此设备不支持3D查看。")); }
+  const v=TRO3D.make(cv,troVar(kind,yr),{yr}); if(!v){ el.classList.remove("on"); return toast(L("이 기기에서는 3D 보기를 지원하지 않습니다.","3D view isn't supported on this device.","この端末では3D表示に対応していません。","此设备不支持3D查看。")); }
   let yaw=0.4, pitch=0.05, dist=7.2, vy=0.006, vx=0, auto=true, drag=null, pin=null, alive=true, last=performance.now(), idle=0;
   const loop=t=>{ if(!alive) return; const dt=Math.min(50,t-last); last=t; if(!drag){ if(auto&&idle>1500) vy+=(0.006-vy)*0.03; yaw+=vy*dt/16; pitch+=vx*dt/16; vy*=auto?1:0.95; vx*=0.9; idle+=dt; }
     pitch=Math.max(-0.45,Math.min(0.6,pitch)); v.draw(yaw,pitch,dist); requestAnimationFrame(loop); }; requestAnimationFrame(loop);
@@ -2145,8 +2215,8 @@ function trophyFX(id){
   el.className="on tf2"; const t0=performance.now(); let alive=true;
   const cv=el.querySelector(".tf2-3d"), pc=el.querySelector(".tf2-pc"); const dpr=Math.min(2,window.devicePixelRatio||1);
   const fit=()=>{ cv.width=cv.clientWidth*dpr; cv.height=cv.clientHeight*dpr; pc.width=innerWidth*dpr; pc.height=innerHeight*dpr; }; fit();
-  let v=null; try{ v=TRO3D.make(cv,tr.kind,{yr:tr.yr}); }catch(e){}
-  if(!v){ cv.outerHTML=trophySVG(tr.kind,true); }
+  let v=null; try{ v=TRO3D.make(cv,troVar(tr.kind,tr.yr),{yr:tr.yr}); }catch(e){}
+  if(!v){ cv.outerHTML=trophySVG(tr.kind,true,tr.yr); }
   const cx=pc.getContext("2d"), P=[], gold=["#FFE08A","#F7C948","#FFF6D5","#E0A526","#ffffff","#DC2626"];
   const burst=(n,x,y,sp)=>{ for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, s=(2+Math.random()*sp)*dpr; P.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3*dpr,r:(2+Math.random()*4)*dpr,c:gold[i%gold.length],rot:Math.random()*6,vr:(Math.random()-.5)*.3,l:1,f:Math.random()<.35}); } };
   const rain=()=>{ for(let i=0;i<6;i++) P.push({x:Math.random()*pc.width,y:-20,vx:(Math.random()-.5)*dpr,vy:(1.5+Math.random()*2.5)*dpr,r:(2+Math.random()*4)*dpr,c:gold[i%gold.length],rot:Math.random()*6,vr:(Math.random()-.5)*.25,l:1.4,f:false}); };
@@ -2230,6 +2300,10 @@ function setIGL(id){ G.iglId=id; save(); toast(`${P(id).name} 선수를 IGL로 �
 
 /* ================= UNDO ================= */
 let UNDO=[];
+let LAST_ERR=null;
+function errText(e){ return e?((e.message||String(e))+"\n"+String(e.stack||"").split("\n").slice(0,5).join("\n")):""; }
+function errBox(msg,e){ LAST_ERR=e||LAST_ERR; const det=errText(e); try{ infoBox(L("문제가 생겼습니다","Something went wrong","問題が発生しました","出现问题"),`${esc(msg)}${det?`<pre style="white-space:pre-wrap;font-size:11px;background:#111;border:1px solid #333;padding:8px;margin-top:8px;max-height:160px;overflow:auto">${esc(det)}</pre><button class="sbtn" onclick="try{navigator.clipboard.writeText(errText(LAST_ERR))}catch(x){};toast('${L("복사했습니다","Copied","コピーしました","已复制")}')">${L("오류 내용 복사","Copy error","エラーをコピー","复制错误")}</button>`:""}`); }catch(x){ alert(msg+"\n"+det); } }
+window.addEventListener("error",ev=>{ LAST_ERR=ev.error||ev.message; });
 function snap(label){ try{ UNDO.push({label,g:JSON.stringify(G)}); if(UNDO.length>5) UNDO.shift(); }catch(e){} renderUndo(); }
 function clearUndo(){ UNDO=[]; renderUndo(); }
 function renderUndo(){ const b=$("#undoBtn"); if(!b) return; const u=UNDO[UNDO.length-1]; b.style.display=u?"inline-flex":"none"; if(u) b.title=`되돌리기: ${u.label}`; if(u) b.querySelector("span").textContent=u.label; }
@@ -2558,6 +2632,9 @@ const ROLES4=["duelist","initiator","controller","sentinel"];
 const GEN_GENERIC=new Set(["-","북미","중남미","유럽","동남아"]);
 const REG_NAT={AM:"미국",EM:"튀르키예",PA:"한국",CN:"중국"};
 let NATREG=null;
+function isImport(p,reg){ if(!p) return false; if(p.nat==="러시아"&&(reg==="PA"||reg==="EM")) return false; const h=natReg(p.nat)||p.region; return h!==reg; }
+const IMPORT_MAX=2;
+function impCount(ids,reg){ return ids.filter(id=>isImport(P(id),reg)).length; }
 function natReg(n){
   if(!NATREG){ NATREG={}; const c={};
     Object.values(DB.players).forEach(p=>{ if(!p.region) return; c[p.nat]=c[p.nat]||{}; c[p.nat][p.region]=(c[p.nat][p.region]||0)+1; });
@@ -2736,7 +2813,7 @@ function aiPick(k,onlyT2,genOnly){
   const have=new Set(ros.slice(0,5).map(id=>P(id).role));
   const need=new Set(ROLES4.filter(r=>!have.has(r)));
   const cap0 = (t.partner ? 950000 : 380000)*DF().aiCap, tph=phOf(k), cph=coPh(G.co?coOf(k):null), cap=phCap(tph,cap0);
-  const imports=ros.filter(id=>P(id).region!==t.region).length;
+  const imports=impCount(ros,t.region);
   let best=null, bs=-1e9; const TL=teamLang(ros,k), PR=ros.length>=5?payroll(k):0, TC=ros.length>=5?teamCap(k):0, coL=G.co&&coOf(k)?coLang(coOf(k)):null;
   for(const p of allPlayers()){
     if(own.has(p.id)||!isFree(p)||G.lock[p.id]>=99||(G.banU&&G.banU[p.id])||(G.relBy&&G.relBy[p.id]===k)) continue;
@@ -2748,7 +2825,7 @@ function aiPick(k,onlyT2,genOnly){
     if(G.bids&&G.bids[p.id]&&G.bids[p.id].some(b=>b.k===k)) continue;
     if(G.bids&&G.bids[p.id]&&G.bids[p.id].length>=2&&Math.random()<0.85) continue;
     const ask=marketAsk(p); if(ask>cap) continue; if(ros.length>=5&&PR+ask>TC) continue;
-    if(p.region!==t.region && imports>=2) continue;
+    if(isImport(p,t.region) && imports>=IMPORT_MAX) continue;
     let s=p.ovr + langPref(p.id,TL) + (coL&&coL===langOf(p)?3:0) + (p.gen?(t.t2?(t2Acad(k)?16:14):-7):p.est?-2:5) + (p.nat===nat?8:p.region===t.region?1:-9) + (need.size?(need.has(p.role)?12:p.role==="flex"?7:-4):0) + Math.random()*5
       + phScore(tph,p,k,ask,cap0)*0.7 + (cph?phScore(cph,p,k,ask,cap0)*0.3:0)
       + (acadOfTeam(k,(T2H[p.id]&&T(T2H[p.id]).name)||p.team)?(ros.length>=5?16:9):0) - (T2H[p.id]?3:0);
@@ -3124,6 +3201,7 @@ function nextMatchAbs(){ return G.sea&&G.sea.next==="match"?absNow()+G.dday:null
 function seasonProjection(){ if(!G.sea) return []; const now=absNow(), out=[], pi=G.sea.pi, ph=G.sea.ph||{}, p0=PHASES[pi];
   let endT; const hs=G.hg&&G.hg.live&&G.hg.stash; const nx=hs?hs.target:now+G.dday;
   if(p0.type==="league"){ if(G.sea.next==="phase") endT=nx; else if(!ph.po){ const left=Math.max(0,p0.rounds-(ph.round||0)-1); endT=nx+left*7+14+14; } else endT=nx+(ph.po.stage==="sf"?7:0)+14; }
+  else if(p0.type==="intl"&&ph.intl){ if(G.sea.next==="phase") endT=nx; else { const last=Math.max(0,...[].concat(ph.pre||[],ph.B?ph.B.m:[]).map(m=>m.day||0)); endT=nx+Math.max(0,last+(ph.stage!=="i_de8"?10:0)-(ph.cur||0))+4; } }
   else if(p0.type==="intl"){ if(G.sea.next==="phase") endT=nx; else { const played=(ph.gw||0)+(ph.gl||0); endT=nx+(ph.stage==="group"?Math.max(0,2-played)*7+14:ph.stage==="sf"?7:0)+14; } }
   else endT=nx;
   const curMatches=[]; if(hs?hs.next==="match":G.sea.next==="match"){ curMatches.push(nx); if(p0.type==="league"&&!ph.po){ const left=Math.max(0,p0.rounds-(ph.round||0)-1); for(let r=1;r<=left;r++) curMatches.push(nx+7*r); } }
@@ -3256,12 +3334,77 @@ let SLOT=1; const SLOTS=3;
 function slotKey(n){ return "vctmgr_slot_"+n; }
 function slotMeta(n){ try{ const s=localStorage.getItem(slotKey(n)+"_m"); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function makeMeta(){ const t=T(G.team); return {team:G.team,name:t.name,region:t.region,yr:G.sea?G.sea.yr:2027,week:G.week,w:G.record.w,l:G.record.l,budget:G.budget,at:Date.now()}; }
-function save(show,slot){ if(FAST||!G) return; try{ carSync(); coSync(); }catch(e){} const n=slot||SLOT; try{ localStorage.setItem(slotKey(n),JSON.stringify(G)); localStorage.setItem(slotKey(n)+"_m",JSON.stringify(makeMeta())); localStorage.setItem("vctmgr_cur",String(n)); if(show) toast(`슬롯 ${n}에 저장했습니다.`); }catch(e){ if(show) toast("이 브라우저에서는 저장할 수 없습니다."); } }
+/* LZ-based compression for saves (same scheme as lz-string's UTF16 mode) */
+const LZS=(function(){ const f=String.fromCharCode;
+function _c(u,bits,gc){ if(u==null) return ""; let i,v,cd={},cdc={},c="",wc="",w="",en=2,ds=3,nb=2,data=[],dv=0,dp=0,ii;
+  for(ii=0;ii<u.length;ii+=1){ c=u.charAt(ii); if(!Object.prototype.hasOwnProperty.call(cd,c)){ cd[c]=ds++; cdc[c]=true; }
+    wc=w+c; if(Object.prototype.hasOwnProperty.call(cd,wc)){ w=wc; } else {
+      if(Object.prototype.hasOwnProperty.call(cdc,w)){
+        if(w.charCodeAt(0)<256){ for(i=0;i<nb;i++){ dv=(dv<<1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; }
+          v=w.charCodeAt(0); for(i=0;i<8;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+        else { v=1; for(i=0;i<nb;i++){ dv=(dv<<1)|v; if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=0; }
+          v=w.charCodeAt(0); for(i=0;i<16;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+        en--; if(en==0){ en=Math.pow(2,nb); nb++; } delete cdc[w];
+      } else { v=cd[w]; for(i=0;i<nb;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+      en--; if(en==0){ en=Math.pow(2,nb); nb++; } cd[wc]=ds++; w=String(c); } }
+  if(w!==""){
+    if(Object.prototype.hasOwnProperty.call(cdc,w)){
+      if(w.charCodeAt(0)<256){ for(i=0;i<nb;i++){ dv=(dv<<1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; }
+        v=w.charCodeAt(0); for(i=0;i<8;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+      else { v=1; for(i=0;i<nb;i++){ dv=(dv<<1)|v; if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=0; }
+        v=w.charCodeAt(0); for(i=0;i<16;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+      en--; if(en==0){ en=Math.pow(2,nb); nb++; } delete cdc[w];
+    } else { v=cd[w]; for(i=0;i<nb;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; } }
+    en--; if(en==0){ en=Math.pow(2,nb); nb++; } }
+  v=2; for(i=0;i<nb;i++){ dv=(dv<<1)|(v&1); if(dp==bits-1){ dp=0; data.push(gc(dv)); dv=0; } else dp++; v=v>>1; }
+  while(true){ dv=(dv<<1); if(dp==bits-1){ data.push(gc(dv)); break; } else dp++; }
+  return data.join(""); }
+function _d(length,resetValue,getNextValue){ let dictionary=[],next,enlargeIn=4,dictSize=4,numBits=3,entry="",result=[],i,w,bits,resb,maxpower,power,c,data={val:getNextValue(0),position:resetValue,index:1};
+  for(i=0;i<3;i+=1) dictionary[i]=i;
+  const rd=(n)=>{ bits=0; maxpower=Math.pow(2,n); power=1; while(power!=maxpower){ resb=data.val&data.position; data.position>>=1; if(data.position==0){ data.position=resetValue; data.val=getNextValue(data.index++); } bits|=(resb>0?1:0)*power; power<<=1; } return bits; };
+  next=rd(2);
+  switch(next){ case 0: c=f(rd(8)); break; case 1: c=f(rd(16)); break; case 2: return ""; }
+  dictionary[3]=c; w=c; result.push(c);
+  while(true){ if(data.index>length) return "";
+    c=rd(numBits);
+    switch(c){ case 0: dictionary[dictSize++]=f(rd(8)); c=dictSize-1; enlargeIn--; break;
+      case 1: dictionary[dictSize++]=f(rd(16)); c=dictSize-1; enlargeIn--; break;
+      case 2: return result.join(""); }
+    if(enlargeIn==0){ enlargeIn=Math.pow(2,numBits); numBits++; }
+    if(dictionary[c]) entry=dictionary[c]; else { if(c===dictSize) entry=w+w.charAt(0); else return null; }
+    result.push(entry); dictionary[dictSize++]=w+entry.charAt(0); enlargeIn--; w=entry;
+    if(enlargeIn==0){ enlargeIn=Math.pow(2,numBits); numBits++; } } }
+return { c:(s)=>s==null?"":_c(s,15,a=>f(a+32))+" ", d:(s)=>s==null?"":s==""?null:_d(s.length,16384,i=>s.charCodeAt(i)-32) }; })();
+
+function slotRead(key){ const raw=localStorage.getItem(key); if(!raw) return null; const s=raw.startsWith("LZ1:")?LZS.d(raw.slice(4)):raw; if(!s) throw new Error("save data damaged"); return JSON.parse(s); }
+function lsFree(keep){ try{ Object.keys(localStorage).forEach(k=>{ if(/^vctmgr_map_/.test(k)) localStorage.removeItem(k); });
+  for(let i=1;i<=SLOTS;i++) if(i!==keep) localStorage.removeItem(slotKey(i)+"_bak"); }catch(e){} }
+let _saveWarn=0;
+/* routine saves are batched (compressing takes a moment); manual saves and leaving the page write at once */
+let _saveT=null;
+function save(show,slot){ if(FAST||!G) return; if(!show&&!slot){ if(_saveT) clearTimeout(_saveT); _saveT=setTimeout(()=>{ _saveT=null; saveNow(); },350); return; } if(_saveT){ clearTimeout(_saveT); _saveT=null; } return saveNow(show,slot); }
+function flushSave(){ if(_saveT){ clearTimeout(_saveT); _saveT=null; saveNow(); } }
+window.addEventListener("pagehide",flushSave); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushSave(); });
+function saveNow(show,slot){ if(FAST||!G) return; try{ carSync(); coSync(); }catch(e){} const n=slot||SLOT, key=slotKey(n);
+  let data; try{ data="LZ1:"+LZS.c(JSON.stringify(G)); }catch(e){ console.error(e); if(show) toast("저장 데이터를 만드는 중 문제가 생겼습니다."); return; }
+  /* keep last week's save as a backup before overwriting */
+  try{ const pm=slotMeta(n), prev=localStorage.getItem(key); if(prev&&pm&&(pm.week!==G.week||pm.yr!==(G.sea?G.sea.yr:pm.yr)||!localStorage.getItem(key+"_bak"))) localStorage.setItem(key+"_bak",prev); }catch(e){ try{ localStorage.removeItem(key+"_bak"); }catch(x){} }
+  const put=()=>{ localStorage.setItem(key,data); localStorage.setItem(key+"_m",JSON.stringify(makeMeta())); localStorage.setItem("vctmgr_cur",String(n)); };
+  try{ put(); if(show) toast(`슬롯 ${n}에 저장했습니다.`); }
+  catch(e){ lsFree(n); try{ put(); if(show) toast(`슬롯 ${n}에 저장했습니다.`); }
+    catch(e2){ console.error(e2); if(show||Date.now()-_saveWarn>60000){ _saveWarn=Date.now(); toast("저장 공간이 부족해 저장하지 못했습니다. 설정에서 쓰지 않는 슬롯을 지우거나 배경 이미지를 해제해 주세요."); } } } }
 function migrateSlots(){ try{ const old=localStorage.getItem("vctmgr_save"); if(old&&!localStorage.getItem(slotKey(1))){ localStorage.setItem(slotKey(1),old); const g=JSON.parse(old); const t=T(g.team); if(t) localStorage.setItem(slotKey(1)+"_m",JSON.stringify({team:g.team,name:t.name,region:t.region,yr:g.sea?g.sea.yr:2027,week:g.week,w:(g.record||{}).w||0,l:(g.record||{}).l||0,budget:g.budget,at:Date.now()})); } if(old) localStorage.removeItem("vctmgr_save"); }catch(e){} }
-function loadSlot(n){ let g=null; try{ g=JSON.parse(localStorage.getItem(slotKey(n))||"null"); }catch(e){}
-  if(!g||!(g.v===3||g.v===4)||!T(g.team)) return toast(`슬롯 ${n}이 비어 있습니다.`);
-  G=g; SLOT=n; initWorld(); G.v=4; try{localStorage.setItem("vctmgr_cur",String(n));}catch(e){} closeSettings(); closeSheet&&closeSheet(); closeM(); enterLobby(); toast(`슬롯 ${n}을 불러왔습니다.`); }
-function delSlot(n){ confirmBox(`슬롯 ${n} 삭제`,`슬롯 ${n}의 진행 상황을 지웁니다. 되돌릴 수 없습니다.`,"삭제",()=>{ try{ localStorage.removeItem(slotKey(n)); localStorage.removeItem(slotKey(n)+"_m"); }catch(e){} if(G&&SLOT===n&&$("#lobby").style.display==="block"){ G=null; $("#lobby").style.display="none"; $("#select").style.display="block"; closeSettings(); } renderSlots(); if($("#st").classList.contains("on")) openSettings(); toast(`슬롯 ${n}을 지웠습니다.`); }); }
+/* try the slot, then its backup; never leave a half-loaded game behind */
+let LOAD_ERR=null;
+function tryLoad(n){ LOAD_ERR=null; for(const key of [slotKey(n),slotKey(n)+"_bak"]){ let g=null; try{ g=slotRead(key); }catch(e){ LOAD_ERR=e; continue; }
+    if(!g||!(g.v===3||g.v===4)||!T(g.team)) continue;
+    try{ G=g; initWorld(); G.v=4; if(key.endsWith("_bak")) setTimeout(()=>toast(L("최근 저장이 손상돼 직전 백업(지난주 저장)을 불러왔습니다.","The latest save was damaged, so the previous backup was loaded.","最新のセーブが壊れていたため、直前のバックアップを読み込みました。","最新存档损坏，已读取上一份备份。")),600); return true; }
+    catch(e){ console.error(e); LOAD_ERR=e; G=null; } }
+  return false; }
+function loadSlot(n){ if(!localStorage.getItem(slotKey(n))&&!localStorage.getItem(slotKey(n)+"_bak")) return toast(`슬롯 ${n}이 비어 있습니다.`);
+  if(!tryLoad(n)) return errBox(L(`슬롯 ${n}을 불러오지 못했습니다. 저장 파일은 지우지 않고 그대로 남겨 두었습니다.`,`Couldn't load slot ${n}. The save was left untouched.`,`スロット${n}を読み込めませんでした。セーブはそのまま残しています。`,`无法读取存档${n}。存档保持原样。`),LOAD_ERR);
+  SLOT=n; try{localStorage.setItem("vctmgr_cur",String(n));}catch(e){} closeSettings(); closeSheet&&closeSheet(); closeM(); enterLobby(); toast(`슬롯 ${n}을 불러왔습니다.`); }
+function delSlot(n){ confirmBox(`슬롯 ${n} 삭제`,`슬롯 ${n}의 진행 상황을 지웁니다. 되돌릴 수 없습니다.`,"삭제",()=>{ try{ localStorage.removeItem(slotKey(n)); localStorage.removeItem(slotKey(n)+"_m"); localStorage.removeItem(slotKey(n)+"_bak"); }catch(e){} if(G&&SLOT===n&&$("#lobby").style.display==="block"){ G=null; $("#lobby").style.display="none"; $("#select").style.display="block"; closeSettings(); } renderSlots(); if($("#st").classList.contains("on")) openSettings(); toast(`슬롯 ${n}을 지웠습니다.`); }); }
 function saveTo(n){ const m=slotMeta(n); const go=()=>{ SLOT=n; save(true,n); openSettings(); };
   if(m&&n!==SLOT) confirmBox(`슬롯 ${n} 덮어쓰기`,`슬롯 ${n}에 있는 ${esc(m.name)} (${m.yr} WEEK ${m.week}) 저장을 지금 진행으로 덮어씁니다.`,"덮어쓰기",go); else go(); }
 function slotLine(n){ const m=slotMeta(n); if(!m) return `<span class="mute">빈 슬롯</span>`;
@@ -3294,7 +3437,7 @@ function rfaChance(id,k,fee){ const v=rfaVal(id,k), base=Math.max(0,Math.min(1,(
   const me=myPower(), them=tStr(k), sf=Math.max(0.15,Math.min(1.1,1/(1+Math.exp(-(me-them)/3))+0.2));
   let c=base*sf*(T(G.team).partner?1:0.6)*(poorClub()?0.5:1); const i=rosterOf(k).indexOf(id); if(i>-1&&i<5) c*=0.75; if(T(k).region!==T(G.team).region) c*=0.85;
   return Math.max(0,Math.min(0.92,c)); }
-function openRFA(id){ if(needWindow(teamOf(id))) return; const k=teamOf(id); if(!k||k===G.team) return; const p=P(id), v=rfaVal(id,k); closePM&&closePM();
+function openRFA(id){ if(needWindow(teamOf(id))) return; if(impBlock([id])) return; const k=teamOf(id); if(!k||k===G.team) return; const p=P(id), v=rfaVal(id,k); closePM&&closePM();
   G.tLock=G.tLock||{}; if(G.tLock[k]) return toast(`${T(k).name}은 ${G.tLock[k]}일 동안 협상을 받지 않습니다.`);
   const opts=[1,1.25,1.5].map(m=>Math.round(v*m/1000)*1000);
   $("#md").style.setProperty("--c",`var(--${T(k).region})`);
@@ -3795,6 +3938,11 @@ function injTag(r){ if(!r||!r.inj) return ""; const play=isLowMood(r);
 
 /* ================= ADVANCE ================= */
 function advance(){
+  if(FAST) return advance0();
+  const bk=(()=>{ try{ return JSON.stringify(G); }catch(e){ return null; } })();
+  try{ return advance0(); }catch(e){ console.error(e); if(bk) try{ G=JSON.parse(bk); }catch(x){} try{ renderAll(); }catch(x){}
+    errBox(L("하루를 진행하다 오류가 생겨 그날을 되돌렸습니다. 게임과 저장 파일은 안전합니다. 같은 문제가 반복되면 아래 오류 내용을 알려 주세요.","An error occurred while advancing, so the day was rolled back. Your game and save are safe.","進行中にエラーが起きたため、その日を巻き戻しました。セーブは安全です。","推进时出错，已回滚当天。存档安全。"),e); } }
+function advance0(){
   clearUndo();
   if(G.dday===0 && G.sea.next==="match"){ playMatch(); return; }
   const ev=schedOf(G.day); const b=[];
@@ -3827,7 +3975,7 @@ function advance(){
   for(const k in G.lock){ G.lock[k]--; if(G.lock[k]<=0) delete G.lock[k]; } if(G.banU) for(const k in G.banU){ G.banU[k]--; if(G.banU[k]<=0) delete G.banU[k]; }
   G.day++; G.dday=Math.max(0,G.dday-1);
   if(G.plan){ const na=(G.week||0)*7+G.day; for(const k in G.plan) if(+k<na) delete G.plan[k]; }
-  if(G.day>6){ G.day=0; G.week++; weeklyForm(); try{ sponsorWeek(b); moraleWeek(b); }catch(e){ console.error(e); } try{ aiMapTick(0.3); }catch(e){} const w=weekly(); G.budget+=w.net; b.push(L(`주간 정산: ${w.net>=0?"+":""}${short(w.net)}. 잔액 ${won(G.budget)}.`,`Weekly settlement: ${w.net>=0?"+":""}${short(w.net)}. Balance ${won(G.budget)}.`,`週次精算: ${w.net>=0?"+":""}${short(w.net)}。残高 ${won(G.budget)}。`,`每周结算: ${w.net>=0?"+":""}${short(w.net)}。余额 ${won(G.budget)}。`)); G.log.push(`Week ${G.week-1} 정산 ${short(w.net)}`); }
+  if(G.day>6){ G.day=0; G.week++; weeklyForm(); try{ sponsorWeek(b); moraleWeek(b); }catch(e){ console.error(e); } try{ aiMapTick(0.3); }catch(e){} try{ mapDecay(b); }catch(e){ console.error(e); } const w=weekly(); G.budget+=w.net; b.push(L(`주간 정산: ${w.net>=0?"+":""}${short(w.net)}. 잔액 ${won(G.budget)}.`,`Weekly settlement: ${w.net>=0?"+":""}${short(w.net)}. Balance ${won(G.budget)}.`,`週次精算: ${w.net>=0?"+":""}${short(w.net)}。残高 ${won(G.budget)}。`,`每周结算: ${w.net>=0?"+":""}${short(w.net)}。余额 ${won(G.budget)}。`)); G.log.push(`Week ${G.week-1} 정산 ${short(w.net)}`); }
   try{ hgTick(b); }catch(e){ console.error(e); }
   if(G.dday===0 && G.sea.next==="phase") b.push(...advancePhase());
   if(G.dday===0 && G.sea.next==="match") b.push(L(`오늘은 공식 경기일입니다. ${fxLabel()}.`,`Official match day. ${trText(fxLabel())}.`,`今日は公式戦の日です。${trText(fxLabel())}。`,`今天是正式比赛日。${trText(fxLabel())}。`));
@@ -3927,7 +4075,7 @@ function coachGuide(){
   if(tf>=55||hot.length>=2) add(3,"피로",`팀 피로 ${tf}`,`주전 ${hot.length}명이 피로 70 이상입니다.`,"경기 중 피로는 선수당 능력에서 직접 빠집니다(평균 피로 30마다 약 -1). 피로 70 이상이면 훈련 성장 효율도 25~50% 줄어듭니다.",[["컨디셔닝 훈련으로","setTrain('recover')"],["이번 주 휴식 넣기","guidePlan('rest')"]]);
   /* 3. morale / condition */
   const lowM=st.filter(r=>morOf(r)<45), lowC=st.filter(r=>r.cond<70);
-  if(lowM.length) add(2,"사기","사기 낮은 선수",`${lowM.map(r=>`${P(r.id).name} ${morOf(r)}`).join(", ")}`,"사기는 에임, 화력, 안정감에 바로 더해집니다(사기 12마다 약 1). 팀 빌딩 훈련은 전원 사기 +2, 멘탈 코칭은 한 명을 집중 관리합니다.",[["팀 빌딩 훈련으로","setTrain('team')"],["선수단 탭에서 멘탈 코칭","openSheet('squad')"]]);
+  if(lowM.length) add(2,"사기","사기 낮은 선수",`${lowM.map(r=>`${P(r.id).name} ${morOf(r)}`).join(", ")}`,"사기는 에임, 화력, 안정감에 바로 더해집니다(사기 12마다 약 1). 팀 빌딩 훈련은 전원 사기 +2, 멘탈 코칭은 비싸지만 한 명의 사기(85까지)와 피로, 컨디션을 한 번에 회복시킵니다.",[["팀 빌딩 훈련으로","setTrain('team')"],["선수단 탭에서 멘탈 코칭","openSheet('squad')"]]);
   if(lowC.length>=2) add(st.reduce((x,r)=>x+r.cond,0)/st.length<60?2:1,"컨디션","컨디션 저하",`${lowC.map(r=>`${P(r.id).name} ${r.cond}`).join(", ")}`,"팀 평균 컨디션이 75보다 15 낮을 때마다 경기력 -1입니다. 컨디셔닝 훈련은 컨디션 +6, 승리 후에도 회복됩니다.",[["컨디셔닝 훈련으로","setTrain('recover')"]]);
   /* 4. synergy / language / IGL */
   if(G.synergy<60) add(G.synergy<50?3:2,"팀 합",`팀 합 ${G.synergy}`,"팀 합 50 기준으로 12 낮을 때마다 경기력 -1, 12 높을 때마다 +1입니다.","스크림은 확률적으로 팀 합 +1, 택틱 훈련은 확률적으로 +1, 팀 빌딩은 확정 +2입니다. 팀 합이 낮을 때는 팀 빌딩이 가장 빠릅니다.",[["팀 빌딩 훈련으로","setTrain('team')"],["이번 주 스크림 위주","guidePlan('scrim')"]]);
@@ -4003,7 +4151,7 @@ function squadHTML(){
     return `<tr data-tip="${esc(statTip(r.id))}"><td>${i<5?'<span class="st-tag" style="color:var(--mint);border-color:var(--mint)">주전</span>':'<span class="st-tag">벤치</span>'}</td>
       <td style="white-space:nowrap">${ricon(p.role,14)} <b>${plink(r.id)}</b>${injTag(r)}${i<5&&iglOf(starters().map(x=>x.id),G.team)===r.id?' <span class="iglb">IGL</span>':""}</td><td style="white-space:nowrap">${ROLE[p.role].k}</td><td class="num">${p.ovr}</td><td class="num lk" onclick="openPlayer('${esc(r.id)}')" style="color:${scoutInfo(r.id)?"#93B4FF":"#666"}">${potText(r.id)}</td><td class="num">${(G.apps||{})[r.id]||0}</td>
       <td class="num" style="color:${morCol(morOf(r))}" title="${morLabel(morOf(r))}">${morOf(r)}</td><td class="num">${r.cond}</td><td>${fatBadge(r.fat)}</td><td class="num">${((G.dev||{})[r.id]||{xp:0}).xp}</td><td class="num" style="white-space:nowrap">${short(r.salary)} / ${r.years}년</td>
-      <td style="white-space:nowrap"><button class="sbtn" onclick="swapStarter(${i})">${i<5?"후보로":"주전으로"}</button> ${i<5?`<button class="sbtn" onclick="setIGL('${esc(r.id)}')">IGL</button> `:""}<button class="sbtn" onclick="care(${i})">멘탈 코칭</button> <button class="sbtn" onclick="reSign(${i})">재계약</button> <button class="sbtn red" onclick="release(${i})">방출</button></td></tr>`; }).join("");
+      <td style="white-space:nowrap"><button class="sbtn" onclick="swapStarter(${i})">${i<5?"후보로":"주전으로"}</button> ${i<5?`<button class="sbtn" onclick="setIGL('${esc(r.id)}')">IGL</button> `:""}<button class="sbtn" onclick="care(${i})" title="${short(careCost(r))}">멘탈 코칭 ${short(careCost(r))}</button> <button class="sbtn" onclick="reSign(${i})">재계약</button> <button class="sbtn red" onclick="release(${i})">방출</button></td></tr>`; }).join("");
   const ig=iglOf(starters().map(x=>x.id),G.team);
   return trainBox+pcHTML()+`<p class="mute" style="font-size:13px;margin-bottom:6px">IGL: <b>${ig?esc(P(ig).name):"-"}</b>${G.iglId&&ig===G.iglId?"":" (지정 안 함, 자동 선택)"}. IGL의 안정감과 경험이 경기 중 팀 전체 판단과 전술 읽기에 영향을 줍니다. 주전 중에서 IGL 버튼으로 바꿀 수 있습니다.</p><details class="help"><summary>도움말: 로스터, 성장, 멘탈 코칭, 사기</summary><p class="mute" style="font-size:12.5px;margin:6px 0 4px">로스터 최대 ${MAXR}명(주전 5 + 벤치 5), 위 5명이 주전입니다. 주전으로 공식 경기, 스크림을 뛰면 경험치가 쌓이고 포텐셜에 가까워질수록 성장이 느려집니다. 포텐셜(POT)은 스카우터 리포트로만 확인할 수 있습니다. 멘탈 코칭은 534만원로 사기 +12, 컨디션 +10, 피로 -10 (4일 안에 같은 선수를 다시 코칭하면 사기 +5). 사기는 최근 경기력에 따라 오르내리고, 낮아지면 자연 회복이 거의 없어서 코칭이 필요합니다. 주전 사기가 높으면 팀 전체 전력이 오르고, 35 아래로 떨어지면 갈등, 스크림 거부 같은 사건이 생깁니다. 방출 시 남은 연봉의 30%를 위약금으로 냅니다.</p></details>
   <table class="tbl"><tr><th></th><th>선수</th><th>포지션</th><th>OVR</th><th>POT</th><th>출전</th><th>사기</th><th>컨디</th><th>피로</th><th>XP</th><th>계약</th><th></th></tr>${rows||'<tr><td colspan="12" class="mute">선수가 없습니다.</td></tr>'}</table>
@@ -4016,7 +4164,12 @@ function swapStarter(i){
   if(i<5 && G.roster.length>5){ const b=G.roster.splice(5,1)[0]; G.roster.splice(4,0,b); }
   renderAll(); save();
 }
-function care(i){ const r=G.roster[i], abs=G.week*7+G.day; G.mcd=G.mcd||{}; const cost=12000; if(G.budget<cost) return toast("자금이 부족합니다."); const recent=G.mcd[r.id]!=null&&abs-G.mcd[r.id]<4; G.budget-=cost; G.mcd[r.id]=abs; const add=recent?5:12; setMor(r,add); r.cond=Math.min(100,r.cond+10); r.fat=Math.max(0,r.fat-10); toast(`${P(r.id).name} 멘탈 코칭: 사기 +${add}${recent?" (최근 코칭해서 효과 감소)":""}`); renderAll(); save(); }
+function careCost(r){ const m=morOf(r), gap=Math.max(0,85-m)+Math.max(0,r.fat||0)+Math.max(0,90-(r.cond||0))*0.5; const abs=G.week*7+G.day, recent=G.mcd&&G.mcd[r.id]!=null&&abs-G.mcd[r.id]<7; return Math.round((45000+gap*900)*(recent?1.8:1)/1000)*1000; }
+function care(i){ const r=G.roster[i]; if(!r) return; const abs=G.week*7+G.day; G.mcd=G.mcd||{}; const cost=careCost(r), m0=morOf(r), f0=r.fat||0;
+  if(m0>=85&&f0<=5&&(r.cond||0)>=90) return toast(`${P(r.id).name} 선수는 이미 사기와 컨디션이 최상입니다.`);
+  if(G.budget<cost) return toast(`자금이 부족합니다. (필요 ${short(cost)})`);
+  G.budget-=cost; G.mcd[r.id]=abs; if(m0<85) setMor(r,85-m0); r.fat=0; r.cond=Math.max(r.cond||0,95);
+  toast(`${P(r.id).name} 멘탈 코칭 (${short(cost)}): 사기 ${m0} -> ${morOf(r)}, 피로 ${f0} -> 0`); renderAll(); save(); }
 /* my club can offer a new deal any time; a player who re-signed within the last ~6 months politely declines */
 function reSignAsk(r,y){ const p=P(r.id), m=morOf(r), base=Math.max(r.salary||0,marketAsk(p)); const mul=(m>=80?0.95:m>=60?1.02:m>=45?1.1:1.2)*(y>=3?1.06:y===2?1.02:1); return Math.round(base*mul/1000)*1000; }
 function reSignId(id){ const i=G.roster.findIndex(r=>r.id===id); if(i>=0) reSign(i); }
@@ -4225,7 +4378,10 @@ function payLine(p,reSign){ const f=payFactor(p,reSign); if(Math.abs(f.m-1)<0.04
     :{c:"c-ok",t:L(`${why.join(" ")||"평가가 떨어져"} 페이컷을 받아들일 생각이 있습니다. 요구 연봉 ${pct}%.`,`${why.join(", ")||"falling stock"}: willing to take a pay cut (${pct}%).`,`${why.join("、")||"評価下落"}: 減俸を受け入れる意向 (${pct}%)。`,`${why.join("，")||"身价下降"}: 愿意降薪 (${pct}%)。`)}; }
 function askFor(p,years){ const yf = p.ovr>=76 ? [1,1.0,1.04,1.08][years] : [1,1.06,1.0,0.96][years]; return Math.round(marketAsk(p)*yf*DF().ask*scoutAskMul()*payFactor(p,!!(G&&G.roster&&G.roster.some(r=>r.id===p.id))).m/1000)*1000; }
 function buyout(p){ if(NG&&NG.re&&NG.id===p.id) return 0; if(rfaFee(p.id)) return rfaFee(p.id); return p.status==="T2" ? Math.round(marketAsk(p)*0.7*DF().ask*(NG&&NG.id===p.id?ivFDisc():1)/1000)*1000 : 0; }
+function impBlock(ids,leave){ const reg=T(G.team).region; const stay=G.roster.map(r=>r.id).filter(x=>!(leave||[]).includes(x)); const n=impCount(stay,reg), add=ids.filter(id=>isImport(P(id),reg)).length;
+  if(add&&n+add>IMPORT_MAX){ toast(L(`외국인(타 권역) 선수는 최대 ${IMPORT_MAX}명까지 둘 수 있습니다. 지금 ${n}명입니다.`,`Max ${IMPORT_MAX} import players; you have ${n}.`,`外国籍(他地域)選手は最大${IMPORT_MAX}人までです。現在${n}人。`,`外援(其他赛区)选手最多${IMPORT_MAX}人，目前${n}人。`)); return true; } return false; }
 function openNego(id){
+  if(!G.roster.some(r=>r.id===id)&&impBlock([id])) return;
   const p=P(id); if(!(G.rfa&&G.rfa[id])&&!(emergNeed()>0&&!teamOf(id))&&needWindow(teamOf(id)||(t2Player(p)?"__t2":null))) return;
   if(teamOf(id)&&teamOf(id)!==G.team&&!(G.rfa&&G.rfa[id])) return openRFA(id);
   if((G.banned||{})[id]) return toast(`${p.name} 선수가 완강히 거절합니다.`);
@@ -4822,6 +4978,111 @@ function setFixture(fx,days){ G.sea.fx=fx; G.sea.next="match"; G.dday=days; }
 function setPhaseEnd(days){ G.sea.fx=null; G.sea.next="phase"; G.dday=days; }
 function rankTeams(list,st){ return list.slice().sort((a,b)=>(st[b].w-st[a].w)||(st[b].md-st[a].md)||(tStr(b)-tStr(a))); }
 function initSeason(keep){ G.sea={yr:2027,pi:0,q:{},hist:[]}; const lines=startPhase(!keep); if(keep) G.dday=Math.max(G.dday,1); return lines; }
+/* ================= INTERNATIONAL EVENTS (2026 format) =================
+   Masters: 12 teams (top 3 of each league). League winners go straight to the playoffs; the other 8 play a Bo3 Swiss stage
+   (2 wins in, 2 losses out). Playoffs: 8-team double elimination, Bo3, lower final and grand final Bo5.
+   Champions: 16 teams (Stage 2 winner and runner-up + 2 best on Championship Points per league), four GSL groups of 4 with
+   one team per league, top 2 to the same 8-team double elimination. Matches run day after day, not week by week. */
+const CP_MASTERS={1:3,2:2,3:2,4:1,5:1,6:1}, CP_LEAGUE={1:6,2:4,3:3,4:2};
+function cpOf(k){ const yr=G.sea.yr; let s=0; const r=(G.perf&&G.perf.yr===yr&&G.perf.r&&G.perf.r[k])||[]; r.forEach(([ph,rk])=>{ s+=CP_LEAGUE[rk]||0; });
+  const gs=G.gsRec&&G.gsRec[yr]&&G.gsRec[yr][k]; if(gs) s+=gs.w; s+=((G.cpI&&G.cpI.yr===yr&&G.cpI.d[k])||0); return s; }
+function cpAdd(k,v){ const yr=G.sea.yr; if(!G.cpI||G.cpI.yr!==yr) G.cpI={yr,d:{}}; G.cpI.d[k]=(G.cpI.d[k]||0)+v; }
+function intlQualify(p0,qr){ G.sea.qs=G.sea.qs||{}; const to=p0.to; const regs=["AM","EM","PA","CN"];
+  if(to!=="CH"){ const seed=[], rest=[]; regs.forEach(r=>{ const l=(qr[r]||[]).filter(k=>T(k)); if(l[0]) seed.push(l[0]); rest.push(...l.slice(1,3)); });
+    G.sea.q[to]=seed.concat(rest); G.sea.qs[to]={seed,rest}; return; }
+  const byReg={}; regs.forEach(r=>{ const l=(qr[r]||[]).filter(k=>T(k)).slice(0,2); const cp=regionTeams(r).filter(k=>!l.includes(k)).sort((a,b)=>(cpOf(b)-cpOf(a))||(tStr(b)-tStr(a))).slice(0,4-l.length); byReg[r]=l.concat(cp); });
+  G.sea.q.CH=regs.flatMap(r=>byReg[r]); G.sea.qs.CH={byReg}; }
+function de8(s,lab,d0){ const D=x=>d0+x, U1=L("승자조 1라운드","UB quarterfinal","勝者側準々決勝","胜者组1/4决赛"), US=L("승자조 준결승","UB semifinal","勝者側準決勝","胜者组半决赛"), L1=L("패자조 1라운드","LB R1","敗者側1回戦","败者组第1轮"), L2=L("패자조 2라운드","LB R2","敗者側2回戦","败者组第2轮"); return [
+  {id:"u1",a:s[0],b:s[7],bo:3,lab:`${lab} ${U1}`,day:D(0)},{id:"u2",a:s[3],b:s[4],bo:3,lab:`${lab} ${U1}`,day:D(0)},
+  {id:"u3",a:s[1],b:s[6],bo:3,lab:`${lab} ${U1}`,day:D(1)},{id:"u4",a:s[2],b:s[5],bo:3,lab:`${lab} ${U1}`,day:D(1)},
+  {id:"s1",a:"W:u1",b:"W:u2",bo:3,lab:`${lab} ${US}`,day:D(2)},{id:"s2",a:"W:u3",b:"W:u4",bo:3,lab:`${lab} ${US}`,day:D(2)},
+  {id:"l1",a:"L:u1",b:"L:u2",bo:3,lab:`${lab} ${L1}`,day:D(3)},{id:"l2",a:"L:u3",b:"L:u4",bo:3,lab:`${lab} ${L1}`,day:D(3)},
+  {id:"l3",a:"L:s2",b:"W:l1",bo:3,lab:`${lab} ${L2}`,day:D(4)},{id:"l4",a:"L:s1",b:"W:l2",bo:3,lab:`${lab} ${L2}`,day:D(4)},
+  {id:"uf",a:"W:s1",b:"W:s2",bo:3,lab:`${lab} ${L("승자조 결승","UB final","勝者側決勝","胜者组决赛")}`,day:D(5)},
+  {id:"l5",a:"W:l3",b:"W:l4",bo:3,lab:`${lab} ${L("패자조 준결승","LB semifinal","敗者側準決勝","败者组半决赛")}`,day:D(6)},
+  {id:"lf",a:"L:uf",b:"W:l5",bo:5,lab:`${lab} ${L("패자조 결승","LB final","敗者側決勝","败者组决赛")}`,day:D(8)},
+  {id:"gf",a:"W:uf",b:"W:lf",bo:5,lab:`${lab} ${L("결승","Grand final","決勝","总决赛")}`,day:D(9)}]; }
+function iGslGroup(g,lab,pre,d0){ return [
+  {id:pre+"1",a:g[0],b:g[3],bo:3,lab:`${lab} ${L("개막전","opening","開幕戦","揭幕战")}`,day:d0},{id:pre+"2",a:g[1],b:g[2],bo:3,lab:`${lab} ${L("개막전","opening","開幕戦","揭幕战")}`,day:d0},
+  {id:pre+"w",a:"W:"+pre+"1",b:"W:"+pre+"2",bo:3,lab:`${lab} ${L("승자전","winners","勝者戦","胜者战")}`,day:d0+2},{id:pre+"e",a:"L:"+pre+"1",b:"L:"+pre+"2",bo:3,lab:`${lab} ${L("패자전","elimination","敗者戦","败者战")}`,day:d0+2},
+  {id:pre+"d",a:"L:"+pre+"w",b:"W:"+pre+"e",bo:3,lab:`${lab} ${L("최종전","decider","最終戦","决胜战")}`,day:d0+4}]; }
+function iSwissRound(ph,p0){ const g={}; ph.sw.filter(k=>ph.rec[k].w<2&&ph.rec[k].l<2).forEach(k=>{ const key=ph.rec[k].w+"-"+ph.rec[k].l; (g[key]=g[key]||[]).push(k); });
+  const out=[], day=ph.d0+ph.swr; Object.values(g).forEach(ks=>{ const s=ks.slice().sort(()=>Math.random()-.5);
+    const sr=(x,y)=>T(x).region===T(y).region;
+    for(let i=0;i+1<s.length;i+=2) if(sr(s[i],s[i+1])) for(let j=0;j+1<s.length;j+=2){ if(j===i) continue; if(!sr(s[i],s[j+1])&&!sr(s[j],s[i+1])){ [s[i+1],s[j+1]]=[s[j+1],s[i+1]]; break; } }
+    for(let i=0;i+1<s.length;i+=2){
+      out.push({id:`w${ph.swr}_${out.length}`,a:s[i],b:s[i+1],bo:3,lab:`${p0.n} ${L("스위스","Swiss","スイス","瑞士轮")} ${ph.swr+1}${L("라운드","R","R","轮")} (${ph.rec[s[i]].w}-${ph.rec[s[i]].l})`,day}); } });
+  return out; }
+function iSeedPairs(top,low){ const lo=low.slice(); return top.map(a=>{ let j=lo.findIndex(b=>T(b).region!==T(a).region); if(j<0) j=0; return [a,lo.splice(j,1)[0]]; }); }
+function iRun(ph,p0){ for(const m of ph.B.m){ if(m.w) continue; const a=brT(ph.B,m.a), b=brT(ph.B,m.b); if(!a||!b) return {stuck:m}; m.ta=a; m.tb=b;
+    if((a===G.team||b===G.team)&&!ph.bg) return {wait:m};
+    MCTX={ev:p0.k,reg:"INT",stage:m.lab}; const r=simAI(a,b,m.bo); MCTX=null; m.w=r.w; m.l=r.l; m.s=r.s; }
+  return {done:true}; }
+function iStart(ph0,ph,L0,bg){ const field=(G.sea.q[ph0.k]||[]).filter((k,i,a)=>T(k)&&a.indexOf(k)===i); ph.intl=1; ph.field=field; ph.bg=!!bg||!field.includes(G.team); ph.cur=0; ph.d0=5; ph.done=false;
+  if(ph0.k==="CH"&&field.length>=16){ const by=(G.sea.qs&&G.sea.qs.CH&&G.sea.qs.CH.byReg)||null; const regs=["AM","EM","PA","CN"];
+    const lists=regs.map(r=>(by&&by[r]&&by[r].length>=4?by[r]:field.filter(k=>T(k).region===r)).slice(0,4).sort(()=>Math.random()-.5));
+    if(lists.every(l=>l.length===4)){
+      const groups=[0,1,2,3].map(gi=>regs.map((r,ri)=>lists[ri][(gi+ri)%4]).sort((a,b)=>tStr(b)-tStr(a)));
+      ph.groups=groups; ph.stage="i_gsl"; ph.B={m:groups.flatMap((g,gi)=>iGslGroup(g,`${ph0.n} ${"ABCD"[gi]}${L("조","","組","组")}`,"g"+gi,ph.d0+(gi%2)))};
+      if(!ph.bg) L0.push(L(`${ph0.n} 개막! 16팀이 4팀씩 4개 GSL 조로 나뉩니다(조마다 리그당 1팀, Bo3). 2승이면 플레이오프, 2패면 탈락입니다. 플레이오프는 8팀 더블 엘리미네이션이고 패자조 결승과 결승은 Bo5입니다. 경기가 거의 매일 이어집니다.`,`${ph0.n} begins! 16 teams in four GSL groups of 4 (one per league, Bo3): 2 wins to the playoffs, 2 losses out. Playoffs: 8-team double elimination, LB final and grand final Bo5. Matches come almost daily.`,`${ph0.n}開幕！16チームが4組のGSLグループで戦い、2勝でプレーオフ、2敗で敗退。プレーオフは8チームのダブルエリミネーション。`,`${ph0.n}开幕！16队分4个GSL小组，2胜晋级、2负淘汰。季后赛为8队双败淘汰。`));
+      iGo(ph,ph0,L0); return; } }
+  if(ph0.k!=="CH"&&field.length>=12){ const qs=(G.sea.qs&&G.sea.qs[ph0.k])||{seed:field.slice(0,4),rest:field.slice(4)}; ph.seed=qs.seed.slice(0,4); ph.sw=qs.rest.slice(0,8); ph.rec={}; ph.sw.forEach(k=>ph.rec[k]={w:0,l:0}); ph.swr=0; ph.stage="i_sw"; ph.B={m:iSwissRound(ph,ph0)};
+    if(!ph.bg) L0.push(ph.seed.includes(G.team)?L(`${ph0.n} 개막! 리그 우승팀 자격으로 플레이오프에 직행합니다. 나머지 8팀이 스위스 스테이지(Bo3, 2승 진출, 2패 탈락)를 치른 뒤, 8팀 더블 엘리미네이션 플레이오프가 열립니다.`,`${ph0.n} begins! As a league champion we go straight to the playoffs while the other 8 play the Swiss stage (Bo3, 2 wins in, 2 losses out). Then an 8-team double-elimination playoff.`,`${ph0.n}開幕！リーグ優勝チームとしてプレーオフに直行します。`,`${ph0.n}开幕！作为联赛冠军直接进入季后赛。`)
+      :L(`${ph0.n} 개막! 12팀 중 리그 우승팀 4팀은 플레이오프에 직행하고, 우리를 포함한 8팀이 스위스 스테이지(Bo3)에서 남은 4자리를 다툽니다. 2승이면 진출, 2패면 탈락입니다. 경기가 거의 매일 이어집니다.`,`${ph0.n} begins! The 4 league champions skip to the playoffs; we are among the 8 teams in the Swiss stage (Bo3) fighting for the last 4 spots: 2 wins in, 2 losses out. Matches come almost daily.`,`${ph0.n}開幕！リーグ優勝4チームはプレーオフ直行、残り8チームがスイスステージ(Bo3)で4枠を争います。`,`${ph0.n}开幕！4支联赛冠军直通季后赛，其余8队在瑞士轮(Bo3)争夺4个名额。`));
+    iGo(ph,ph0,L0); return; }
+  const s=field.slice().sort((a,b)=>tStr(b)-tStr(a)).slice(0,8); while(s.length<8&&s.length) s.push(null);
+  ph.stage="i_de8"; ph.B={m:de8(s,`${ph0.n} ${L("플레이오프","Playoffs","プレーオフ","季后赛")}`,ph.d0)}; ph.B.m.forEach(m=>{ if(!m.a&&m.b&&!/^[WL]:/.test(m.b)){ m.w=m.b; m.l=null; } else if(!m.b&&m.a&&!/^[WL]:/.test(m.a)){ m.w=m.a; } });
+  iGo(ph,ph0,L0); }
+function iGo(ph,p0,L0){ for(let g=0;g<30;g++){ const r=iRun(ph,p0);
+    if(r.wait){ const m=r.wait, opp=m.ta===G.team?m.tb:m.ta; ph.wid=m.id; setFixture({opp,label:m.lab,bo:m.bo,po:m.bo>=5||ph.stage==="i_de8",intl:1},Math.max(1,(m.day||0)-ph.cur)); return; }
+    if(r.stuck){ console.error("intl bracket stuck",r.stuck); break; }
+    const nx=iNext(ph,p0,L0); if(nx==="end") return; }
+  if(!ph.done) iEnd(ph,p0,L0); }
+function iNext(ph,p0,L0){ const B=ph.B;
+  if(ph.stage==="i_sw"){ B.m.forEach(m=>{ if(m.w&&!m.cnt){ m.cnt=1; ph.rec[m.w].w++; ph.rec[m.l].l++; } });
+    const alive=ph.sw.filter(k=>ph.rec[k].w<2&&ph.rec[k].l<2);
+    if(alive.length>1){ ph.swr++; B.m.push(...iSwissRound(ph,p0)); return "go"; }
+    const q=ph.sw.filter(k=>ph.rec[k].w>=2).sort((a,b)=>(ph.rec[a].l-ph.rec[b].l)||(tStr(b)-tStr(a))).slice(0,4);
+    if(!ph.bg&&ph.sw.includes(G.team)) L0.push(q.includes(G.team)?L(`스위스 스테이지 ${ph.rec[G.team].w}승 ${ph.rec[G.team].l}패로 통과! 플레이오프 진출.`,`Through the Swiss stage (${ph.rec[G.team].w}-${ph.rec[G.team].l}) to the playoffs!`,`スイスステージ突破！`,`瑞士轮晋级！`):L(`스위스 스테이지 ${ph.rec[G.team].w}승 ${ph.rec[G.team].l}패로 탈락했습니다.`,`Out in the Swiss stage (${ph.rec[G.team].w}-${ph.rec[G.team].l}).`,`スイスステージで敗退。`,`瑞士轮出局。`));
+    ph.swOut=ph.sw.filter(k=>!q.includes(k)); while(q.length<4&&ph.swOut.length) q.push(ph.swOut.shift());
+    const pr=iSeedPairs(ph.seed.slice().sort(()=>Math.random()-.5),q.slice().reverse());
+    ph.po8=[pr[0][0],pr[2][0],pr[3][0],pr[1][0],pr[1][1],pr[3][1],pr[2][1],pr[0][1]];
+    ph.pre=B.m; ph.stage="i_de8"; ph.B={m:de8(ph.po8,`${p0.n} ${L("플레이오프","Playoffs","プレーオフ","季后赛")}`,ph.d0+ph.swr+2)}; return "go"; }
+  if(ph.stage==="i_gsl"){ const T4=[0,1,2,3].map(gi=>[brW(B,"g"+gi+"w"),brW(B,"g"+gi+"d")]);
+    const adv=T4.flat(); ph.grpOut=ph.field.filter(k=>!adv.includes(k));
+    if(!ph.bg&&ph.field.includes(G.team)) L0.push(adv.includes(G.team)?L("조별 리그 통과! 플레이오프 진출.","Through the group stage to the playoffs!","グループ突破！","小组出线！"):L("조별 리그에서 탈락했습니다.","Eliminated in the group stage.","グループで敗退。","小组赛出局。"));
+    ph.po8=[T4[0][0],T4[2][0],T4[1][0],T4[3][0],T4[2][1],T4[0][1],T4[3][1],T4[1][1]];
+    ph.pre=B.m; ph.stage="i_de8"; ph.B={m:de8(ph.po8,`${p0.n} ${L("플레이오프","Playoffs","プレーオフ","季后赛")}`,ph.d0+8)}; return "go"; }
+  iEnd(ph,p0,L0); return "end"; }
+function iOrder(ph){ const B=ph.B; const o=[brW(B,"gf"),brL(B,"gf"),brL(B,"lf"),brL(B,"l5"),brL(B,"l3"),brL(B,"l4"),brL(B,"l1"),brL(B,"l2")].filter(Boolean);
+  const rest=(ph.swOut||ph.grpOut||[]).slice().sort((a,b)=>((ph.rec&&ph.rec[b]?ph.rec[b].w:0)-(ph.rec&&ph.rec[a]?ph.rec[a].w:0))||(tStr(b)-tStr(a)));
+  return o.concat(rest.filter(k=>!o.includes(k))).concat(ph.field.filter(k=>!o.includes(k)&&!rest.includes(k))); }
+function iPlaceOf(order,k){ const i=order.indexOf(k); return i<0?99:i<4?i+1:i<6?5:i<8?7:9; }
+function iEnd(ph,p0,L0){ if(ph.done) return; ph.done=true; const order=iOrder(ph); ph.order=order; const champ=order[0]; ph.champ=champ;
+  if(champ){ txNews(`${p0.n} 우승: ${T(champ).name}${order[1]?` (준우승 ${T(order[1]).name})`:""}`); coTitle(champ,p0.n); }
+  if(p0.k!=="CH") order.slice(0,6).forEach((k,i)=>cpAdd(k,CP_MASTERS[i<4?i+1:5]||0));
+  if(!ph.bg&&ph.field.includes(G.team)){ const place=iPlaceOf(order,G.team); const money=phaseRewards(Math.min(place,9),p0); const tr=place===1?[awardTrophy(p0.k)]:[];
+    try{ coachIntl(place,p0.k); }catch(e){}
+    const pl=place===1?"우승":place===2?"준우승":place===3?"3위":place===4?"4위":place===5?"5-6위":place===7?"7-8위":(ph.sw?"스위스 스테이지 탈락":"조별 리그 탈락");
+    G.sea.hist.push(`${G.sea.yr} ${p0.n}: ${pl}`);
+    L0.push(L(`${p0.n} ${pl}. 상금 ${short(money)}.${p0.k!=="CH"&&place<=6?` 챔피언십 포인트 +${CP_MASTERS[place]||1}.`:""}`,`${p0.n}: ${pl}. Prize ${short(money)}.`,`${p0.n} ${pl}。賞金 ${short(money)}。`,`${p0.n} ${pl}。奖金 ${short(money)}。`)); L0.push(...tr);
+    try{ L0.push(...postEvent(p0,null)); }catch(e){ console.error(e); }
+    setPhaseEnd(4); }
+  else if(!ph.vbg){ try{ L0.push(...postEvent(p0,null)); }catch(e){ console.error(e); } } }
+function iResult(win,ms){ const ph=G.sea.ph, p0=curPhase(), L0=[]; const m=ph.B.m.find(z=>z.id===ph.wid); const opp=G.sea.fx.opp;
+  if(m){ m.w=win?G.team:opp; m.l=win?opp:G.team; m.s=win?ms:[ms[1],ms[0]]; ph.cur=m.day||ph.cur; }
+  iGo(ph,p0,L0); return L0; }
+function iBackground(ph0,ph,L0){ iStart(ph0,ph,L0,true); ph.out=true; const last=Math.max(14,...[].concat(ph.pre||[],ph.B?ph.B.m:[]).map(m=>m.day||0));
+  if(ph.champ) L0.push(L(`${ph0.n}에 나가지 못했습니다. 대회는 약 ${last}일 동안 열리고 그동안 정비 기간입니다. 우승: ${T(ph.champ).name}.`,`We are not at ${ph0.n}. It runs about ${last} days; time to regroup. Champion: ${T(ph.champ).name}.`,`${ph0.n}には出場できません。優勝: ${T(ph.champ).name}。`,`未参加${ph0.n}。冠军: ${T(ph.champ).name}。`));
+  setPhaseEnd(last+3); }
+function iViewHTML(ph,p0){ if(!ph||!ph.intl) return ""; let h="";
+  const ln=m=>{ const a=m.ta||brT(ph.B,m.a), b=m.tb||brT(ph.B,m.b), nm=k=>k&&T(k)?esc(T(k).name):"TBD"; return `<div class="fxr"><span class="${m.w&&m.w===a?"w":""}${a===G.team?" me":""}">${nm(a)}</span><b style="font-size:13px">${m.w&&m.s?`${m.s[0]} : ${m.s[1]}`:'<span class="mute" style="font-weight:400">vs</span>'}</b><span class="${m.w&&m.w===b?"w":""}${b===G.team?" me":""}">${nm(b)}</span><small class="mute">${esc(m.lab)} (Bo${m.bo})</small></div>`; };
+  if(ph.sw){ h+=`<div class="sub" style="margin-top:12px">${L("스위스 스테이지","Swiss stage","スイスステージ","瑞士轮")}</div><table class="tbl"><tr><th>${L("팀","Team","チーム","战队")}</th><th>${L("전적","Record","戦績","战绩")}</th><th>${L("상태","Status","状態","状态")}</th></tr>${ph.sw.slice().sort((a,b)=>(ph.rec[b].w-ph.rec[b].l)-(ph.rec[a].w-ph.rec[a].l)).map(k=>`<tr style="${k===G.team?"background:rgba(220,38,38,.12)":""}"><td>${esc(T(k).name)} <span class="mute">${REG[T(k).region].n}</span></td><td class="num">${ph.rec[k].w}-${ph.rec[k].l}</td><td>${ph.rec[k].w>=2?L("진출","In","進出","晋级"):ph.rec[k].l>=2?L("탈락","Out","敗退","淘汰"):"-"}</td></tr>`).join("")}</table>
+    <div class="mute" style="font-size:12px;margin-top:4px">${L("플레이오프 직행 (리그 우승)","Direct to playoffs (league champions)","プレーオフ直行","直通季后赛")}: ${(ph.seed||[]).map(k=>esc(T(k).name)).join(", ")}</div>`; }
+  if(ph.groups) ph.groups.forEach((g,gi)=>{ h+=`<div class="sub" style="margin-top:12px">${"ABCD"[gi]}${L("조","","組","组")}: ${g.map(k=>esc(T(k).name)).join(", ")}</div>`; });
+  const all=[].concat(ph.pre||[],ph.B?ph.B.m:[]); h+=`<div class="sub" style="margin-top:12px">${L("경기 결과와 대진","Results and schedule","結果と組み合わせ","赛果与对阵")}</div><div class="fxgrid">${all.filter(m=>m.w||(brT(ph.B,m.a)&&brT(ph.B,m.b))).map(ln).join("")}</div>`;
+  if(ph.done&&ph.order) h+=`<div class="mute" style="font-size:13px;margin-top:6px">${L("최종 순위","Final standings","最終順位","最终排名")}: ${ph.order.slice(0,8).map((k,i)=>`${i<4?i+1:i<6?"5-6":"7-8"}. ${esc(T(k).name)}`).join(" | ")}</div>`;
+  return h; }
 function startPhase(first){
   if(isT2()&&curPhase().type!=="off"&&!["M1","M2"].includes(curPhase().k)) return t2StartPhase(curPhase(),first);
   const ph0=curPhase(), my=T(G.team).region, ph={k:ph0.k,round:0,st:{},po:null,out:false,done:false};
@@ -4835,21 +5096,9 @@ function startPhase(first){
     setFixture(fxLeague(),first?21:14);
     { const nx=trText(PHASES.find(p=>p.k===ph0.to).n), pn=trText(ph0.n); L.push(LANG==="ko"?`${G.sea.yr} ${ph0.n} 일정이 나왔습니다. ${ph0.fmt==="group"?"6팀 조별 풀리그 5경기":"스위스 3경기"} 후 상위 4팀이 플레이오프(Bo5)에 갑니다. 결승 진출 2팀은 ${PHASES.find(p=>p.k===ph0.to).n} 진출.`:LANG==="en"?`The ${G.sea.yr} ${pn} schedule is out. After ${ph0.fmt==="group"?"a 5-match round robin in groups of 6":"3 Swiss matches"}, the top 4 go to the playoffs (Bo5). The 2 finalists qualify for ${nx}.`:LANG==="ja"?`${G.sea.yr} ${pn}の日程が発表されました。${ph0.fmt==="group"?"6チーム総当たり5試合":"スイス3試合"}の後、上位4チームがプレーオフ(Bo5)へ。決勝進出2チームは${nx}に出場。`:`${G.sea.yr} ${pn}赛程公布。${ph0.fmt==="group"?"6队小组循环5场":"瑞士轮3场"}后前4名进入季后赛(Bo5)，进入决赛的2队晋级${nx}。`); }
   } else if(ph0.type==="intl"){
-    let field=G.sea.q[ph0.k]||[];
-    if(isT2()&&ph0.k==="CH"){ const vf=field.filter(k=>!T(k).t2); if(vf.length>1){ const c=simBracket(vf); if(c) txNews(`Champions ${G.sea.yr} 우승: ${T(c).name}`); } field=(G.sea.asc||[]).filter(k=>T(k)); }
-    ph.field=field;
-    if(field.includes(G.team)){
-      const others=field.filter(k=>k!==G.team).sort(()=>Math.random()-.5);
-      ph.group=[G.team,...others.slice(0,3)]; ph.gq=others.slice(0,3); ph.gw=0; ph.gl=0; ph.stage="group";
-      setFixture({opp:ph.gq.shift(),label:`${ph0.n} 그룹 1경기`,bo:3,po:false},14);
-      L.push(`${ph0.n} 개막! 4팀 그룹에서 2승하면 플레이오프, 2패하면 탈락입니다. 플레이오프는 Bo5.`);
-    } else {
-      ph.out=true; ph.done=true; ph.champ=simBracket(field); if(ph.champ) coTitle(ph.champ,ph0.n);
-      L.push(`${ph0.n}에 나가지 못했습니다. 3주 동안 정비 기간입니다.`);
-      if(ph.champ) txNews(`${ph0.n} 우승: ${T(ph.champ).name}`);
-      try{ L.push(...postEvent(ph0,null)); }catch(e){ console.error(e); }
-      setPhaseEnd(21);
-    }
+    if(isT2()&&ph0.k==="CH"){ ph.field=[]; ph.out=true; ph.done=true; setPhaseEnd(21); }
+    else if((G.sea.q[ph0.k]||[]).includes(G.team)) iStart(ph0,ph,L,false);
+    else iBackground(ph0,ph,L);
   } else { L.push(...offseason()); setPhaseEnd(21); try{ hgPlan(absNow()+10,G.sea.yr); L.push(`${G.sea.yr} ${hgName()}: ${hgDates()} (${LANG==="ko"?"오프시즌 초청전, 우리 팀 자동 초청":"offseason invitational, we are invited"})`); }catch(e){ console.error(e); } }
   return L;
 }
@@ -4880,10 +5129,11 @@ function finishLeague(champ,runner,semis){
   const ph=G.sea.ph, p0=curPhase(), my=T(G.team).region; ph.done=true; ph.champ=champ;
   const field=[champ,runner];
   const t2m=isT2(); if(t2m){ field.length=0; if(p0.to==="CH") G.sea.asc=t2AscField([champ,runner]); }
-  ["AM","EM","PA","CN"].filter(r=>r!==my||t2m).forEach(r=>{ const o=ph.others&&ph.others[r]; if(o){ field.push(...finishOther(o,p0)); coTitle(o.champ,`VCT ${REG[r].n} ${p0.n0}`); txNews(`VCT ${REG[r].n} ${p0.n0} 우승: ${T(o.champ).name}`); } else field.push(...regionTeams(r).map(k=>[k,tStr(k)+Math.random()*6]).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0])); });
+  const qr={}; if(!t2m){ const sl=(semis||[]).filter(k=>k!==champ&&k!==runner); qr[my]=[champ,runner,rankTeams(sl,ph.st)[0]].filter(Boolean); }
+  ["AM","EM","PA","CN"].filter(r=>r!==my||t2m).forEach(r=>{ const o=ph.others&&ph.others[r]; if(o){ const got=finishOther(o,p0); qr[r]=got; field.push(...got); coTitle(o.champ,`VCT ${REG[r].n} ${p0.n0}`); txNews(`VCT ${REG[r].n} ${p0.n0} 우승: ${T(o.champ).name}`); } else { const got=regionTeams(r).map(k=>[k,tStr(k)+Math.random()*6]).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]); qr[r]=got; field.push(...got); } });
   if(p0.fmt==="group"){ G.gsRec=G.gsRec||{}; const R=G.gsRec[G.sea.yr]=G.gsRec[G.sea.yr]||{}; const add=st=>{ for(const k in st){ const x=R[k]=R[k]||{w:0,l:0,md:0}; x.w+=st[k].w; x.l+=st[k].l; x.md+=st[k].md; } }; add(ph.st); for(const r in (ph.others||{})) add(ph.others[r].st||{}); }
   G.sea.lastLeague=JSON.parse(JSON.stringify({k:ph.k,st:ph.st,groups:ph.groups,others:ph.others,po:ph.po,champ:ph.champ,round:ph.round,name:p0.n}));
-  G.sea.q[p0.to]=field; coTitle(champ,p0.n);
+  intlQualify(p0,qr); coTitle(champ,p0.n);
   const place=champ===G.team?1:runner===G.team?2:semis.includes(G.team)?3:9;
   const money=phaseRewards(place,p0);
   const trL=place===1?[awardTrophy(p0.k)]:[];
@@ -4905,6 +5155,7 @@ function seasonResult(win,ms){
   try{ recordMy(win,ms); }catch(e){ console.error(e); }
   if(G.hg&&G.hg.live&&G.sea.fx&&G.sea.fx.hg) return hgResult(win,ms);
   if(G.sea.ph&&G.sea.ph.t2) return t2Result(win,ms);
+  if(G.sea.ph&&G.sea.ph.intl) return iResult(win,ms);
   const ph=G.sea.ph, p0=curPhase(), opp=G.sea.fx.opp, L=[];
   if(p0.type==="league"){
     if(!ph.po){
@@ -5002,6 +5253,7 @@ function seasonHTML(){
       ${rankTeams(lst,ph.st).map((k,i)=>{ const x=T(k), s=ph.st[k]; return `<tr onclick="openClub('${k}')" style="cursor:pointer;${k===G.team?"background:rgba(220,38,38,.12)":""}"><td class="num">${i+1}</td><td style="white-space:nowrap"><span style="width:20px;height:20px;display:inline-block;vertical-align:middle;overflow:hidden">${logoImg(x).replace('<img','<img style="width:20px;height:20px"')}</span> ${x.name}</td><td class="num" style="white-space:nowrap">${s.w}-${s.l}</td><td class="num">${s.md>0?"+":""}${s.md}</td><td class="num">${k===G.team?Math.round(myPower()):teamOvr(rosterOf(k))}</td><td style="white-space:nowrap">${formHTML(k)}</td><td class="stl">${stLine(k)}</td></tr>`; }).join("")}</table>`; });
     if(ph.po) h+=`<div class="sub" style="margin-top:12px">플레이오프 (Bo5)</div><div class="mute" style="font-size:13px">4강: ${ph.po.sf.map(m=>m.map(k=>T(k).name).join(" vs ")).join(" / ")}${ph.po.fin?`<br>결승: ${ph.po.fin.map(k=>T(k).name).join(" vs ")}`:""}${ph.champ?`<br>우승: ${T(ph.champ).name}`:""}</div>`;
   } else if(p0.type==="intl" && lgView===my){
+    if(ph.intl) h+=iViewHTML(ph,p0);
     h+=`<div class="sub" style="margin-top:12px">참가 팀</div><div style="display:flex;gap:6px;flex-wrap:wrap">${(ph.field||[]).map(k=>`<span class="tag" style="cursor:pointer" onclick="openClub('${k}')">${T(k).name} | ${REG[T(k).region].n}</span>`).join("")||'<span class="mute">-</span>'}</div>
       ${ph.group?`<p class="mute" style="font-size:13px;margin-top:8px">그룹: ${ph.group.map(k=>T(k).name).join(", ")} | 우리 전적 ${ph.gw}승 ${ph.gl}패</p>`:""}${ph.champ?`<p style="margin-top:8px">우승: <b>${T(ph.champ).name}</b></p>`:""}`;
   } else if(p0.type==="off" && lgView===my) h+=`<p class="mute" style="margin-top:12px">오프시즌. 이적시장과 스크림으로 다음 시즌을 준비하세요.</p>`;
@@ -5175,7 +5427,7 @@ function simOtherRound(o,p0){ const rp=roundPairs(o,o.round);
 function finishOther(o,p0){
   while(o.round<p0.rounds) simOtherRound(o,p0);
   let sf; if(p0.fmt==="group"){ const A=rankTeams(o.groups[0],o.st), B=rankTeams(o.groups[1],o.st); sf=[[A[0],B[1]],[B[0],A[1]]]; } else { const R=rankTeams(Object.keys(o.st),o.st); sf=[[R[0],R[3]],[R[1],R[2]]]; }
-  MCTX={ev:p0.k,reg:o.r,stage:`${p0.n} 플레이오프 4강`}; const f=sf.map(m=>simAI(m[0],m[1],5)); MCTX={ev:p0.k,reg:o.r,stage:`${p0.n} 결승`}; const fin=simAI(f[0].w,f[1].w,5); MCTX=null; o.po={sf,fin:[f[0].w,f[1].w]}; o.champ=fin.w; o.runner=fin.l; return [fin.w,fin.l];
+  MCTX={ev:p0.k,reg:o.r,stage:`${p0.n} 플레이오프 4강`}; const f=sf.map(m=>simAI(m[0],m[1],5)); MCTX={ev:p0.k,reg:o.r,stage:`${p0.n} 결승`}; const fin=simAI(f[0].w,f[1].w,5); MCTX=null; o.po={sf,fin:[f[0].w,f[1].w]}; o.champ=fin.w; o.runner=fin.l; const sl=sf.flat().filter(k=>k!==fin.w&&k!==fin.l); o.third=rankTeams(sl,o.st)[0]; return [fin.w,fin.l,o.third].filter(Boolean);
 }
 
 /* ================= CHALLENGERS LEAGUES IN THE BACKGROUND (viewable from the league table) ================= */
@@ -6508,6 +6760,7 @@ function tradeStillValid(k,mine,theirs){ const my=new Set(G.roster.map(r=>r.id))
   return mine.every(id=>my.has(id))&&theirs.every(id=>th.has(id)); }
 function execTrade(k,mine,theirs,cash,quiet,sal){
   if(!tradeStillValid(k,mine,theirs)){ cleanTradeState(); closeM(); TR=null; renderAll(); save(); return toast(L("이미 다른 팀으로 간 선수가 포함돼 있어 이 트레이드는 무효가 됐습니다.","This trade is void: a player in it has already moved.","既に移籍した選手が含まれているため、このトレードは無効になりました。","交易包含已转走的选手，此交易作废。")); }
+  if(impBlock(theirs,mine)){ closeM(); TR=null; return; }
   snap("트레이드");
   mine.forEach(id=>{ G.roster=G.roster.filter(r=>r.id!==id); if(!G.rosters[k].includes(id)) G.rosters[k].push(id); if(G.iglId===id) G.iglId=null; if(G.tBlock) delete G.tBlock[id]; });
   theirs.forEach(id=>{ try{ phTrack(id,2,"trade"); }catch(e){} G.rosters[k]=G.rosters[k].filter(x=>x!==id); G.roster.push({id,signD:absNow(),cond:75,fat:20,salary:Math.round(marketAsk(P(id))*((sal||{})[id]||1)/1000)*1000,years:2}); });
@@ -7351,14 +7604,15 @@ function runAuto(){
   const total=mode==="days"?days:mode==="date"?Math.max(1,tw*7+td-start.abs):(mode==="prematch"&&G.sea.next==="match")?Math.max(1,G.dday-1):(mode==="match"&&G.sea.next==="match")?Math.max(1,G.dday):0;
   AUTO={stop:false,res:[],start:start.abs,total,w:0,l:0};
   autoFxOpen();
-  const end=()=>{ FAST=false; autoFxClose();
+  let AUTO_ERR=null;
+  const end=()=>{ FAST=false; autoFxClose(); if(AUTO_ERR) setTimeout(()=>errBox(L("자동 진행 중 오류가 생겨 그날을 되돌리고 멈췄습니다. 게임과 저장 파일은 안전합니다. 같은 날짜에서 반복되면 아래 오류 내용을 알려 주세요.","Auto advance hit an error, rolled back that day and stopped. Your save is safe.","自動進行中にエラーが起き、その日を巻き戻して停止しました。","自动推进出错，已回滚当天并停止。"),AUTO_ERR),400);
     G.brief=[`자동 진행 완료: ${n}일 진행${played?`, 경기 ${played}번 자동 처리`:""}. ${why}`].concat(log.slice(-24)); G.bi=0;
     AUTO=null; renderAll(); save(); if((G.stovePop||[]).length) setTimeout(stoveShow,500);
     if(G.pendingTrophy){ const id=G.pendingTrophy; G.pendingTrophy=null; save(); setTimeout(()=>trophyFX(id),300); } };
   const tick=()=>{
     if(!AUTO) return; if(AUTO.stop){ why="직접 멈췄습니다."; return end(); }
     if(guard>=500) return end();
-    const w0=G.record.w, l0=G.record.l, ld=log.length; let r;
+    const w0=G.record.w, l0=G.record.l, ld=log.length; let r; let bk=null; try{ bk=JSON.stringify(G); }catch(e){}
     try{ r=(()=>{
       const abs=G.week*7+G.day, isMatch=G.dday===0&&G.sea.next==="match";
       if(mode==="prematch"&&G.sea.next==="match"&&G.dday===1&&guard>0){ why="다음 경기 전날입니다."; return "stop"; }
@@ -7381,7 +7635,7 @@ function runAuto(){
       (G.brief||[]).forEach(l=>{ if(/결과|우승|이적 소식|트레이드|성장|실력이|정산|시즌|일정|진출|탈락/.test(l)) log.push(l); });
       if(stopEv&&(G.tOffers||[]).length>offers0){ why="새 트레이드 제의가 왔습니다."; return "stop"; }
       if(stopEv&&G.roster.length<5&&G.sea.next==="match"&&G.dday<=3){ why="경기가 다가오는데 주전이 부족합니다."; return "stop"; }
-      })(); guard++; }catch(e){ console.error(e); why="진행 중 문제가 생겨 멈췄습니다."; return end(); }
+      })(); guard++; }catch(e){ console.error(e); if(bk) try{ G=JSON.parse(bk); }catch(x){} why="진행 중 문제가 생겨 그날을 되돌리고 멈췄습니다. 저장 파일은 안전합니다."; AUTO_ERR=e; return end(); }
     let kind="day";
     if(G.record.w!==w0||G.record.l!==l0){ kind="match"; const win=G.record.w>w0; AUTO.res.push(win?"W":"L"); win?AUTO.w++:AUTO.l++; }
     if(!AUTO.fast||n%10===0){ try{ autoFxUpdate(AUTO.fast?"day":kind,n,played,AUTO.fast?[]:log.slice(ld)); }catch(e){} }
@@ -8012,11 +8266,17 @@ startI18n();
 renderTabs(); renderGrid();
 try{
   migrateSlots(); const cs=+(localStorage.getItem("vctmgr_cur")||1); SLOT=cs>=1&&cs<=3?cs:1;
-  const s=localStorage.getItem(slotKey(SLOT));
-  if(s){ const g=JSON.parse(s); if(g && (g.v===3||g.v===4) && T(g.team)){ G=g; initWorld(); G.v=4; enterLobby(); } }
+  if(localStorage.getItem(slotKey(SLOT))||localStorage.getItem(slotKey(SLOT)+"_bak")){
+    if(tryLoad(SLOT)) enterLobby();
+    else { const bad=SLOT; let free=0; for(let i=1;i<=SLOTS;i++) if(!localStorage.getItem(slotKey(i))){ free=i; break; } if(free) SLOT=free;
+      setTimeout(()=>errBox(L(`슬롯 ${bad} 저장을 불러오지 못했습니다. 저장 파일은 지우지 않고 남겨 두었습니다.${free?` 새 게임은 빈 슬롯 ${free}에 저장됩니다.`:" 새 게임을 시작하면 이 슬롯을 덮어쓰니, 다른 슬롯을 먼저 비워 주세요."}`,`Couldn't load slot ${bad}. The save was kept.${free?` A new game will go to empty slot ${free}.`:""}`,`スロット${bad}を読み込めませんでした。セーブは残しています。`,`无法读取存档${bad}，存档已保留。`),LOAD_ERR),700); } }
   renderSlots();
   const bg=localStorage.getItem("vctmgr_bg"); if(bg){ const el=$("#bgimg"); el.style.backgroundImage=`url(${bg})`; el.style.display="block"; }
 }catch(e){ console.error(e); setTimeout(()=>toast("저장 데이터를 불러오다 문제가 생겼습니다: "+(e&&e.message||e)),500); }
+
+/* iOS Safari: rapid taps (e.g. mental coaching) must not trigger double-tap zoom; keep the second tap as a click */
+(function(){ let last=0; document.addEventListener("touchend",e=>{ const now=Date.now(); if(now-last<350){ const el=e.target&&e.target.closest?e.target.closest("button,.sbtn,[onclick],a,label"):null; if(e.cancelable) e.preventDefault(); if(el&&typeof el.click==="function") el.click(); } last=now; },{passive:false});
+  document.addEventListener("gesturestart",e=>{ if(e.cancelable) e.preventDefault(); },{passive:false}); })();
 </script>
 </body>
 </html>
