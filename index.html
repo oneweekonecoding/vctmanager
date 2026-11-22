@@ -2358,7 +2358,7 @@ const ROLE_ATTR={duelist:["aim","fire","entry"],initiator:["entry","util","cons"
 function gainXP(id, xp, focus){
   { const rr=G.roster&&G.roster.find(r=>r.id===id); if(rr&&isOut(rr)) return []; if(rr&&isLowMood(rr)) xp=Math.round(xp*0.7); }
   G.dev=G.dev||{}; const d=G.dev[id]=G.dev[id]||{xp:0,pts:0,A:{},ovr:0};
-  const p=P(id); const gap=potOf(id)-p.ovr; xp=gap<=0?Math.round(xp*0.1):Math.round(xp*Math.min(1.12,0.25+gap/12)); xp=Math.round(xp*(isProspect(id)?DF().grow:1)*(G.team&&isT2()&&t2Acad(G.team)?0.7:1)*GROW*(G.co?coXPMul():1)*pcXPMul()*(p.gen?0.8:(p.s&&p.s.r>=1.05?1.4:p.s&&p.s.r>=0.98?1.2:1.05))); d.xp+=xp; const ups=[];
+  const p=P(id); const gap=potOf(id)-p.ovr; xp=gap<=0?Math.round(xp*0.1):Math.round(xp*Math.min(1.12,0.25+gap/12)); xp=Math.round(xp*(isProspect(id)?DF().grow:1)*(G.team&&isT2()&&t2Acad(G.team)?0.7:1)*GROW*(G.co?coXPMul():1)*pcXPMul()*(p.gen?0.62:(p.s&&p.s.r>=1.05?1.4:p.s&&p.s.r>=0.98?1.2:1.05))); d.xp+=xp; const ups=[];
   while(d.xp>=100){
     d.xp-=100;
     const pool=ROLE_ATTR[p.role].concat(Object.keys(ATTR));
@@ -2373,7 +2373,7 @@ function gainXP(id, xp, focus){
 }
 
 /* ================= AGE / MILITARY / ROOKIES / PLAYER-COACH ================= */
-function retireId(id,why){ try{ retNumCheck(id); }catch(e){ console.error(e); } G.retired=(G.retired||[]).concat([id]); G.signedElsewhere=(G.signedElsewhere||[]).concat([id]); G.retWhy=G.retWhy||{}; G.retWhy[id]=why; }
+function retireId(id,why){ try{ retNumCheck(id); }catch(e){ console.error(e); } G.retYr=G.retYr||{}; G.retYr[id]=G.sea?G.sea.yr:2027; G.retired=(G.retired||[]).concat([id]); G.signedElsewhere=(G.signedElsewhere||[]).concat([id]); G.retWhy=G.retWhy||{}; G.retWhy[id]=why; }
 /* ================= AGE / MILITARY / RETIREMENT / PLAYER-COACH ================= */
 /* base ages are estimates (hash based, no birth data in the DB): 2027 season start */
 /* real birth dates (Liquipedia) and known ages; others fall back to estimates. Season starts mid-January 2027 */
@@ -2395,7 +2395,8 @@ function seasonCarRecord(){ const yr=G.sea.yr; G.teamYr=G.teamYr||{}; G.seaC=G.s
   teams.forEach(k=>{ const t=T(k); if(!t) return; const lg=t.t2?t2LgName(t.lg):"VCT "+REG[t.region].n;
     const ti=(G.seaTN&&G.seaTN[yr+"|"+k])||[];
     const rk=((G.perf&&G.perf.yr===yr&&G.perf.r&&G.perf.r[k])||[]).map(([ph,r])=>{ const nm=t.t2?L(...(T2PN[ph]||[ph,ph,ph,ph])):(phN[ph]||ph); if(r===1&&ti.some(x=>x.includes(nm)||x.includes(ph))) return null; return `${nm} ${r}${L("위","th","位","名")}`; }).filter(Boolean);
-    TY[k]={n:t.name,lg,s:ti.map(x=>x.replace(new RegExp("^"+lg.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\s*","i"),"")+" "+L("우승","champion","優勝","冠军")).concat(rk).slice(0,5).join(", ")};
+    const wn=ti.map(x=>x.replace(new RegExp("^"+lg.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\s*","i"),"")+" "+L("우승","champion","優勝","冠军"));
+    TY[k]={n:t.name,lg,w:wn,s:wn.concat(rk).slice(0,5).join(", ")};
     const ids=k===G.team?G.roster.map(r=>r.id):(G.rosters[k]||[]);
     ids.forEach(id=>{ const a=G.seaC[id]=G.seaC[id]||[]; if(!a.some(x=>x[0]===yr)) a.push([yr,k]); }); });
   if(G.seaTN) Object.keys(G.seaTN).forEach(x=>{ if(+x.split("|")[0]<yr-1) delete G.seaTN[x]; }); }
@@ -2409,8 +2410,18 @@ function carSync(){ if(!G||!G.rosters||!G.roster) return; const cur={}; G.roster
   ids.forEach(id=>{ const a=G.ct[id]||null, b=cur[id]||null; if(a===b) return; const x=G.carX[id]=G.carX[id]||[];
     if(!x.length&&a) x.push({t:a,d:null,base:1}); x.push({t:b,d:ds,ret:(G.retired||[]).includes(id)?1:0}); });
   G.ct=cur; }
-function carFull(p){ const r=carFull0(p)||[], sc=seaCarLines(p); if(!sc.length) return r; const yr=l=>{ const m=/^(\d{4})/.exec(String(l)); return m?+m[1]:0; };
-  const out=[]; let i=0; const rest=r.slice(); sc.forEach(s=>{ while(rest.length&&yr(rest[0])>s.y) out.push(rest.shift()); out.push(s.t); }); return out.concat(rest); }
+/* titles won in-game go on the stint line of that club, comma separated, instead of a separate season line */
+function carFull(p){ const r=carFull0(p)||[], a=G&&G.seaC&&G.seaC[p.id]; if(!a||!a.length) return r;
+  const out=r.slice(), add={}, extra=[], wre=/우승|champion|優勝|冠军/i;
+  const span=l=>{ const m=/^(\d{4})(?:\.\d{1,2})?\s*[-~]\s*(?:(\d{4})(?:\.\d{1,2})?|\S+)?\s*\|\s*(.+)$/.exec(String(l).trim()); return m?{y0:+m[1],y1:m[2]?+m[2]:9999,t:m[3].toLowerCase()}:null; };
+  a.slice().sort((x,y)=>x[0]-y[0]).forEach(([y,k])=>{ const rr=G.teamYr&&G.teamYr[y]&&G.teamYr[y][k]; if(!rr) return;
+    const w=rr.w||String(rr.s||"").split(", ").filter(x=>wre.test(x)); if(!w.length) return; const nm=String(rr.n||"").toLowerCase();
+    const i=out.findIndex(l=>{ const s=span(l); return s&&s.t.startsWith(nm)&&y>=s.y0&&y<=s.y1; });
+    const txt=w.map(x=>`${y} ${x}`); if(i>-1) (add[i]=add[i]||[]).push(...txt); else extra.push({y,l:`${y} | ${rr.n}: ${w.join(", ")}`}); });
+  const res=out.map((l,i)=>add[i]?`${l} | ${add[i].join(", ")}`:l);
+  const yr=l=>{ const m=/^~?\s*(\d{4})/.exec(String(l)); return m?+m[1]:0; };
+  extra.sort((x,y)=>y.y-x.y).forEach(e=>{ const j=res.findIndex(l=>yr(l)&&yr(l)<=e.y); if(j<0) res.push(e.l); else res.splice(j,0,e.l); });
+  return res; }
 /* a stint with no end date ends when the next (newer) contract starts */
 function carFixEnds(p,base,x){ const st=l=>{ const m=/^(\d{4}(?:\.\d{1,2})?)/.exec(String(l).trim()); return m?m[1]:null; };
   return base.map((l,i)=>{ const m=/^(\d{4}(?:\.\d{1,2})?)\s*[-~]\s*\|\s*(.*)$/.exec(String(l).trim()); if(!m) return l;
@@ -2502,18 +2513,40 @@ function agePass(L){
   const ma=mil.length-mm.length; if(ma>0) L.push(`다른 구단과 FA 한국 선수 ${ma}명이 병역 문제로 은퇴했습니다.`);
 }
 /* new rookie class every year: 17-20, random handle, random stats like generated prospects */
-function rookieClass(L){
-  if(!G.gen) G.gen={};
+function rookieClass(L,n0,mid){
+  if(!G.gen) G.gen={}; if(!mid){ try{ genPrune(); }catch(e){ console.error(e); } }
   const taken=new Set(allPlayers().map(p=>p.name.toLowerCase())), myNat=G.myNat||"한국";
   const nats=[]; allPlayers().forEach(p=>{ if(p.nat&&p.nat!=="-"&&!GEN_GENERIC.has(p.nat)) nats.push(p.nat); });
-  const n=rint(22,30), list=[];
+  const n=n0||rint(90,120), list=[];
   for(let i=0;i<n;i++){ const nat=Math.random()<0.35?myNat:nats[rint(0,nats.length-1)]; const h=procHandle(nat,taken); if(!h) continue;
     const p=makeGen(h,nat); p.ay=G.ageY; p.rk=G.sea?G.sea.yr+1:2028; list.push(p); }
-  assignClubs(list); list.forEach(p=>{ G.gen[p.id]=p; });
-  const top=list.slice().sort((a,b)=>b.ovr-a.ovr)[0];
-  L.push(`${G.sea?G.sea.yr+1:2028} 신인 ${list.length}명이 이적시장에 등장했습니다 (17~20세, 가상 신예).${top?` 최고 기대주: ${top.name} (${top.nat}, ${ROLE[top.role].k}, OVR ${top.ovr}).`:""}`);
-  txNews(`${G.sea?G.sea.yr+1:2028} 신인 ${list.length}명 프로 데뷔 준비${top?`, 최대어는 ${top.name}`:""}`);
+  if(mid) list.forEach(p=>{ p.rk=G.sea?G.sea.yr:2027; });
+  let echo=[]; if(!mid){ try{ echo=echoClass(taken); }catch(e){ console.error(e); } }
+  assignClubs(list.concat(echo)); list.concat(echo).forEach(p=>{ G.gen[p.id]=p; });
+  const top=list.slice().sort((a,b)=>b.ovr-a.ovr)[0], yr=G.sea?(mid?G.sea.yr:G.sea.yr+1):2028;
+  L.push(`${yr} ${mid?"시즌 중 추가 ":""}신인 ${list.length}명이 이적시장에 등장했습니다 (17~20세, 가상 신예).${top?` 최고 기대주: ${top.name} (${top.nat}, ${ROLE[top.role].k}, OVR ${top.ovr}).`:""}${echo.length?` 낯익은 플레이 스타일의 신예 ${echo.length}명도 함께 등장했습니다.`:""}`);
+  txNews(`${yr} ${mid?"시즌 중 ":""}신인 ${list.length}명 프로 데뷔 준비${top?`, 최대어는 ${top.name}`:""}`);
+  return list;
 }
+/* unsigned rookies who never played and aged out (24+) leave the pool, so the save stays small */
+function genPrune(){ const own=ownedSet(), w=new Set((G.stv&&G.stv.watch)||[]), bid=G.bids||{};
+  Object.keys(G.gen).forEach(id=>{ const p=G.gen[id]; if(own.has(id)||w.has(id)||bid[id]||(G.seaC&&G.seaC[id])||(G.carX&&G.carX[id])||(G.pss&&p.played)) return;
+    if(ageOf(id)>=24){ delete G.gen[id]; if(G.dev) delete G.dev[id]; } }); }
+/* a retired player comes back about 10 years later as a new rookie with the same stats and a slightly different handle */
+function echoName(n,taken){ const s=String(n), v="aeiou", c=[], sw={i:"y",y:"i",s:"z",z:"s",c:"k",k:"c",o:"u",u:"o",e:"a",a:"e",x:"ks",v:"w",w:"v",f:"ph"};
+  for(let i=0;i<s.length;i++){ const ch=s[i], lo=ch.toLowerCase(); if(sw[lo]){ const r=sw[lo]; c.push(s.slice(0,i)+(ch===lo?r:r.toUpperCase())+s.slice(i+1)); } }
+  for(let i=1;i<s.length;i++){ if(/[a-z]/i.test(s[i])&&!v.includes(s[i].toLowerCase())) c.push(s.slice(0,i+1)+s[i].toLowerCase()+s.slice(i+1)); }
+  ["o","x","z","i","n","ee"].forEach(x=>c.push(s+x)); c.push(s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()+"o");
+  const ok=c.filter(x=>x&&x.toLowerCase()!==s.toLowerCase()&&!taken.has(x.toLowerCase())&&!taken.has(("gen:"+x).toLowerCase()));
+  return ok.length?ok[Math.floor(Math.random()*ok.length)]:null; }
+function echoClass(taken){ const yr=G.sea?G.sea.yr:2027; G.retYr=G.retYr||{}; G.echoed=G.echoed||{}; const out=[];
+  (G.retired||[]).forEach(id=>{ if(G.retYr[id]==null) G.retYr[id]=yr; });
+  (G.retired||[]).forEach(id=>{ if(G.echoed[id]||yr-G.retYr[id]<10) return; const o=P(id); if(!o||!o.name||(!DB.players[id]&&!(G.gen&&G.gen[id]))) return;
+    const nm=echoName(o.name,taken); G.echoed[id]=1; if(!nm) return; taken.add(nm.toLowerCase());
+    const p=makeGen(nm,o.nat&&o.nat!=="-"?o.nat:(G.myNat||"한국"));
+    p.role=o.role||p.role; if(o.A&&Object.keys(o.A).length) p.A={...o.A}; if(o.prof&&o.prof.length) p.prof=o.prof.slice(); if(o.topag) p.topag=o.topag.slice();
+    p.ovr=Math.max(40,Math.round(o.ovr||p.ovr)); p.pot=Math.min(95,p.ovr+rint(0,3)); p.ay=G.ageY; p.rk=yr+1; p.echo=o.name; out.push(p); });
+  return out; }
 /* retired players of my club can become player-coaches */
 function pcOffer(id,why){ G.pcOff=(G.pcOff||[]).filter(x=>x!==id).concat([id]); }
 function pcSal(id){ return Math.round((60000+P(id).ovr*900)/1000)*1000; }
@@ -2652,10 +2685,10 @@ const rint=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function makeGen(name, nat){
   const role = Math.random()<0.04 ? "flex" : ROLES4[rint(0,3)];
-  let ovr = Math.round(61 + gauss()*4.5);
-  const tr=Math.random(); let cap=76;
-  if(tr<0.012){ ovr += rint(17,25); cap=93; } else if(tr<0.06){ ovr += rint(8,13); cap=85; }
-  ovr = clamp(ovr, 50, cap); ovr = ovScale(ovr, natReg(nat), 2);
+  let ovr = Math.round(57 + gauss()*4);
+  const tr=Math.random(); let cap=68;
+  if(tr<0.006){ ovr += rint(12,17); cap=82; } else if(tr<0.04){ ovr += rint(5,9); cap=74; }
+  ovr = clamp(ovr, 46, cap); ovr = ovScale(ovr, natReg(nat), 2);
   const b = ovr-27;
   const bias = {duelist:{aim:6,fire:8,entry:8,util:-10},initiator:{entry:2,util:8},controller:{util:10,cons:4,fire:-6},sentinel:{cons:8,util:4,entry:-6},flex:{}}[role];
   const A={}; Object.keys(ATTR).forEach(k=>{ A[k]=clamp(Math.round(b+(bias[k]||0)+rint(-12,12)),8,95); });
@@ -2669,7 +2702,7 @@ function makeGen(name, nat){
   });
   const reg = natReg(nat);
   return {id:"GEN:"+name, name, gen:true, tier:2, status:"FA", team:"", tkey:null, nat, region:reg, league:"신예",
-    role, est:true, maps:0, evs:[], intl:0, s:null, A, prof, topag:mains.map(i=>DB.agents[i][0]), ovr, memo:"", pot:Math.min(95,ovr+(Math.random()<0.25?rint(0,3):rint(2,13)))};
+    role, est:true, maps:0, evs:[], intl:0, s:null, A, prof, topag:mains.map(i=>DB.agents[i][0]), ovr, memo:"", pot:Math.min(88,ovr+(Math.random()<0.3?rint(0,3):Math.random()<0.9?rint(2,8):rint(7,13)))};
 }
 /* --- procedural handles & fictional clubs per nationality --- */
 const HANDLE_A=["Vex","Nyx","Kai","Zen","Rift","Nova","Hex","Lux","Ryo","Sol","Kade","Juno","Pax","Rook","Echo","Flint","Mako","Tavi","Orin","Silo","Brisk","Vale","Dusk","Pike","Koda","Ember","Rune","Haze","Jinx","Quinn","Tero","Axel","Milo","Nero","Cobalt","Wisp","Talon","Gale","Rex","Ivo","Lyric","Saro","Fenn","Zuri","Cass","Drex","Arlo","Yuri","Tide","Bram"];
@@ -3165,7 +3198,7 @@ function openPlayer(id){
         <p class="mute" style="font-size:11px;margin-top:8px;line-height:1.6">${p.maps}맵 | ${p.evs.join(", ")}${p.tier===2?"<br>2부 리그 기록은 1부 기준으로 하향 보정해 능력치에 반영":""}</p>`
         :p.gen?`<p class="mute" style="font-size:12px;line-height:1.6">가상 신예 선수입니다. 공식 경기 기록이 없고 포지션과 능력치는 새 게임마다 무작위로 정해집니다.</p>`:`<p class="mute" style="font-size:12px;line-height:1.6">vlr.gg에서 이 선수의 2026 대회 스탯을 확보하지 못해 소속팀 성적을 기준으로 추정했습니다.</p>`}
         ${p.memo?`<p class="mute" style="font-size:12px;margin-top:6px">이적 기록: ${esc(p.memo)}</p>`:""}
-        ${p.gen&&G&&(!p.car||p.carV!==2)?(p.car=genCareer(p),p.carV=2,""):""}${(()=>{const cc=carFull(p);return cc&&cc.length?`<h4 style="margin-top:14px">경력${(()=>{ const c=carSrc(p); return c==="gen"?' <small class="mute" style="font-weight:400">(가상)</small>':c==="t2m"?' <small class="mute" style="font-weight:400">(대회 기록)</small>':c==="t2"?' <small class="mute" style="font-weight:400">(대회 기록)</small>':""; })()}</h4>${(()=>{ const x=(G&&G.retNum||[]).find(z=>z.id===p.id); return x?`<div style="font-size:12px;color:#e8c547;margin:2px 0 6px">${L("영구결번","Retired number","永久欠番","退役号码")} #${x.no} | ${esc(x.team)} (${x.yrs}${L("년","y","年","年")})</div>`:""; })()}<ul class="car">${cc.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:""})()}
+        ${(()=>{ try{ return pssHTML(p); }catch(e){ return ""; } })()}${p.gen&&G&&(!p.car||p.carV!==2)?(p.car=genCareer(p),p.carV=2,""):""}${(()=>{const cc=carFull(p);return cc&&cc.length?`<h4 style="margin-top:14px">경력${(()=>{ const c=carSrc(p); return c==="gen"?' <small class="mute" style="font-weight:400">(가상)</small>':c==="t2m"?' <small class="mute" style="font-weight:400">(대회 기록)</small>':c==="t2"?' <small class="mute" style="font-weight:400">(대회 기록)</small>':""; })()}</h4>${(()=>{ const x=(G&&G.retNum||[]).find(z=>z.id===p.id); return x?`<div style="font-size:12px;color:#e8c547;margin:2px 0 6px">${L("영구결번","Retired number","永久欠番","退役号码")} #${x.no} | ${esc(x.team)} (${x.yrs}${L("년","y","年","年")})</div>`:""; })()}<ul class="car">${cc.map(c=>`<li>${esc(c)}</li>`).join("")}</ul>`:""})()}
       </div>
       <div class="mg"><h4>요원 숙련도</h4><div class="agl">${agHTML}</div>
         <p class="mute" style="font-size:11px;margin-top:8px;line-height:1.5">요원 목록: playvalorant.com. 숙련도는 vlr.gg 2026 요원 사용 비율과 레이팅으로 산출. 허시는 10월 28일 출시라 기록이 없습니다.</p>
@@ -3274,13 +3307,13 @@ const DEF_POOL = ["Bind","Haven","Lotus","Sunset","Abyss","Corrode","Summit"];
 const ALL_MAPS = ["Bind","Haven","Lotus","Sunset","Abyss","Corrode","Summit","Ascent","Split","Icebox","Breeze","Fracture","Pearl"];
 function setMapPool(pool){ MAPS.splice(0,MAPS.length,...pool); }
 /* every new year 2 maps leave the competitive pool (longest-serving first) and 2 come back (longest-absent first) */
-function rotateMaps(L0){ const cur=MAPS.slice(); G.mapSince=G.mapSince||{}; G.mapOut=G.mapOut||{}; const yr=G.sea.yr;
-  const out=cur.slice().sort((a,b)=>((G.mapSince[a]||2020)-(G.mapSince[b]||2020))||(Math.random()-0.5)).slice(0,2);
-  const pool=ALL_MAPS.filter(m=>!cur.includes(m)).sort((a,b)=>((G.mapOut[a]||2020)-(G.mapOut[b]||2020))||(Math.random()-0.5)).slice(0,2);
-  if(pool.length<2) return; out.forEach(m=>G.mapOut[m]=yr); pool.forEach(m=>G.mapSince[m]=yr);
+function rotateMaps(L0,nn,mid){ const cur=MAPS.slice(); G.mapSince=G.mapSince||{}; G.mapOut=G.mapOut||{}; const yr=G.sea.yr, n=nn||2;
+  const out=cur.slice().sort((a,b)=>((G.mapSince[a]||2020)-(G.mapSince[b]||2020))||(Math.random()-0.5)).slice(0,n);
+  const pool=ALL_MAPS.filter(m=>!cur.includes(m)).sort((a,b)=>((G.mapOut[a]||2020)-(G.mapOut[b]||2020))||(Math.random()-0.5)).slice(0,n);
+  if(pool.length<n) return; out.forEach(m=>G.mapOut[m]=yr); pool.forEach(m=>G.mapSince[m]=yr);
   const nx=cur.filter(m=>!out.includes(m)).concat(pool); G.mapPool=nx; setMapPool(nx);
   if(G.scrimMap&&!MAPS.includes(G.scrimMap)) delete G.scrimMap; if(G.compClip&&!MAPS.includes(G.compClip.map)) delete G.compClip;
-  L0.push(L(`${yr} 맵 로테이션: ${out.join(", ")} 제외, ${pool.join(", ")} 복귀. 현재 경쟁전 맵: ${nx.join(", ")}. 새로 들어온 맵은 숙련도가 낮으니 스크림으로 미리 연습하세요.`,`${yr} map rotation: ${out.join(", ")} out, ${pool.join(", ")} in. Pool: ${nx.join(", ")}. Practice the new maps in scrims.`,`${yr} マップローテーション: ${out.join("、")} 除外、${pool.join("、")} 復帰。`,`${yr} 地图轮换: ${out.join("、")} 移出，${pool.join("、")} 加入。`));
+  L0.push(L(`${yr} ${mid?"시즌 중 ":""}맵 로테이션: ${out.join(", ")} 제외, ${pool.join(", ")} 복귀. 현재 경쟁전 맵: ${nx.join(", ")}. 새로 들어온 맵은 숙련도가 낮으니 스크림으로 미리 연습하세요.`,`${yr} map rotation: ${out.join(", ")} out, ${pool.join(", ")} in. Pool: ${nx.join(", ")}. Practice the new maps in scrims.`,`${yr} マップローテーション: ${out.join("、")} 除外、${pool.join("、")} 復帰。`,`${yr} 地图轮换: ${out.join("、")} 移出，${pool.join("、")} 加入。`));
   txNews(`${yr} 맵 로테이션: ${pool.join(", ")} 복귀, ${out.join(", ")} 제외`); }
 const MAXR = 10;
 
@@ -3666,7 +3699,7 @@ function tutShow(){ if(TI<0) return; let o=$("#tutO"); if(!o){ o=document.create
   o.innerHTML=hole+`<div class="tut-box" style="${bx}"><div class="tut-step">${TI+1} / ${TUT.length}</div><h4>${L(...s.t)}</h4><p>${L(...s.d)}</p>
     <div class="tut-bar"><i style="width:${(TI+1)/TUT.length*100}%"></i></div>
     <div class="tut-btns"><button class="ghost" onclick="tutEnd()">${L("건너뛰기","Skip","スキップ","跳过")}</button><span style="flex:1"></span>${TI?`<button class="ghost" onclick="tutNext(-1)">${L("이전","Back","戻る","上一步")}</button>`:""}<button class="go cut" onclick="tutNext(1)">${TI===TUT.length-1?L("시작하기","Let's go","始める","开始"):L("다음","Next","次へ","下一步")}</button></div></div>`; }
-function enterLobby(){
+function enterLobby(){ try{ fxRepair(); }catch(e){}
   $("#select").style.display="none"; $("#lobby").style.display="block";
   document.title="VCT 매니저 - 구단주 집무실";
   if(!G.econV2){ G.econV2=true; (G.sponsors||[]).forEach(x=>x.pay=Math.round(x.pay*0.7/1000)*1000); }
@@ -3937,7 +3970,7 @@ function injTag(r){ if(!r||!r.inj) return ""; const play=isLowMood(r);
   return `<span class="injtag ${play?"mood":""}" title="${esc(injName(r.inj.k))}">${esc(injName(r.inj.k))} ${r.inj.d}${L("일","d","日","天")}</span>`; }
 
 /* ================= ADVANCE ================= */
-function advance(){
+function advance(){ try{ fxRepair(); }catch(e){}
   if(FAST) return advance0();
   const bk=(()=>{ try{ return JSON.stringify(G); }catch(e){ return null; } })();
   try{ return advance0(); }catch(e){ console.error(e); if(bk) try{ G=JSON.parse(bk); }catch(x){} try{ renderAll(); }catch(x){}
@@ -4879,7 +4912,7 @@ function tStr(k){ return k===G.team ? myPower() : DF().ai+teamOvr(rosterOf(k))-(
 function regionTeams(r){ return DB.teams.filter(t=>t.region===r&&!t.t2).map(t=>t.key); }
 /* ================= MATCH LOG, FIXTURES, BOX SCORES ================= */
 let MCTX=null;
-function mlogPush(rec){ G.mlog=G.mlog||[]; G.mlogN=(G.mlogN||0)+1; rec.id=G.mlogN; rec.yr=G.sea?G.sea.yr:0; rec.abs=absNow(); G.mlog.push(rec);
+function mlogPush(rec){ G.mlog=G.mlog||[]; G.mlogN=(G.mlogN||0)+1; rec.id=G.mlogN; rec.yr=G.sea?G.sea.yr:0; rec.abs=absNow(); G.mlog.push(rec); try{ pssAdd(rec); }catch(e){}
   if(G.mlog.length>1800){ const keep=G.sea?G.sea.yr-1:0; G.mlog=G.mlog.filter(x=>x.yr>=keep).slice(-1500); } return rec; }
 function mlogMaps(x,y,wA){ const pool=MAPS.slice().sort(()=>Math.random()-.5), seq=[], n=x+y;
   const first=[]; for(let i=0;i<x-(wA?1:0);i++) first.push(1); for(let i=0;i<y-(wA?0:1);i++) first.push(0); first.sort(()=>Math.random()-.5); first.push(wA?1:0);
@@ -4892,6 +4925,17 @@ function recordMy(win,ms){ if(!G.sea||!MX||!MX.maplog) return; const fx=G.sea.fx
   const maps=MX.maplog.map(m=>({m:m.map,ra:m.s[0],rb:m.s[1]}));
   const box=MX.maplog.map(m=>m.box?{a:(m.box.me||[]).map(p=>[p.id,p.k||0,p.d||0,p.a||0]),b:(m.box.op||[]).map(p=>[p.id,p.k||0,p.d||0,p.a||0])}:null);
   mlogPush({ev,reg,stage:fx.label||"",r,a:G.team,b:opp,w:win?G.team:opp,s:[ms[0],ms[1]],maps,ra:(MX.me||[]).map(p=>p.id),rb:(MX.op||[]).map(p=>p.id),box,mine:1}); }
+/* per-player season totals: [team, maps, rounds, K, D, A, maps won] by year */
+function pssAdd(rec){ if(!G.pssV){ pssInit(); return; } pssAdd0(rec); }
+function pssAdd0(rec){ if(!rec||!rec.maps) return; G.pss=G.pss||{}; const Y=G.pss[rec.yr]=G.pss[rec.yr]||{};
+  rec.maps.forEach((m,i)=>{ const bx=boxOf(rec,i); if(!bx) return; const R=(m.ra||0)+(m.rb||0);
+    [["a",rec.a,m.ra>m.rb],["b",rec.b,m.rb>m.ra]].forEach(([s,k,won])=>(bx[s]||[]).forEach(([id,K,D,A])=>{ const x=Y[id]=Y[id]||[k,0,0,0,0,0,0]; x[0]=k; x[1]++; x[2]+=R; x[3]+=K; x[4]+=D; x[5]+=A; if(won) x[6]++; const g=G.gen&&G.gen[id]; if(g) g.played=1; })); }); }
+function pssInit(){ if(!G||G.pssV) return; G.pssV=1; G.pss={}; (G.mlog||[]).forEach(r=>{ try{ pssAdd0(r); }catch(e){} }); }
+function pssRows(id){ pssInit(); const out=[]; Object.keys(G.pss||{}).sort((a,b)=>b-a).forEach(y=>{ const x=G.pss[y][id]; if(x) out.push([+y].concat(x)); }); return out; }
+function pssHTML(p){ if(!G) return ""; const rows=pssRows(p.id); if(!rows.length) return "";
+  const f=r=>{ const [y,k,mp,R,K,D,A,W]=r, acs=Math.round(K/R*230+A/R*40+25), rt=Math.max(0.3,Math.min(2.2,0.5+K/R*1.0+A/R*0.35-D/R*0.55));
+    return `<tr><td>${y}</td><td style="white-space:nowrap">${esc(T(k)?T(k).name:k)}</td><td class="num">${mp}</td><td class="num">${W}-${mp-W}</td><td class="num">${K}/${D}/${A}</td><td class="num">${(D?K/D:K).toFixed(2)}</td><td class="num">${acs}</td><td class="num"><b>${rt.toFixed(2)}</b></td></tr>`; };
+  return `<h4 style="margin-top:14px">${L("시즌 성적","Season stats","シーズン成績","赛季数据")}</h4><div style="overflow-x:auto"><table class="tbl" style="font-size:12px"><tr><th>${L("시즌","Season","シーズン","赛季")}</th><th>${L("팀","Team","チーム","队伍")}</th><th>${L("맵","Maps","マップ","地图")}</th><th>${L("승패","W-L","勝敗","胜负")}</th><th>K/D/A</th><th>K:D</th><th>ACS</th><th>Rating</th></tr>${rows.map(f).join("")}</table></div><p class="mute" style="font-size:11px">${L("공식 경기 맵 단위 합계입니다. 우리 팀 경기는 실제 기록, 다른 팀 경기는 경기 결과로 만든 기록입니다.","Map totals in official matches. Our games use real box scores; other games use generated ones.","公式戦のマップ合計です。","正式比赛的地图合计。")}</p>`; }
 /* swiss: pair teams with the same record, avoiding rematches */
 function swissPairs(keys,st,played){ const sc=k=>st[k]?st[k].w-st[k].l:0, md=k=>st[k]?st[k].md:0;
   const order=keys.slice().sort(()=>Math.random()-.5).sort((a,b)=>(sc(b)-sc(a))||(md(b)-md(a))), used=new Set(), out=[];
@@ -5084,6 +5128,7 @@ function iViewHTML(ph,p0){ if(!ph||!ph.intl) return ""; let h="";
   if(ph.done&&ph.order) h+=`<div class="mute" style="font-size:13px;margin-top:6px">${L("최종 순위","Final standings","最終順位","最终排名")}: ${ph.order.slice(0,8).map((k,i)=>`${i<4?i+1:i<6?"5-6":"7-8"}. ${esc(T(k).name)}`).join(" | ")}</div>`;
   return h; }
 function startPhase(first){
+  try{ if(G.sea&&curPhase().k==="S2"&&G.sea.midY!==G.sea.yr){ G.sea.midY=G.sea.yr; const ml=[]; rookieClass(ml,rint(30,45),true); rotateMaps(ml,1,true); G.brief=(G.brief||[]).concat(ml); } }catch(e){ console.error(e); }
   if(isT2()&&curPhase().type!=="off"&&!["M1","M2"].includes(curPhase().k)) return t2StartPhase(curPhase(),first);
   const ph0=curPhase(), my=T(G.team).region, ph={k:ph0.k,round:0,st:{},po:null,out:false,done:false};
   G.evLog=[]; G.evK={};
@@ -5226,7 +5271,15 @@ function offseason(){
   return L;
 }
 function phaseLabel(){ if(!G.sea) return ""; if(G.hg&&G.hg.live) return `${G.hg.yr} ${hgName()}`; return `${G.sea.yr} ${curPhase().n}`; }
-function fxLabel(){ if(!G.sea) return ""; return G.sea.next==="match"&&G.sea.fx?`${G.sea.fx.label} vs ${T(G.sea.fx.opp).name}`:`다음: ${PHASES[(G.sea.pi+1)%PHASES.length].n}`; }
+function fxLabel(){ if(!G.sea) return ""; fxRepair(); const nx=PHASES[(G.sea.pi+1)%PHASES.length]; return G.sea.next==="match"&&G.sea.fx?`${G.sea.fx.label||""} vs ${(T(G.sea.fx.opp)||{}).name||"TBD"}`:`다음: ${nx?nx.n:""}`; }
+/* a fixture can lose its opponent (old save mid-event, bye week, or a team that left the league): pick a valid one so the day can go on */
+function fxRepair(){ const s=G.sea; if(!s||s.next!=="match"||!s.fx||(s.fx.opp&&T(s.fx.opp)&&s.fx.opp!==G.team)) return false;
+  const ph=s.ph||{}; let o=null;
+  try{ if(ph.sched&&ph.round!=null){ const c=ph.sched[ph.round]; if(c&&T(c)&&c!==G.team) o=c; } }catch(e){}
+  if(!o){ const pool=[].concat(ph.gq||[],ph.group||[],ph.field||[]).filter(k=>k&&k!==G.team&&T(k)); o=pool[0]||null; }
+  if(!o){ const pool=myLeagueTeams().filter(k=>k!==G.team&&T(k)); o=pool.length?pool[Math.floor(Math.random()*pool.length)]:null; }
+  if(o){ s.fx.opp=o; if(ph.sched&&ph.round!=null) ph.sched[ph.round]=o; return true; }
+  s.fx=null; s.next="phase"; return true; }
 function stLine(k){ return (k===G.team?G.roster.map(q=>q.id):rosterOf(k)).slice(0,5).map(id=>`<span class="stp">${ricon(P(id).role,11)}${plink(id)}</span>`).join(""); }
 function seasonHTML(){
   const ph=G.sea.ph, p0=curPhase(), t=T(G.team);
