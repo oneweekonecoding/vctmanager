@@ -3167,8 +3167,10 @@ function openTeam(k){
       <div style="display:flex;gap:8px"><button class="ghost" onclick="closeM()">다른 팀 보기</button><button class="ghost" onclick="startGame('${t.key}',true)" title="기존 선수 전원과 상호 합의로 계약을 해지하고 빈 로스터로 시작합니다">상호 합의 해지 후 시작</button><button class="go cut" onclick="startGame('${t.key}')">이 팀으로 시작</button></div></div>`;
   $("#ov").classList.add("on");
 }
-function closeM(){ $("#ov").classList.remove("on"); tip.style.display="none"; }
-$("#ov").addEventListener("click",e=>{ if(e.target.id==="ov") closeM(); });
+function closeM(){ const o=$("#ov"); o.classList.remove("on"); delete o.dataset.sticky; tip.style.display="none"; }
+/* a popup that opens under a click (e.g. right after pressing advance) must not close from that same click */
+let OV_LOCK=0; (function(){ const o=$("#ov"); let was=false; new MutationObserver(()=>{ const on=o.classList.contains("on"); if(on&&!was) OV_LOCK=Date.now()+700; was=on; }).observe(o,{attributes:true,attributeFilter:["class"]}); })();
+$("#ov").addEventListener("click",e=>{ if(e.target.id!=="ov") return; if(Date.now()<OV_LOCK||$("#ov").dataset.sticky) return; closeM(); });
 
 /* ================= PLAYER DETAIL ================= */
 /* ===== hexagon radar + player comparison ===== */
@@ -4368,7 +4370,7 @@ function stoveShow(){ const q=(G.stovePop||[]).filter(id=>isFree(P(id))&&!ownedS
     ${q.map(id=>{ const p=P(id), fk=(G.relBy||{})[id]; return `<tr${isWatched(id)?' style="background:rgba(245,158,11,.12)"':""}><td><b>${plink(id)}</b>${isWatched(id)?' <span class="tbadge" style="border-color:#f59e0b;color:#f59e0b">찜</span>':""}</td><td>${fk?esc(T(fk).name):esc(lastTeamName(p)||"-")}</td><td>${ricon(p.role,13)} ${ROLE[p.role].k}</td><td>${esc(p.nat)}</td><td class="num">${p.ovr}</td><td class="num">${short(marketAsk(p))}</td>
       <td style="white-space:nowrap"><button class="sbtn on" onclick="closeM();openNego('${esc(id)}')">협상</button> <button class="sbtn" onclick="openPlayer('${esc(id)}')">정보</button></td></tr>`; }).join("")}</table>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px"><span class="mute" style="font-size:12px">${L("알림 조건은 이적시장 맨 위 스토브리그 칸에서 바꿀 수 있습니다.","Change alert settings in the Stove league box at the top of Transfers.","通知条件は移籍市場の一番上のストーブリーグ欄で変更できます。","提醒条件可在转会市场顶部的休赛期栏修改。")}</span><button class="ghost" onclick="closeM();openSheet('market')">이적시장 열기</button></div></div>`;
-  $("#ov").classList.add("on"); }
+  $("#ov").dataset.sticky="1"; $("#ov").classList.add("on"); }
 function stoveSet(kind,v){ const c=stoveCfg();
   if(kind==="mode") c.mode=v; else { const a=c[kind], i=a.indexOf(v); i>=0?a.splice(i,1):a.push(v); }
   save(); openSheet("market",true); }
@@ -7970,7 +7972,7 @@ function runAuto(){
   closeM(); snap("자동 진행");
   FAST=true; const log=[]; let n=0, played=0, why="", guard=0;
   const offers0=(G.tOffers||[]).length;
-  const total=mode==="days"?days:mode==="date"?Math.max(1,tw*7+td-start.abs):(mode==="prematch"&&G.sea.next==="match")?Math.max(1,G.dday-1):(mode==="match"&&G.sea.next==="match")?Math.max(1,G.dday):0;
+  const total=mode==="days"?days:mode==="date"?Math.max(1,tw*7+td-start.abs):(mode==="prematch")?Math.max(1,G.dday-1):(mode==="match"&&G.sea.next==="match")?Math.max(1,G.dday):0;
   AUTO={stop:false,res:[],start:start.abs,total,w:0,l:0};
   autoFxOpen();
   let AUTO_ERR=null;
@@ -7984,7 +7986,8 @@ function runAuto(){
     const w0=G.record.w, l0=G.record.l, ld=log.length; let r; let bk=null; try{ bk=JSON.stringify(G); }catch(e){}
     try{ r=(()=>{
       const abs=G.week*7+G.day, isMatch=G.dday===0&&G.sea.next==="match";
-      if(mode==="prematch"&&G.sea.next==="match"&&G.dday===1&&guard>0){ why="다음 경기 전날입니다."; return "stop"; }
+      if(mode==="prematch"&&G.dday===1&&guard>0){ why="다음 경기 전날입니다."; return "stop"; }
+      if(mode==="prematch"&&isMatch){ why="오늘이 경기일이라 경기 전에 멈췄습니다."; return "stop"; }
       if(mode==="match"&&isMatch&&guard>0&&!auto){ why="오늘은 경기일입니다."; return "stop"; }
       if(mode==="match"&&isMatch&&guard>0&&auto){ autoMatch(); played++; log.push(...(G.brief||[]).slice(0,1)); why="경기를 자동 처리했습니다."; return "stop"; }
       if(mode==="days"&&abs-start.abs>=days){ why=`${days}일이 지났습니다.`; return "stop"; }
@@ -8000,6 +8003,7 @@ function runAuto(){
         return "match";
       }
       advance(); n++;
+      if(mode==="prematch"&&G.dday===0&&G.sea.next==="match"&&bk){ try{ G=JSON.parse(bk); n--; why="다음 경기 전날입니다."; return "stop"; }catch(e){} }
       if(G.mEv){ if(stopEv){ why=`선수 사기 이벤트: ${G.mEv.head}`; return "stop"; } log.push(`[사기 이벤트 자동 처리] ${G.mEv.head}`); resolveMEv(G.mEv.dflt,true); }
       (G.brief||[]).forEach(l=>{ if(/결과|우승|이적 소식|트레이드|성장|실력이|정산|시즌|일정|진출|탈락/.test(l)) log.push(l); });
       if(stopEv&&(G.tOffers||[]).length>offers0){ why="새 트레이드 제의가 왔습니다."; return "stop"; }
