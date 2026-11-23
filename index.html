@@ -540,8 +540,8 @@ body.ui-mob .pbody{grid-template-columns:72px 1fr}body.ui-mob .photo img{width:7
 .troom{display:grid;gap:14px}
 .tshelf{background:linear-gradient(180deg,#141414,#0A0A0A);border:1px solid #2E2E2E;border-radius:4px;padding:10px 12px 0;position:relative}
 .tlabel{font:500 11px var(--body);letter-spacing:1px;color:#A3A3A3;text-transform:uppercase}
-.titems{display:flex;gap:16px;align-items:flex-end;min-height:130px;overflow-x:auto;padding:6px 4px 0}
-.titem{width:80px;flex:none;display:grid;justify-items:center;gap:2px;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;touch-action:none}
+.titems{display:flex;flex-wrap:wrap;gap:14px 16px;align-items:flex-end;min-height:130px;padding:6px 4px 8px}
+.titem{width:80px;flex:none;display:grid;justify-items:center;gap:2px;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-y;-webkit-touch-callout:none}
 .titem svg{height:110px;transition:transform .12s}.titem:hover svg{transform:translateY(-3px)}
 .titem span{font:11px var(--mono);color:#F5F5F5}
 .titem.empty{opacity:.15;filter:grayscale(1);cursor:default}.titem.empty span{color:#A3A3A3}
@@ -1942,7 +1942,9 @@ function trophyRoomHTML(){
 function bindTrophies(){
   document.querySelectorAll(".titem[data-tid]").forEach(el=>{
     let tm=null;
-    const start=e=>{ e.preventDefault(); el.classList.add("hold"); tm=setTimeout(()=>{ el.classList.remove("hold"); openTrophy(el.dataset.tid); },650); };
+    let sx=0, sy=0; const start=e=>{ if(e.pointerType==="mouse") e.preventDefault(); sx=e.clientX; sy=e.clientY; el.classList.add("hold"); tm=setTimeout(()=>{ el.classList.remove("hold"); openTrophy(el.dataset.tid); },650); };
+    el.addEventListener("pointermove",e=>{ if(el.classList.contains("hold")&&Math.hypot(e.clientX-sx,e.clientY-sy)>10){ clearTimeout(tm); el.classList.remove("hold"); } });
+    el.addEventListener("pointercancel",()=>{ clearTimeout(tm); el.classList.remove("hold"); });
     const end=()=>{ clearTimeout(tm); if(el.classList.contains("hold")){ el.classList.remove("hold"); toast("트로피를 꾹 누르고 있으면 기록이 열립니다."); } };
     el.addEventListener("pointerdown",start); el.addEventListener("pointerup",end); el.addEventListener("pointerleave",()=>{ clearTimeout(tm); el.classList.remove("hold"); });
     el.addEventListener("contextmenu",e=>e.preventDefault());
@@ -2325,6 +2327,9 @@ for(const id in DB.players){ const p=DB.players[id]; const n=ovScale(p.ovr,p.reg
 function scaleMigrate(){ if(G.ovrV2) return; G.ovrV2=true;
   if(G.gen) Object.values(G.gen).forEach(p=>{ const n=ovScale(p.ovr,p.region,2), d=n-p.ovr; p.ovr=n; for(const k in (p.A||{})) if(k!=="exp") p.A[k]=Math.max(5,Math.min(99,p.A[k]+d)); if(p.pot!=null) p.pot=Math.max(n,ovScale(p.pot,p.region,2)); });
   if(G.pot) for(const id in G.pot){ const p=DB.players[id]; if(p) G.pot[id]=ovScale(G.pot[id],p.region,p.tier); } }
+/* nationality corrections checked against vlr.gg player pages (matched by handle and team history) */
+const NAT_FIX={"zerona": "미국", "bao": "베트남", "Shyy": "칠레", "tex": "독일", "JonahP": "캐나다", "Jerrwin": "인도", "Jesse": "체코", "hiro": "튀르키예", "natz": "인도네시아", "coconut": "홍콩", "Setrod": "대만", "glacier": "대만", "Spring": "대만", "ion": "인도", "n1zzy": "베트남", "ZesBeeW": "싱가포르", "penny": "인도", "MONSTEERR": "체코", "KovaQ": "스위스", "flyuh": "미국", "Filu": "폴란드", "nataNk": "프랑스", "eeiu": "캐나다", "Virtyy": "도미니카 공화국", "RobbieBk": "네덜란드", "HanChe": "대만", "SWERL": "호주", "Yoyo": "대만", "TvirusLuke": "대만", "Juicy": "싱가포르", "C25:Kipperman@BLX": "튀르키예", "C25:Yohpa@KCBS": "레바논", "C25:Tr0mA@CLA": "모로코", "C25:JohnieBoy@BLX": "시리아", "C25:Euii@VCGN": "러시아", "C25:Kongi@NXT": "오스트리아", "C25:Emiel@samu": "벨기에", "C25:oteN@6GPA": "멕시코", "C25:Ziad@ATN": "알제리", "C25:quo@samu": "베트남", "C25:sinan@samu": "튀르키예", "C25:chay@RIZO": "이탈리아", "C25:Stix@PXL": "폴란드", "C25:Vuubit@FMG": "핀란드", "C25:msh@PXL": "폴란드", "C25:Corsa@FMG": "영국", "C25:ALMO@PXL": "폴란드", "C25:drepeex@RBT": "러시아", "C24:Phantom@FAV": "인도", "C24:Korsonix@FSN": "미국", "C24:Danger@ANT": "콜롬비아", "C24:Josegxbo@ANT": "콜롬비아", "C24:Core@Cult": "보스니아", "C24:quens1on@RNP": "홍콩", "C24:Chax@KTS": "크로아티아", "C24:zenox@HSW": "이집트", "C24:kiss@KBC": "호주", "C24:IKANA@JJH": "호주", "C24:RAMEN@KBC": "호주", "C24:Shinon@Unde": "필리핀", "C24:exempt@HSW": "이탈리아", "C24:Velora@Peac": "호주", "C24:binjo@Peac": "러시아", "C24:Strame@ACU": "파키스탄", "C24:indie@HSW": "이탈리아", "C24:vina@ACU": "베트남", "C24:Capy@Balk": "대만", "C24:Flaring@U5": "싱가포르", "C24:chukl9@RTZN": "러시아", "C24:xenp1o@RTZN": "러시아", "C24:falltw@NXT": "러시아", "T2:Tiezzi": "이탈리아", "T2:dth": "일본", "T2:PxS": "미국", "T2:lilo": "이탈리아", "T2:taka": "일본", "T2:Anq": "러시아", "T2:xexxar": "카자흐스탄", "T2:k1ngkappa": "인도네시아", "T2:RozsteR": "방글라데시", "T2:Madelyn": "인도네시아", "T2:damaraa": "인도네시아", "T2:CreamZ": "말레이시아", "T2:sayoo": "인도네시아", "T2:Pa1ze": "덴마크", "T2:SimonD4rk": "벨라루스", "T2:Serial": "라트비아", "T2:kamyk": "폴란드", "T2:77even": "리투아니아", "T2:Zyppan": "스웨덴", "T2:globeX": "영국", "T2:sickrey": "러시아", "T2:Buld": "폴란드", "T2:runneR": "북마케도니아", "T2:sizo": "폴란드", "T2:Bard0lf": "튀르키예", "T2:Zimo": "사우디아라비아", "T2:samed": "오스트리아", "T2:Neptunee": "프랑스", "T2:SpYzera": "레바논", "T2:B1SK": "러시아", "T2:avey": "라트비아", "T2:Prti": "세르비아", "T2:reblyik": "독일", "T2:OLIZERA": "포르투갈", "T2:Darxcioo": "벨기에", "T2:MOLSI": "폴란드", "T2:mazen": "튀니지", "T2:YappA": "튀니지", "T2:stallion": "캐나다", "T2:NiSMO": "레바논", "T2:sorex": "칠레", "T2:moose": "캐나다", "T2:Spaz": "미국", "T2:sonofcar": "미국", "T2:Kyu": "캐나다", "T2:cuz": "미국", "T2:Boni": "필리핀", "T2:traded": "미국", "T2:Dark3st": "미국", "T2:Kaoticc": "베트남", "T2:zander": "캐나다", "T2:payne": "미국", "T2:Muddy": "라오스", "T2:XXiF": "캐나다", "T2:exa": "한국", "T2:alvinboy": "중국", "T2:kumi": "미국", "T2:Leo": "중국", "T2:jakee": "미국", "T2:Cohburg": "미국", "T2:Pa1nt": "미국", "T2:Derrek": "미국", "T2:Wildfire": "우크라이나", "T2:sacred": "인도", "T2:Smoke": "미국", "T2:NaturE": "미국", "T2:Shondex": "튀르키예", "T2:shawz": "미국", "T2:vita": "미국", "T2:Noia": "덴마크", "T2:solada": "인도", "T2:mikeE": "미국", "T2:atlas": "이탈리아", "T2:tonza": "불가리아", "T2:zaj": "캄보디아", "T2:bdog": "미국", "T2:moobs": "캐나다", "T2:geeza": "미국", "T2:Recoil": "사우디아라비아", "T2:Ange": "캐나다", "T2:renz": "독일", "T2:monSi": "캐나다", "T2:Scottie": "미국", "T2:ducq": "멕시코", "T2:Jremy": "필리핀", "T2:TenTen": "한국", "T2:distinct": "일본", "T2:Medusa": "한국", "T2:Aho": "한국", "T2:d3ffo": "러시아", "T2:parscofield": "필리핀", "T2:Sovano": "필리핀", "T2:Meracle": "싱가포르", "T2:2GE": "필리핀", "T2:Wild0reoo": "필리핀", "T2:Georggyyy": "필리핀", "T2:kkoruna": "필리핀", "T2:BORKUM": "필리핀", "T2:GabbyDiz": "필리핀", "T2:NDG": "필리핀", "T2:Kel": "필리핀", "T2:13RD": "필리핀", "T2:Kess": "한국", "T2:Jow": "콜롬비아", "T2:aproto": "미국", "T2:ScrewFace": "페루", "T2:MiniNiwde": "도미니카 공화국", "T2:Weegle": "미국", "T2:Cfax": "미국", "T2:Fresht": "콜롬비아", "T2:Bull3tZ": "온두라스", "T2:ezznap": "콜롬비아", "T2:GeneralSteak": "과테말라", "T2:Rei": "콜롬비아", "T2:Hada": "멕시코", "T2:Sabortzz": "멕시코", "T2:ZekeNotGio": "쿠바", "T2:Raquinuki": "코스타리카", "T2:Dlasqx1": "베네수엘라", "T2:Levi": "베네수엘라", "T2:Matkazeta": "코스타리카", "T2:v1bz": "베네수엘라", "T2:margaret": "한국", "T2:Flicker": "한국", "T2:Crunch": "미국", "T2:Dedmos": "멕시코", "T2:paganus": "멕시코", "T2:Peloncito": "멕시코", "FiNESSE": "캐나다", "Apoth": "캐나다"};
+for(const id in NAT_FIX) if(DB.players[id]) DB.players[id].nat=NAT_FIX[id];
 const BASE={}; for(const id in DB.players){ const p=DB.players[id]; BASE[id]={A:{...p.A},ovr:p.ovr,prof:(p.prof||[]).slice(),role:p.role}; }
 /* role drift: agents a player keeps playing (matches) and drilling (scrims/training) move his role, checked once a season */
 function roleUse(id,ag,w){ const a=DB.agents[ag]; if(!a) return; G.ru=G.ru||{}; const u=G.ru[id]=G.ru[id]||{}; u[a[2]]=(u[a[2]]||0)+(w||1); }
@@ -2518,7 +2523,10 @@ function rookieClass(L,n0,mid){
   const taken=new Set(allPlayers().map(p=>p.name.toLowerCase())), myNat=G.myNat||"한국";
   const nats=[]; allPlayers().forEach(p=>{ if(p.nat&&p.nat!=="-"&&!GEN_GENERIC.has(p.nat)) nats.push(p.nat); });
   const n=n0||rint(90,120), list=[];
-  for(let i=0;i<n;i++){ const nat=Math.random()<0.35?myNat:nats[rint(0,nats.length-1)]; const h=procHandle(nat,taken); if(!h) continue;
+  const yr0=G.sea?G.sea.yr:2027, pool=(G.namePool||[]).filter(e=>yr0-e[2]>=2&&!taken.has(String(e[0]).toLowerCase())&&!(G.gen&&G.gen["GEN:"+e[0]]));
+  for(let i=0;i<n;i++){ let nat=Math.random()<0.35?myNat:nats[rint(0,nats.length-1)], h=null;
+    if(pool.length&&Math.random()<0.25){ const e=pool.splice(rint(0,pool.length-1),1)[0]; if(!taken.has(String(e[0]).toLowerCase())){ h=e[0]; nat=e[1]||nat; taken.add(h.toLowerCase()); G.namePool=G.namePool.filter(x=>x[0]!==h); } }
+    if(!h) h=procHandle(nat,taken); if(!h) continue;
     const p=makeGen(h,nat); p.ay=G.ageY; p.rk=G.sea?G.sea.yr+1:2028; list.push(p); }
   if(mid) list.forEach(p=>{ p.rk=G.sea?G.sea.yr:2027; });
   let echo=[]; if(!mid){ try{ echo=echoClass(taken); }catch(e){ console.error(e); } }
@@ -2531,7 +2539,7 @@ function rookieClass(L,n0,mid){
 /* unsigned rookies who never played and aged out (24+) leave the pool, so the save stays small */
 function genPrune(){ const own=ownedSet(), w=new Set((G.stv&&G.stv.watch)||[]), bid=G.bids||{};
   Object.keys(G.gen).forEach(id=>{ const p=G.gen[id]; if(own.has(id)||w.has(id)||bid[id]||(G.seaC&&G.seaC[id])||(G.carX&&G.carX[id])||(G.pss&&p.played)) return;
-    if(ageOf(id)>=24){ delete G.gen[id]; if(G.dev) delete G.dev[id]; } }); }
+    if(ageOf(id)>=24){ G.namePool=G.namePool||[]; G.namePool.push([p.name,p.nat,G.sea?G.sea.yr:2027]); if(G.namePool.length>800) G.namePool.splice(0,G.namePool.length-800); delete G.gen[id]; if(G.dev) delete G.dev[id]; } }); }
 /* a retired player comes back about 10 years later as a new rookie with the same stats and a slightly different handle */
 function echoName(n,taken){ const s=String(n), v="aeiou", c=[], sw={i:"y",y:"i",s:"z",z:"s",c:"k",k:"c",o:"u",u:"o",e:"a",a:"e",x:"ks",v:"w",w:"v",f:"ph"};
   for(let i=0;i<s.length;i++){ const ch=s[i], lo=ch.toLowerCase(); if(sw[lo]){ const r=sw[lo]; c.push(s.slice(0,i)+(ch===lo?r:r.toUpperCase())+s.slice(i+1)); } }
@@ -5573,7 +5581,8 @@ const MAPIMG={"Bind": "data:image/webp;base64,UklGRoIkAABXRUJQVlA4IHYkAAAQ6ACdAS
 const ZCODE={a:"A",b:"B",c:"C",S:"AS",D:"DS","1":"Amain","2":"Bmain","3":"Cmain",m:"Mid"};
 function buildGen2(name){ const D=MAPGEN[name]; const H=D.rows.length, W=D.rows[0].length;
   const g=Array.from({length:GH},()=>Array(GW).fill(0)), zone=Array.from({length:GH},()=>Array(GW).fill(""));
-  for(let j=0;j<Math.min(H,GH);j++) for(let i=0;i<Math.min(W,GW);i++){ const ch=D.rows[j][i]; if(ch==="."){ continue; } g[j][i]=1; zone[j][i]=ZCODE[ch]||""; }
+  const FL=D.n===3?{a:"c",c:"a","1":"3","3":"1"}:{a:"b",b:"a","1":"2","2":"1"}; /* sites were mirrored: A sits where B (or C) really is */
+  for(let j=0;j<Math.min(H,GH);j++) for(let i=0;i<Math.min(W,GW);i++){ const ch0=D.rows[j][i]; if(ch0==="."){ continue; } const ch=FL[ch0]||ch0; g[j][i]=1; zone[j][i]=ZCODE[ch]||""; }
   const rooms={}; for(let j=0;j<GH;j++) for(let i=0;i<GW;i++){ const z=zone[j][i]; if(!z) continue; const r=rooms[z]||(rooms[z]=[i,j,i,j]); r[0]=Math.min(r[0],i); r[1]=Math.min(r[1],j); r[2]=Math.max(r[2],i); r[3]=Math.max(r[3],j); }
   for(const k in rooms){ const r=rooms[k]; rooms[k]=[r[0],r[1],r[2]-r[0]+1,r[3]-r[1]+1]; }
   const three=D.n===3, sites=three?["A","B","C"]:["A","B"];
@@ -5638,6 +5647,7 @@ function los(M,a,b){
   let x0=a[0],y0=a[1]; const x1=b[0],y1=b[1], dx=Math.abs(x1-x0), dy=Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1; let e=dx-dy;
   while(!(x0===x1&&y0===y1)){ const e2=2*e; let nx=x0, ny=y0; if(e2>-dy){ e-=dy; nx+=sx; } if(e2<dx){ e+=dx; ny+=sy; }
     if(!stepOK(M,x0,y0,nx,ny)) return false; x0=nx; y0=ny; }
+  if(MX&&M===MX.M&&smokeBlocks(a,b)) return false;
   return true;
 }
 const rpick=a=>a[Math.floor(Math.random()*a.length)];
@@ -5800,6 +5810,214 @@ function hlMorale(e){ const m=HL_MOR[e.k]; starters().forEach(r=>{ setMor(r,m.al
 function hlFX(e){ const box=document.querySelector("#mt .mcan")||$("#mt"); if(!box) return; const d=document.createElement("div"); d.className="hlfx "+e.k+(e.team==="me"?" mine":" theirs");
   d.innerHTML=`<b>${e.t}</b><span>${esc(e.name)}${e.team==="me"?` | ${e.k==="clutch"?"팀 사기 크게 상승":"팀 사기 상승"}`:""}</span>`;
   box.appendChild(d); setTimeout(()=>d.remove(),2200); }
+/* ---------- agent abilities in the round sim ----------
+   Each agent carries a small kit. Abilities change who can see whom (smoke, wall), who wins a duel (flash, molly,
+   recon, dash), and where people stand (molly pushes players out, traps slow and reveal). A hidden comp style per
+   team (dive / control / info / lockdown / post-plant) shapes how often and how well the kit is used and nudges the
+   IGL's plan choice. Nothing about the style is shown to the player. */
+const KIT={Jett:["smoke1","dash"],Reyna:["flash","duel"],Raze:["molly","dash"],Phoenix:["flash","molly"],Yoru:["flash","dash"],Neon:["wall","dash"],Iso:["duel","wall"],Waylay:["dash","flash"],Hush:["flash","recon"],
+  Sova:["recon","molly"],Breach:["flash","molly"],Skye:["flash","recon"],Kayo:["flash","molly"],Fade:["recon","flash"],Gekko:["flash","molly","recon"],Tejo:["recon","molly"],
+  Brimstone:["smoke","smoke","molly"],Viper:["wall","smoke","molly"],Omen:["smoke","smoke","flash"],Astra:["smoke","smoke","smoke"],Harbor:["wall","smoke"],Clove:["smoke","smoke"],Miks:["smoke","smoke","flash"],
+  Sage:["wall","trap"],Cypher:["trap","recon","smoke1"],Killjoy:["trap","molly"],Chamber:["trap","duel"],Deadlock:["trap","wall"],Vyse:["trap","flash"],Veto:["trap","molly"]};
+const KIT_ROLE={duelist:["flash","dash"],initiator:["recon","flash"],controller:["smoke","smoke"],sentinel:["trap","wall"],flex:["flash","smoke1"]};
+const SMK_COL={Omen:"118,82,196",Brimstone:"150,120,110",Astra:"150,95,230",Harbor:"30,138,138",Viper:"47,138,58",Clove:"194,91,155",Jett:"220,232,240",Cypher:"150,160,170",Miks:"184,107,214"};
+const AG_ORDER=["Jett","Reyna","Raze","Phoenix","Yoru","Neon","Iso","Waylay","Hush","Sova","Breach","Skye","Kayo","Fade","Gekko","Tejo","Brimstone","Viper","Omen","Astra","Harbor","Clove","Miks","Sage","Cypher","Killjoy","Chamber","Deadlock","Vyse","Veto"];
+function agEn(ref){ if(!ref||ref.ag==null) return null; const a=DB.agents[ref.ag]; if(a&&KIT[a[0]]) return a[0]; if(a&&KIT[a[1]]) return a[1]; return AG_ORDER[ref.ag]||null; }
+function kitOf(ref){ const n=agEn(ref); return (KIT[n]||KIT_ROLE[ref.role]||KIT_ROLE.flex).slice(); }
+/* hidden comp style: counts of tools decide what the team is good at */
+function styleOf(list){ const c={smoke:0,smoke1:0,flash:0,molly:0,recon:0,wall:0,trap:0,dash:0,duel:0}, r={duelist:0,initiator:0,controller:0,sentinel:0};
+  (list||[]).forEach(p=>{ kitOf(p).forEach(k=>c[k]++); const ro=p.ag!=null&&DB.agents[p.ag]?DB.agents[p.ag][2]:p.role; if(r[ro]!=null) r[ro]++; });
+  const all=r.duelist&&r.initiator&&r.controller&&r.sentinel, maxR=Math.max(r.duelist,r.initiator,r.controller,r.sentinel);
+  const s={ dive:(c.dash*0.9+c.flash*0.3+r.duelist*0.6)/4,
+    exec:Math.min(c.smoke+c.smoke1*0.5,3)/3*0.6+Math.min(c.flash,3)/3*0.5-(c.recon>2?0.15:0),
+    ctrl:(c.smoke*0.6+c.smoke1*0.25+r.controller*0.6)/4.2,
+    info:(c.recon*0.9+r.initiator*0.5)/3.2,
+    lock:(c.trap*0.8+r.sentinel*0.6)/3.4,
+    pp:(c.molly*0.8)/2.6,
+    split:(c.trap*0.4+c.dash*0.4+c.recon*0.3+(r.sentinel&&r.duelist?0.4:0))/2.2,
+    trade:(c.flash*0.6+r.duelist*0.3)/2.6,
+    wall:(c.wall*0.7+c.smoke*0.15)/2,
+    retake:(c.molly*0.4+c.recon*0.4+c.smoke*0.3+r.initiator*0.2)/2.6,
+    balanced:all?0.66+(maxR<=2?0.1:0):0,
+    dctrl:r.controller>=2?0.95:0,
+    hyper:r.duelist>=3?1:0,
+    anchor:r.sentinel>=2?0.68+c.molly*0.06+c.wall*0.05:0,
+    mid:(c.smoke1*0.5+c.recon*0.35+c.dash*0.35+c.wall*0.2)/1.6,
+    flank:(c.trap*0.5+c.recon*0.3+(r.sentinel&&r.initiator&&!r.duelist?0.6:0))/1.6,
+    bait:(r.duelist>=1&&r.initiator>=2?0.78:0)+c.flash*0.05,
+    zone:(c.molly*0.3+c.wall*0.3+c.trap*0.15)/1.4,
+    scout:(r.initiator>=2&&r.sentinel>=1&&!r.duelist?0.95:0)+c.recon*0.04,
+    aggrodef:(c.dash*0.3+c.duel*0.45+c.flash*0.15)/1.3,
+    tempo:(c.smoke1*0.4+c.dash*0.4+c.flash*0.2)/1.4 };
+  Object.keys(s).forEach(k=>s[k]=Math.max(0,Math.min(1,s[k])));
+  const ord=Object.keys(s).sort((a,b)=>s[b]-s[a]); s.main=ord[0]; s.sub=ord[1]; s.has=c; return s; }
+function teamStyle(team){ MX.sty=MX.sty||{}; const sig=(team==="me"?MX.me:MX.op||[]).map(p=>p.ag).join(","); const o=MX.sty[team];
+  if(o&&o.sig===sig) return o.s; const s=styleOf(team==="me"?MX.me:MX.op); MX.sty[team]={sig,s}; return s; }
+/* the IGL leans toward plans that fit the comp */
+function styleBias(team,side,p){ let s; try{ s=teamStyle(team); }catch(e){ return p; } if(!s||s.main==="balanced"||Math.random()>0.45) return p; const q={...p};
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(side==="atk"){ if(q.pat==="fake") return p;
+    const m={dive:["rush","contact"],exec:["default","split"],ctrl:["default","split"],info:["default","contact"],lock:["tail","default"],pp:["default","tail"],split:["split","tail"],trade:["contact","default"],wall:["split","default"],retake:["default"],dctrl:["split","default"],hyper:["rush","rush","contact"],anchor:["default","tail"],mid:["contact","split"],flank:["tail","split"],bait:["default","contact"],zone:["default","tail"],scout:["default"],aggrodef:["contact"],tempo:["rush","split"]}[s.main];
+    if(m) q.pat=pick(m); const sp={tempo:1,zone:-1,scout:-1,dive:1,trade:1,hyper:2,mid:1,exec:0,ctrl:-1,dctrl:-1,pp:-1,wall:-1,lock:-1,anchor:-1}[s.main]||0; q.speed=Math.max(1,Math.min(5,(q.speed||3)+sp));
+    if(q.pat!=="rush"&&q.pat!=="contact"&&q.target==="Mid"&&q.pat!=="default") q.pat="default"; }
+  else { if(q.pat==="stack") return p; const m={dive:["push","hold"],exec:["hold"],ctrl:["hold","retake"],info:["hold","push"],lock:["hold"],pp:["retake","hold"],split:["hold"],trade:["push","hold"],wall:["hold"],retake:["retake","retake","hold"],dctrl:["retake","hold"],hyper:["push","push"],anchor:["hold","hold"],mid:["push","hold"],flank:["hold"],bait:["hold"],zone:["hold","hold"],scout:["push","hold"],aggrodef:["push","push"],tempo:["push","retake"]}[s.main]; if(m) q.pat=pick(m);
+    if(s.main==="lock"||s.main==="wall"||s.main==="anchor") q.speed=Math.max(1,(q.speed||3)-1); if(s.main==="hyper") q.speed=Math.min(5,(q.speed||3)+1); }
+  return q; }
+const fxR=(M,r)=>r*(M.spd||1);
+function cheb(a,b){ return Math.max(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1])); }
+function ctrOf(cells){ if(!cells||!cells.length) return null; let x=0,y=0; cells.forEach(c=>{ x+=c[0]; y+=c[1]; }); return [Math.round(x/cells.length),Math.round(y/cells.length)]; }
+function nearCell(cells,pt){ let b=null,bd=1e9; (cells||[]).forEach(c=>{ const d=Math.hypot(c[0]-pt[0],c[1]-pt[1]); if(d<bd){ bd=d; b=c; } }); return b; }
+function useKit(pl,k){ const i=pl.kit?pl.kit.indexOf(k):-1; if(i<0) return false; pl.kit.splice(i,1); return true; }
+function hasKit(pl,k){ return !!(pl.kit&&pl.kit.includes(k)); }
+function addFx(R,o){ R.fx.push(o); if(o.k==="smoke"||o.k==="wall") R.smkDirty=true; }
+function abilInit(R){ const M=MX.M, sp=M.sp; R.fx=[]; R.smk=new Set(); R.traps=[]; R.sty={me:teamStyle("me"),op:teamStyle("op")};
+  R.pl.forEach(p=>{ p.kit=kitOf(p.ref); const st=R.sty[p.team]; if(st.main==="ctrl"&&p.kit.includes("smoke")&&Math.random()<0.5) p.kit.push("smoke"); if(st.main==="pp"&&p.kit.includes("molly")&&Math.random()<0.5) p.kit.push("molly"); });
+  const dsC=ctrOf(M.cells("DS"));
+  /* sentinels set traps on the entry of the site they hold */
+  R.pl.filter(p=>p.side==="def").forEach(p=>{ const n=p.kit.filter(k=>k==="trap").length+(R.sty[p.team].main==="lock"?1:0); if(!n) return;
+    const site=sp.sites.includes(p.zone)?p.zone:(sp.laneSite[p.zone]||sp.sites[0]), lane=sp.lanes[laneForSite(sp,site)], lc=ctrOf(M.cells(lane)), sc=M.cells(site);
+    for(let i=0;i<n;i++){ const c=lc?nearCell(sc,lc):rpick(sc); if(!c) break; const jit=[c[0]+rint(-1,1),c[1]+rint(-1,1)]; const ok=M.g0[jit[1]]&&M.g0[jit[1]][jit[0]]?jit:c;
+      R.traps.push({x:ok[0],y:ok[1],team:p.team,own:p,agi:p.ref.ag,site}); } p.kit=p.kit.filter(k=>k!=="trap"); });
+  R.dsC=dsC; }
+function smkRebuild(R){ R.smk=new Set(); R.fx.forEach(f=>{ if(f.k!=="smoke"&&f.k!=="wall") return; (f.cells||[]).forEach(c=>R.smk.add(c[0]+","+c[1])); }); R.smkDirty=false; }
+function cellsIn(M,pt,r){ const out=[], rr=Math.ceil(r); for(let j=pt[1]-rr;j<=pt[1]+rr;j++) for(let i=pt[0]-rr;i<=pt[0]+rr;i++){ if(!M.g0[j]||!M.g0[j][i]) continue; if(Math.hypot(i-pt[0],j-pt[1])<=r+0.3) out.push([i,j]); } return out; }
+/* where smokes must go so a doorway is fully covered: greedy cover of the boundary cells with the smoke radius */
+function zoneBoundary(M,from,toSet){ const out=[], seen=new Set(); (M.cells(from)||[]).forEach(([x,y])=>{ for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx, ny=y+dy; if(!M.g0[ny]||!M.g0[ny][nx]) continue; const z=M.zone[ny][nx]; if(z&&z!==from&&toSet(z)){ const k=x+","+y; if(!seen.has(k)){ seen.add(k); out.push([x,y]); } break; } } }); return out; }
+function coverPts(M,T,radii){ const left=T.slice(), pts=[]; if(!left.length) return pts; const cand=new Map();
+  T.forEach(([x,y])=>{ for(let j=-2;j<=2;j++) for(let i=-2;i<=2;i++){ const cx=x+i, cy=y+j; if(M.g0[cy]&&M.g0[cy][cx]) cand.set(cx+","+cy,[cx,cy]); } });
+  for(const r of radii){ if(!left.length) break; let best=null, bn=0, bd=1e9; cand.forEach(c=>{ let n=0, d=0; left.forEach(p=>{ const h=Math.hypot(p[0]-c[0],p[1]-c[1]); if(h<=r+0.3){ n++; d+=h; } }); if(n>bn||(n===bn&&d<bd)){ bn=n; bd=d; best=c; } });
+    if(!best||!bn) break; pts.push(best); for(let i=left.length-1;i>=0;i--) if(Math.hypot(left[i][0]-best[0],left[i][1]-best[1])<=r+0.3) left.splice(i,1); }
+  return {pts,left}; }
+/* attack: pick smoke spots that cut the most sightlines from defender holding angles to our entrance */
+function segD(p,a,b){ const vx=b[0]-a[0], vy=b[1]-a[1], L2=vx*vx+vy*vy||1; let u=((p[0]-a[0])*vx+(p[1]-a[1])*vy)/L2; if(u<0.12||u>0.97) return 1e9; return Math.hypot(a[0]+u*vx-p[0],a[1]+u*vy-p[1]); }
+function smokeAngles(R,list,site,lane){ const M=MX.M; const mouth=zoneBoundary(M,site,z=>z===lane); const E=ctrOf(mouth.length?mouth:M.cells(lane)); if(!E) return [];
+  const sc=ctrOf(M.cells(site)), rad=Math.round(fxR(M,6)), H=[];
+  for(let j=sc[1]-rad;j<=sc[1]+rad;j++) for(let i=sc[0]-rad;i<=sc[0]+rad;i++){ if(!M.g0[j]||!M.g0[j][i]) continue; const z=M.zone[j][i]; if(z===lane||z==="AS") continue;
+    const d=Math.hypot(i-E[0],j-E[1]); if(d<Math.max(3,fxR(M,1.4))||d>fxR(M,8)) continue; if(!los(M,[i,j],E)) continue; H.push([i,j]); }
+  if(!H.length) return [];
+  const th=[]; list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke") th.push([p,k,fxR(M,0.55)]); }); }); list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke1") th.push([p,k,fxR(M,0.42)]); }); });
+  const cand=[]; for(let j=sc[1]-rad;j<=sc[1]+rad;j++) for(let i=sc[0]-rad;i<=sc[0]+rad;i++){ if(!M.g0[j]||!M.g0[j][i]) continue; if(Math.hypot(i-E[0],j-E[1])<Math.max(2.5,fxR(M,1.1))) continue; if(R.smk.has(i+","+j)) continue; cand.push([i,j]); }
+  let left=H.slice(); const used=[];
+  for(const [p,k,r] of th){ if(!left.length) break; let best=null,bn=0; cand.forEach(c=>{ if(used.some(u=>Math.hypot(u[0]-c[0],u[1]-c[1])<r*1.4)) return; let n=0; left.forEach(h=>{ if(segD(c,h,E)<=r+0.2) n++; }); if(n>bn){ bn=n; best=c; } });
+    if(!best||bn<2) break; if(!useKit(p,k)) continue; throwSmoke(R,p,best,k==="smoke1"); used.push(best); left=left.filter(h=>segD(best,h,E)>r+0.2); }
+  return left; }
+/* one smoke per doorway: attack smokes the site's doors toward the defenders, defense smokes the attackers' lane mouth; gaps are left as they are */
+function doorSmokes(R,list,doors){ const M=MX.M; const th=[]; list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke") th.push([p,k]); }); }); list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke1") th.push([p,k]); }); });
+  doors.forEach(pt=>{ if(!pt||!th.length) return; if(R.smk.has(pt[0]+","+pt[1])) return; const [p,k]=th.shift(); if(useKit(p,k)) throwSmoke(R,p,pt,k==="smoke1"); }); }
+function pushOut(M,pt,from,dist){ if(!pt||!from) return pt; const dx=pt[0]-from[0], dy=pt[1]-from[1], L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, z0=M.zone[pt[1]]&&M.zone[pt[1]][pt[0]]; let best=pt;
+  for(let s=0.5;s<=dist;s+=0.5){ const x=Math.round(pt[0]+ux*s), y=Math.round(pt[1]+uy*s); if(!M.g0[y]||!M.g0[y][x]) break; const z=M.zone[y][x]; if(z&&z0&&z!==z0) break; best=[x,y]; } return best; }
+function siteDoors(M,site,skip){ const by={}; (M.cells(site)||[]).forEach(([x,y])=>{ for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx, ny=y+dy; if(!M.g0[ny]||!M.g0[ny][nx]) continue; const z=M.zone[ny][nx]; if(z&&z!==site&&!skip(z)){ (by[z]=by[z]||[]).push([nx,ny]); } } });
+  const sc=ctrOf(M.cells(site)); return Object.values(by).sort((a,b)=>b.length-a.length).map(c=>pushOut(M,nearCell(c,ctrOf(c)),sc,doorR(M)+0.8)); }
+function smokeTeam(R,list,T){ const M=MX.M; const th=[]; list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke") th.push([p,k,fxR(M,0.55)]); }); }); list.forEach(p=>{ (p.kit||[]).forEach(k=>{ if(k==="smoke1") th.push([p,k,fxR(M,0.42)]); }); });
+  T=T.filter(c=>!R.smk.has(c[0]+","+c[1])); if(!th.length||!T.length) return T; const cv=coverPts(M,T,th.map(x=>x[2])); cv.pts.forEach((pt,i)=>{ const [p,k]=th[i]; if(useKit(p,k)) throwSmoke(R,p,pt,k==="smoke1"); }); return cv.left; }
+function doorR(M){ if(M.smkR) return M.smkR; const sp=M.sp, w=[]; sp.sites.forEach(s=>{ const ln=sp.lanes[laneForSite(sp,s)]; const n=zoneBoundary(M,ln,z=>z===s).length; if(n) w.push(n); }); w.sort((a,b)=>a-b); const md=w.length?w[Math.floor(w.length/2)]:4; return M.smkR=Math.max(0.9,Math.min(1.2,md/2*0.46)); }
+function throwSmoke(R,pl,pt,small){ const M=MX.M; if(!pt) return; const st=R.sty[pl.team], r=doorR(M)*(small?0.75:1), dur=(small?9:15)+(st.main==="ctrl"?4:0);
+  addFx(R,{k:"smoke",x:pt[0],y:pt[1],r,t0:R.tick,t1:R.tick+dur,team:pl.team,col:SMK_COL[agEn(pl.ref)]||"120,124,136",cells:cellsIn(M,pt,r)}); }
+function throwWall(R,pl,pt,dirFrom){ const M=MX.M; if(!pt) return; let ux=pt[0]-(dirFrom?dirFrom[0]:pt[0]), uy=pt[1]-(dirFrom?dirFrom[1]:pt[1]); const L0=Math.hypot(ux,uy)||1; ux/=L0; uy/=L0; if(!dirFrom||L0<0.5){ ux=0; uy=1; }
+  const px=-uy, py=ux, mx=Math.round(10*(M.spd||1)), side=sg=>{ const out=[]; let last=null; for(let s=0.5;s<=mx;s+=0.5){ const x=Math.round(pt[0]+px*s*sg), y=Math.round(pt[1]+py*s*sg); if(!M.g0[y]||!M.g0[y][x]) break; const k=x+","+y; if(k!==last){ out.push([x,y]); last=k; } } return out; };
+  const cells=side(-1).reverse().concat([[pt[0],pt[1]]],side(1));
+  const n=agEn(pl.ref); addFx(R,{k:"wall",x:pt[0],y:pt[1],t0:R.tick,t1:R.tick+10,team:pl.team,col:n==="Harbor"?"30,160,170":n==="Viper"?"47,160,58":n==="Neon"?"60,140,255":n==="Deadlock"?"190,200,210":"120,220,230",cells}); }
+function throwMolly(R,pl,pt,dur){ const M=MX.M; if(!pt) return; const st=R.sty[pl.team];
+  addFx(R,{k:"molly",x:pt[0],y:pt[1],r:fxR(M,0.6),t0:R.tick,t1:R.tick+(dur||7)+(st.main==="pp"?2:0),team:pl.team,own:pl,ag:agEn(pl.ref)}); }
+function throwFlash(R,pl,pt){ const M=MX.M; if(!pt) return; const r=fxR(M,1.3); addFx(R,{k:"flash",x:pt[0],y:pt[1],r,t0:R.tick,t1:R.tick+2,team:pl.team});
+  R.pl.forEach(e=>{ if(!e.alive||e.team===pl.team) return; if(Math.hypot(e.x-pt[0],e.y-pt[1])<=r) e.blind=R.tick+3; }); pl.boost=R.tick+3; }
+function throwRecon(R,pl,pt){ const M=MX.M; if(!pt) return; const st=R.sty[pl.team], r=fxR(M,1.45+(st.main==="info"?0.3:0)); addFx(R,{k:"recon",x:pt[0],y:pt[1],r,t0:R.tick,t1:R.tick+4,team:pl.team});
+  R.pl.forEach(e=>{ if(!e.alive||e.team===pl.team) return; if(Math.hypot(e.x-pt[0],e.y-pt[1])<=r){ e.rev=R.tick+6; } }); }
+function nearestEnemy(R,pl,maxd){ let b=null,bd=maxd; R.pl.forEach(e=>{ if(!e.alive||e.team===pl.team) return; const d=cheb([pl.x,pl.y],[e.x,e.y]); if(d<bd){ bd=d; b=e; } }); return b; }
+function abilTick(R){ const M=MX.M, sp=M.sp, t=R.tick; if(!R.fx) return;
+  const before=R.fx.length; R.fx=R.fx.filter(f=>f.t1>=t); if(R.fx.length!==before) R.smkDirty=true; if(R.smkDirty) smkRebuild(R);
+  const A=R.pl.filter(p=>p.alive&&p.side==="atk"&&!p.save), D=R.pl.filter(p=>p.alive&&p.side==="def"&&!p.save);
+  const tgt=R.target, tc=tgt?M.cells(tgt):null, tctr=tc?ctrOf(tc):null;
+  /* attack execute: smokes on the defender side of the site, info and flashes in, entry dash */
+  if(tgt&&!R.plant&&!R.exec&&A.length){ const close=A.some(a=>cheb([a.x,a.y],tctr)<=fxR(M,8)); if(close||R.hitSite===tgt||R.lateCall){ R.exec=t;
+      const dsN=R.dsC?nearCell(tc,R.dsC):tctr, far=tc.slice().sort((a,b)=>Math.hypot(b[0]-tctr[0],b[1]-tctr[1])-Math.hypot(a[0]-tctr[0],a[1]-tctr[1]));
+      const spots=[dsN].concat(far.filter(c=>Math.hypot(c[0]-dsN[0],c[1]-dsN[1])>fxR(M,3.5)).slice(0,1)), sp2=spots.slice();
+      const myLane=sp.lanes[laneForSite(sp,tgt)]; doorSmokes(R,A,siteDoors(M,tgt,z=>z===myLane||z==="AS"));
+      A.forEach(a=>{ if(hasKit(a,"recon")&&Math.random()<0.8&&useKit(a,"recon")) throwRecon(R,a,tctr); });
+      A.forEach(a=>{ if(hasKit(a,"wall")&&Math.random()<0.6&&useKit(a,"wall")) throwWall(R,a,tctr,R.dsC||dsN); });
+      A.forEach(a=>{ if(hasKit(a,"dash")&&useKit(a,"dash")){ a.dashT=t+4; a.mv=1; a.acc=(a.acc||0)+1.5; } });
+      if(R.sty[R.atkTeam].pp<0.5) A.forEach(a=>{ if(hasKit(a,"molly")&&Math.random()<0.45&&useKit(a,"molly")){ const d=D.find(d=>d.zone===tgt||M.zone[d.y][d.x]===tgt); throwMolly(R,a,d?[d.x,d.y]:rpick(tc)); } }); } }
+  /* defense: recon a lane early, smoke the choke once the attack shows up */
+  if(!R.plant&&t>=rint(16,24)&&!R.dRecon){ const d=D.find(p=>hasKit(p,"recon")); if(d){ R.dRecon=true; useKit(d,"recon"); const lane=sp.lanes[rpick(Object.keys(sp.lanes))]; throwRecon(R,d,ctrOf(M.cells(lane))); } }
+  if(!R.plant&&(R.hitSite||R.exec)&&!R.dSmoke){ R.dSmoke=true; const site=R.hitSite||tgt; if(site){ const lane=sp.lanes[laneForSite(sp,site)], lc=ctrOf(M.cells(lane));
+      const mouth=zoneBoundary(M,lane,z=>z===site); doorSmokes(R,D,[mouth.length?pushOut(M,nearCell(mouth,ctrOf(mouth)),ctrOf(M.cells(site)),doorR(M)+0.8):lc]);
+      D.forEach(d=>{ if(hasKit(d,"wall")&&Math.random()<0.5&&useKit(d,"wall")) { const sc=ctrOf(M.cells(site)), mo=zoneBoundary(M,lane,z=>z===site); throwWall(R,d,mo.length?pushOut(M,nearCell(mo,ctrOf(mo)),sc,doorR(M)+0.8):lc,sc); } });
+      D.forEach(d=>{ if(hasKit(d,"molly")&&Math.random()<0.5){ const e=nearestEnemy(R,d,fxR(M,10)); if(e&&useKit(d,"molly")) throwMolly(R,d,[e.x,e.y],6); } }); } }
+  /* flash peeks: anyone with a flash pops it before taking a close fight */
+  R.pl.forEach(p=>{ if(!p.alive||p.save||!hasKit(p,"flash")) return; const e=nearestEnemy(R,p,fxR(M,6)); if(!e) return;
+    const st=R.sty[p.team]; if(Math.random()<0.18+st.dive*0.15+st.info*0.08&&useKit(p,"flash")) throwFlash(R,p,[e.x,e.y]); });
+  /* post-plant: lineups on the spike when someone goes for it */
+  if(R.plant){ const sp0=R.plant, onSpike=D.filter(d=>cheb([d.x,d.y],sp0)<=fxR(M,2.2));
+    if(onSpike.length&&!R.fx.some(f=>f.k==="molly"&&f.team===R.atkTeam&&Math.hypot(f.x-sp0[0],f.y-sp0[1])<=f.r)){ const a=A.filter(a=>hasKit(a,"molly")&&cheb([a.x,a.y],sp0)<=fxR(M,16))[0]; if(a&&useKit(a,"molly")){ throwMolly(R,a,sp0,8); if(!MX.skip&&MX.feed) MX.feed.unshift({sys:`${a.ref.name} 스파이크 견제`}); } }
+    /* retake: smoke off the closest attacker, info and flash into the site */
+    if(!R.rtk&&D.some(d=>cheb([d.x,d.y],sp0)<=fxR(M,11))){ R.rtk=true; const near=A.slice().sort((a,b)=>cheb([a.x,a.y],sp0)-cheb([b.x,b.y],sp0));
+      D.forEach(d=>{ const k=hasKit(d,"smoke")?"smoke":hasKit(d,"smoke1")?"smoke1":null; if(k&&near.length){ useKit(d,k); throwSmoke(R,d,[near[0].x,near[0].y],k==="smoke1"); near.shift(); } });
+      D.forEach(d=>{ if(hasKit(d,"recon")&&useKit(d,"recon")) throwRecon(R,d,sp0); }); } }
+  /* traps */
+  R.traps=R.traps.filter(tr=>{ const e=R.pl.find(p=>p.alive&&p.team!==tr.team&&cheb([p.x,p.y],[tr.x,tr.y])<=Math.max(1,Math.round(fxR(M,1.4)))); if(!e) return true;
+    R.pl.forEach(p=>{ if(p.alive&&p.team!==tr.team&&cheb([p.x,p.y],[tr.x,tr.y])<=fxR(M,1.8)){ p.rev=t+6; p.wait=Math.max(p.wait||0,2); } });
+    addFx(R,{k:"trap",x:tr.x,y:tr.y,r:fxR(M,1.8),t0:t,t1:t+3,team:tr.team}); if(!MX.skip&&MX.feed) MX.feed.unshift({sys:`${tr.agi!=null&&DB.agents[tr.agi]?agNm(DB.agents[tr.agi]):""} 설치물 발동: ${e.ref.name}`}); MX.feed=MX.feed&&MX.feed.slice(0,6); return false; });
+  /* molly: standing in fire hurts, so players step out; it can finish someone off */
+  R.fx.forEach(f=>{ if(f.k!=="molly"||f.t0===t) return; R.pl.forEach(p=>{ if(!p.alive||p.team===f.team) return; if(Math.hypot(p.x-f.x,p.y-f.y)>f.r) return; p.mol=t+1;
+      if(Math.random()<0.035&&f.own&&f.own.alive){ p.alive=false; f.own.ref.k++; f.own.ref.mk++; p.ref.d++; p.ref.md++; try{ onKill(R,f.own,p); msKill(R,f.own,p); }catch(e){} if(MX.feed){ MX.feed.unshift({w:f.own.ref.name,l:p.ref.name,team:f.own.team}); MX.feed=MX.feed.slice(0,6); } return; }
+      if(!p.path.length||Math.random()<0.5){ const out=cellsIn(M,[f.x,f.y],f.r+1.6).filter(c=>Math.hypot(c[0]-f.x,c[1]-f.y)>f.r).sort((a,b)=>Math.hypot(a[0]-p.x,a[1]-p.y)-Math.hypot(b[0]-p.x,b[1]-p.y))[0];
+        if(out){ if(!p.ret) p.ret=p.goal; p.path=bfs(M,[p.x,p.y],out); p.wait=0; } } }); });
+  R.pl.forEach(p=>{ if(!p.alive||!p.ret||p.path.length||p.mol>=t) return; const g=p.ret; if(R.fx.some(f=>f.k==="molly"&&f.team!==p.team&&Math.hypot(g[0]-f.x,g[1]-f.y)<=f.r)) return; p.ret=null; p.goal=g; p.path=bfs(M,[p.x,p.y],g); }); }
+/* LOS also stops at smokes and walls */
+function smokeBlocks(a,b){ const R=MX&&MX.R; if(!R||!R.smk||!R.smk.size) return false; if(Math.max(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1]))<=1) return false;
+  let x0=a[0],y0=a[1]; const x1=b[0],y1=b[1], dx=Math.abs(x1-x0), dy=Math.abs(y1-y0), sx=x0<x1?1:-1, sy=y0<y1?1:-1; let e=dx-dy;
+  while(!(x0===x1&&y0===y1)){ const e2=2*e; if(e2>-dy){ e-=dy; x0+=sx; } if(e2<dx){ e+=dx; y0+=sy; } if(R.smk.has(x0+","+y0)) return true; }
+  return false; }
+function abilMod(pl,R){ const t=R.tick; let r=0; if(pl.blind>t) r-=30; if(pl.mol>=t) r-=12; if(pl.rev>t) r-=8; if(pl.boost>t) r+=7; if(pl.dashT>=t) r+=8;
+  if(pl.kit0==null) pl.kit0=kitOf(pl.ref); if(pl.kit0.includes("duel")) r+=2.5;
+  const st=R.sty&&R.sty[pl.team]; if(!st) return r; const w=k=>(st.main===k?1:0)+(st.sub===k?0.5:0);
+  const buddy=()=>R.pl.some(o=>o!==pl&&o.alive&&o.team===pl.team&&Math.max(Math.abs(o.x-pl.x),Math.abs(o.y-pl.y))<=3);
+  const pre=!R.plant, ex=R.exec&&pre;
+  if(pl.side==="atk"){ r+=3*w("dive")*(t<35?1:0)+3*w("exec")*(ex?1:0)+2*w("ctrl")*(ex?1:0)+2.5*w("info")*(ex?1:0)+2.5*w("pp")*(R.plant?1:0)+4*w("split")*(pl.tail?1:0)+2*w("wall")*(ex?1:0)+1.2*w("balanced")+(pl.tail?1:0)*w("lock")+2.5*w("dctrl")*(ex||R.plant?1:0)+4*w("hyper")*(t<25?1:0)-1.5*w("hyper")*(R.plant?1:0)+2*w("anchor")*(R.plant?1:0)+3*w("mid")*(R.target==="Mid"||(pl.zone==="Mid")?1:0)+1.5*w("mid")*(t<30?1:0)+3*w("flank")*(pl.tail?1:0)+3*w("zone")*(R.plant?1:0)+2*w("scout")*(ex?1:0)+w("scout")*(t>40?1:0)+w("aggrodef")+3*w("tempo")*(t<30?1:0);
+    if(w("bait")&&buddy()) r+=3*w("bait");
+    if(w("trade")&&buddy()) r+=2.5*w("trade");
+    if(ex&&!st.has.smoke&&!st.has.smoke1) r-=5; if(!st.has.flash&&!st.has.recon&&ex) r-=3; }
+  else { r+=1.5+5*w("lock")*(pre?1:0)+2*w("info")*(pre?1:0)+4*w("dive")*(pl.pusher?1:0)+2.5*w("ctrl")*(R.plant?1:0)+4*w("retake")*(R.plant?1:0)+2*w("pp")*(R.plant?1:0)+2*w("wall")*(pre?1:0)+w("exec")+w("split")*(pre?1:0)+1.2*w("balanced")+2.5*w("dctrl")*(R.plant?1:0)+1.5*w("dctrl")*(pre?1:0)+3*w("hyper")*(pl.pusher?1:0)-1*w("hyper")*(pre&&!pl.pusher?1:0)+4*w("anchor")*(pre?1:0)-1*w("anchor")*(R.plant?1:0)+2.5*w("mid")*(t<30?1:0)+3*w("flank")*(pre&&t>30?1:0)+4*w("zone")*(pre?1:0)+2.5*w("scout")*(pre?1:0)+5*w("aggrodef")*(pl.pusher?1:0)-w("aggrodef")*(pre&&!pl.pusher?1:0)+2*w("tempo")*(t<30?1:0);
+    if(w("bait")&&buddy()) r+=2*w("bait");
+    if(w("trade")&&buddy()) r+=2.5*w("trade");
+    if(!st.has.trap&&!st.has.smoke&&pre) r-=3; }
+  return r; }
+function ppSpot(R,a){ const M=MX.M, s=R.plant, r=Math.round(fxR(M,7)); const used=new Set(R.pl.filter(p=>p!==a&&p.alive&&p.side==="atk"&&p.ppG).map(p=>p.ppG.join(",")));
+  const c=[]; for(let j=s[1]-r;j<=s[1]+r;j++) for(let i=s[0]-r;i<=s[0]+r;i++){ if(!M.g[j]||!M.g[j][i]) continue; const d=cheb([i,j],s); if(d<Math.max(2,Math.round(fxR(M,2.5)))||used.has(i+","+j)) continue; if(!los(M,[i,j],s)) continue;
+    const ds=R.dsC?Math.hypot(i-R.dsC[0],j-R.dsC[1]):0, my=Math.hypot(i-a.x,j-a.y); c.push([i,j,ds*1.0-my*0.35-d*0.4+Math.random()*3]); }
+  if(!c.length) return null; c.sort((x,y)=>y[2]-x[2]); const g=c[Math.floor(Math.random()*Math.min(4,c.length))]; return [g[0],g[1]]; }
+function postPlantAI(R){ const M=MX.M, s=R.plant; if(!s) return; const t=R.tick, left=45-(t-R.ptick);
+  const A=R.pl.filter(p=>p.alive&&p.side==="atk"&&!p.save), D=R.pl.filter(p=>p.alive&&p.side==="def"&&!p.save);
+  A.forEach(a=>{ const far=cheb([a.x,a.y],s)>fxR(M,9), blind=!los(M,[a.x,a.y],s);
+    if(!a.ppG||(!a.path.length&&(t-(a.ppT||0)>=6)&&(far||blind))){ const g=ppSpot(R,a); if(g){ a.ppG=g; a.ppT=t; a.goal=g; a.path=bfs(M,[a.x,a.y],g); a.q=[]; a.cur={site:true}; } } });
+  /* the defuse is loud: everyone alive turns to the spike */
+  const dz=D.find(d=>cheb([d.x,d.y],s)<=1); if(dz&&(R.dfz||0)>=1&&!R.heard){ R.heard=true; A.forEach(a=>{ a.goal=s; a.path=bfs(M,[a.x,a.y],s); a.wait=0; a.ppT=t; }); }
+  /* retake as a group unless the clock forces a solo go */
+  D.forEach(d=>{ if(!d.path.length&&!d.ret&&cheb([d.x,d.y],s)>1&&!(R.fx||[]).some(f=>f.k==="molly"&&f.team!==d.team&&Math.hypot(s[0]-f.x,s[1]-f.y)<=f.r)){ d.goal=s; d.path=bfs(M,[d.x,d.y],s); } });
+  D.forEach(d=>{ d.hold=false; if(left<=20||D.length<2) return; const dd=cheb([d.x,d.y],s); if(dd>fxR(M,9)||dd<=fxR(M,3)) return;
+    const buddy=D.some(o=>o!==d&&cheb([o.x,o.y],[d.x,d.y])<=fxR(M,5)); if(!buddy) d.hold=true; }); }
+/* idle players shift around a little instead of standing frozen */
+function jiggle(R,p){ const M=MX.M; if(p.path.length||p.wait>0||p.save) return; if(!p.anc) p.anc=[p.x,p.y]; if(R.tick%rint(4,7)!==0) return;
+  const z=M.zone[p.anc[1]]&&M.zone[p.anc[1]][p.anc[0]]; const opts=[]; for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){ const x=p.x+i,y=p.y+j; if((i||j)&&M.g[y]&&M.g[y][x]&&cheb([x,y],p.anc)<=2&&(!z||M.zone[y][x]===z||!M.zone[y][x])) opts.push([x,y]); }
+  if(opts.length&&Math.random()<0.6){ const c=rpick(opts); p.trail=(p.trail||[]).concat([c]); p.x=c[0]; p.y=c[1]; } }
+function abilDraw(c,M,R){ if(!R||!R.fx) return; const t=R.tick, px=cpx(M,1,0)[0]-cpx(M,0,0)[0]||CS;
+  const badge=(x,y,ring,glyph)=>{ c.fillStyle="rgba(15,18,24,.9)"; c.strokeStyle=ring; c.lineWidth=1.5; c.beginPath(); c.arc(x,y,5.5,0,Math.PI*2); c.fill(); c.stroke(); c.strokeStyle="#fff"; c.fillStyle="#fff"; c.lineWidth=1.2; glyph(x,y); c.lineWidth=1; };
+  (R.traps||[]).forEach(tr=>{ const [x,y]=cpx(M,tr.x,tr.y); badge(x,y,tr.team==="me"?"#ef4444":"#3b82f6",(x,y)=>{ c.beginPath(); c.moveTo(x-2.5,y+1.5); c.lineTo(x,y-2.5); c.lineTo(x+2.5,y+1.5); c.closePath(); c.stroke(); }); });
+  R.fx.forEach(f=>{ const [x,y]=cpx(M,f.x,f.y), age=t-f.t0, life=Math.max(1,f.t1-f.t0), fade=Math.max(0.25,Math.min(1,(f.t1-t+1)/2));
+    if(f.k==="smoke"){ const rr=Math.max(6,f.r*px)*(age<1?0.75:1); c.fillStyle=`rgba(${f.col},${0.85*fade})`; c.beginPath(); c.arc(x,y,rr,0,Math.PI*2); c.fill();
+      c.strokeStyle=f.team==="me"?`rgba(252,165,165,${0.95*fade})`:`rgba(147,197,253,${0.95*fade})`; c.lineWidth=2; c.stroke(); c.strokeStyle=`rgba(255,255,255,${0.18*fade})`; c.beginPath(); c.arc(x,y,rr*0.62,0,Math.PI*2); c.stroke(); c.lineWidth=1; }
+    else if(f.k==="wall"){ c.strokeStyle=`rgba(${f.col},${0.9*fade})`; c.lineWidth=Math.max(3,px*0.5); c.lineCap="round"; const cs=f.cells||[]; if(cs.length){ c.beginPath(); cs.forEach((q,i)=>{ const P=cpx(M,q[0],q[1]); if(i) c.lineTo(P[0],P[1]); else c.moveTo(P[0],P[1]); }); c.stroke(); } c.lineWidth=1; c.lineCap="butt"; }
+    else if(f.k==="molly"){ const rr=Math.max(5,f.r*px); c.fillStyle=`rgba(234,88,12,${0.4*fade})`; c.beginPath(); c.arc(x,y,rr,0,Math.PI*2); c.fill();
+      c.strokeStyle=`rgba(251,146,60,${0.95*fade})`; c.setLineDash([3,2]); c.lineWidth=1.5; c.stroke(); c.setLineDash([]); c.lineWidth=1;
+      c.fillStyle=`rgba(253,224,71,${0.9*fade})`; for(let i=0;i<4;i++){ const an=i*1.57+t*0.9, d=rr*0.45; c.fillRect(x+Math.cos(an)*d-1,y+Math.sin(an)*d-1,2,2); } }
+    else if(f.k==="flash"){ const rr=Math.max(5,f.r*px)*(0.55+0.45*age/life), al=0.85*(1-age/(life+1)); c.fillStyle=`rgba(255,255,255,${al*0.55})`; c.beginPath(); c.arc(x,y,rr,0,Math.PI*2); c.fill();
+      c.strokeStyle=`rgba(255,255,255,${al})`; c.beginPath(); for(let i=0;i<4;i++){ const an=i*Math.PI/4; c.moveTo(x-Math.cos(an)*4,y-Math.sin(an)*4); c.lineTo(x+Math.cos(an)*4,y+Math.sin(an)*4); } c.stroke(); }
+    else if(f.k==="recon"){ const rr=Math.max(7,f.r*px), mine=f.team==="me", col=mine?`rgba(59,130,246,${0.95*fade})`:`rgba(250,224,70,${0.95*fade})`;
+      c.strokeStyle=col; c.lineWidth=2; c.beginPath(); c.arc(x,y,rr,0,Math.PI*2); c.stroke(); c.lineWidth=1;
+      c.fillStyle=mine?"#000":`rgba(250,224,70,${0.95*fade})`; c.strokeStyle=col; c.lineWidth=1.8; c.beginPath(); c.arc(x,y,4.5,0,Math.PI*2); c.fill(); c.stroke(); c.lineWidth=1; }
+    else if(f.k==="trap"){ const rr=Math.max(6,f.r*px)*Math.min(1,(age+1)/life); c.strokeStyle=`rgba(245,158,11,${0.9*fade})`; c.lineWidth=1.5; c.beginPath(); c.arc(x,y,rr,0,Math.PI*2); c.stroke(); c.lineWidth=1; } });
+  R.pl.forEach(p=>{ if(!p.alive) return; const [x,y]=cpx(M,p.x,p.y); if(p.blind>t){ c.strokeStyle="rgba(255,255,255,.9)"; c.setLineDash([2,2]); c.beginPath(); c.arc(x,y,9,0,Math.PI*2); c.stroke(); c.setLineDash([]); }
+ }); }
 function startRound(){
   const M=MX.M, sp=M.sp;
   M.g=M.g0.map(r=>r.slice());
@@ -5838,6 +6056,7 @@ function startRound(){
     else if(ap.pat==="fake"){ if(lane!==focusLane){ pl.faker=true; const fr=sp.lanes[laneForSite(sp,ap.fake)]; pl.q.push({room:fr,until:"t:22"}); pl.q.push({site:true}); } else { pl.q.push({room:laneRoom,until:"t:30"}); pl.q.push({site:true}); } }
     R.pl.push(pl); });
   R.tac=tacBonus(ap,dp,{target:R.target||sp.sites[0]});
+  try{ abilInit(R); }catch(e){ console.error(e); R.fx=null; }
   econStart(R); msRoundStart(R);
   MX.R=R; nextGoal(R); drawHUD(); drawPlan();
 }
@@ -5854,6 +6073,7 @@ function rating(pl,R){
   const p=pl.ref; let r=p.ovr+(p.aim-50)*0.08+(p.fire-50)*0.05+teamMod(pl.team)+(p.agMod||0)+((MX.cb&&MX.cb[pl.team])||0)+((R.tc&&R.tc[pl.team])||0)+(p.kpr?(p.kpr-0.72)*10:0);
   const ap=R.ap, dp=R.dp;
   if(pl.side==="atk") r+=R.tac; else r-=R.tac*0.5;
+  try{ r+=abilMod(pl,R); }catch(e){}
   r+=buyMod(R,pl.team);
   if(pl.side==="def"){
     if(!pl.path.length && !R.plant && dp.pat!=="retake") r+=1.5+(p.cons-50)*0.03;
@@ -5887,6 +6107,7 @@ function step(){
   { const A=R.pl.filter(p=>p.side==="atk"&&p.alive), D=R.pl.filter(p=>p.side==="def"&&p.alive), canA=saveMakesSense(R.atkTeam), canD=saveMakesSense(R.defTeam);
     if(canA && !R.plant && R.tick>45 && A.length && (A.length<=D.length-2&&A.length<=2 || A.length===1&&D.length>=3&&R.tick>60) && !R.atkSave){ R.atkSave=true; A.forEach(p=>{ p.save=true; p.q=[]; p.cur=null; p.goal=rpick(M.cells("AS")); p.path=bfs(M,[p.x,p.y],p.goal); }); MX.feed.unshift({sys:"공격팀 세이브"}); }
     if(canD && R.plant && 45-(R.tick-R.ptick)<38 && D.length && (D.length<=A.length-2&&D.length<=2) && !R.defSave){ R.defSave=true; D.forEach(p=>{ p.save=true; p.q=[]; p.goal=rpick(M.cells("DS")); p.path=bfs(M,[p.x,p.y],p.goal); }); MX.feed.unshift({sys:"수비팀 세이브"}); } }
+  try{ abilTick(R); }catch(e){ console.error(e); }
   const alive=R.pl.filter(p=>p.alive); const busy=new Set();
   alive.sort(()=>Math.random()-0.5).forEach(a=>{
     if(busy.has(a)||!a.alive||a.save) return;
@@ -5911,7 +6132,8 @@ function step(){
       MX.feed.unshift({w:w.ref.name,l:l.ref.name,team:w.team}); MX.feed=MX.feed.slice(0,6);
     }
   });
-  R.pl.forEach(p=>{ if(!p.alive||busy.has(p)) return; if(p.wait>0){ p.wait--; return; } if((R.tick%p.mv)!==0) return;
+  try{ if(R.plant) postPlantAI(R); }catch(e){ console.error(e); }
+  R.pl.forEach(p=>{ if(!p.alive||busy.has(p)) return; if(p.wait>0){ p.wait--; return; } if(p.hold) return; if(!p.path.length){ try{ if(R.fx&&R.tick>3) jiggle(R,p); }catch(e){} return; } if((R.tick%p.mv)!==0) return; p.anc=null;
     p.acc=(p.acc||0)+(M.spd||1);
     while(p.acc>=1&&p.path.length){ p.acc-=1; const n=p.path[0]; if(!M.g[n[1]][n[0]]){ p.path=bfs(M,[p.x,p.y],p.goal); if(!p.path.length) break; } const m=p.path.shift(); p.x=m[0]; p.y=m[1]; p.trail.push([m[0],m[1]]); }
     if(!p.path.length) p.acc=0; });
@@ -5932,7 +6154,7 @@ function step(){
     const on=atk.filter(p=>M.zone[p.y][p.x]===R.target);
     if(on.length && !atk.some(p=>busy.has(p))){ R.pp++; if(R.pp>=4){ R.plant=[on[0].x,on[0].y]; R.ptick=R.tick;
         def.forEach(d=>{ d.goal=R.plant; d.path=bfs(M,[d.x,d.y],R.plant); d.wait=R.dp.pat==="retake"?rint(4,7):rint(0,3); d.q=[]; });
-        atk.forEach(a=>{ if(!a.cur||!a.cur.site||!a.path.length){ a.q=[]; a.cur={site:true}; a.goal=rpick(M.cells(R.target)); a.path=bfs(M,[a.x,a.y],a.goal); } }); } }
+        atk.forEach(a=>{ a.ppG=null; }); try{ postPlantAI(R); }catch(e){ atk.forEach(a=>{ if(!a.cur||!a.cur.site||!a.path.length){ a.q=[]; a.cur={site:true}; a.goal=rpick(M.cells(R.target)); a.path=bfs(M,[a.x,a.y],a.goal); } }); } } }
     if((on.length||R.hitSite===R.target) && !R.rotAt){ R.rotAt=R.tick;
       def.forEach(d=>{ if(M.zone[d.y][d.x]===R.target && R.dp.pat==="retake" && !d.retreated){ d.retreated=true; d.goal=rpick(M.cells("DS")); d.path=bfs(M,[d.x,d.y],d.goal); d.q=[]; }
         else if(d.zone!==R.target){ const delay=d.back+(R.ap.pat==="contact"?4:0); d.wait=delay; d.goal=rpick(M.cells(R.target)); d.path=bfs(M,[d.x,d.y],d.goal); d.zone=R.target; d.q=[]; } }); }
@@ -5943,7 +6165,7 @@ function step(){
   else if(!R.plant && R.tick>=115) win="def";
   else if(R.plant && R.tick-R.ptick>=45) win="atk";
   else if(R.plant){ /* defuse: a defender sits on the spike with no attacker close by */
-    const dz=def.find(d=>Math.max(Math.abs(d.x-R.plant[0]),Math.abs(d.y-R.plant[1]))<=1&&!d.save), near=dz&&atk.some(a=>Math.max(Math.abs(a.x-dz.x),Math.abs(a.y-dz.y))<=Math.round(6*(M.spd||1))&&los(M,[a.x,a.y],[dz.x,dz.y]));
+    const dz=def.find(d=>Math.max(Math.abs(d.x-R.plant[0]),Math.abs(d.y-R.plant[1]))<=1&&!d.save&&!(d.mol>=R.tick)&&!(d.blind>R.tick)), near=dz&&atk.some(a=>{ const dd=Math.max(Math.abs(a.x-dz.x),Math.abs(a.y-dz.y)); return dd<=2||dd<=Math.round(6*(M.spd||1))&&los(M,[a.x,a.y],[dz.x,dz.y]); });
     R.dfz=dz&&!near?(R.dfz||0)+1:0; if(R.dfz>=7){ win="def"; R.defused=true; if(!MX.skip&&MX.feed) MX.feed.unshift({sys:L("스파이크 해체","Spike defused","スパイク解除","炸弹拆除")}); } }
   if(win){ R.over=true; R.winner=win; endRound(win); }
 }
@@ -6145,11 +6367,11 @@ function autoTacs(side){ const T0=tacTerrain(), sp=T0.sp, S=sp.sites, st=coStats
   const keep=out.sort((a,b)=>b.score-a.score).slice(0,nMax); const hi=keep.length?keep[0].score:1, lo=keep.length?keep[keep.length-1].score:0; keep.forEach(o=>o.fit=Math.round(6+4*(hi>lo?(o.score-lo)/(hi-lo):1))); if(keep[0]) keep[0].best=true; return keep; }
 function autoTacHTML(side){ if(!TF.autoOpen||TF.autoOpen!==side) return ""; TF.autoList=TF.autoList||{}; const list=TF.autoList[side]=TF.autoList[side]||autoTacs(side), st=coStats();
   const AP=side==="atk"?APAT:DPAT, chainTxt=c=>c.map(s=>{ const ag=plAg(mePl(s.id)); const sk=ag!=null?skOf(ag,s.k):null; return ag!=null?`${agNm(DB.agents[ag])} ${s.k}${sk?"("+skT(sk.t)+")":""}@${s.z}`:"-"; }).join(" > ");
-  return `<div class="atac"><div class="atach"><b>${L("자동 택틱","Auto tactics","オートタクティク","自动战术")}</b> <span class="mute">${esc(st.n)} | ${L("전술","Tactics","戦術","战术")} ${st.tac} / ${L("분석","Analysis","分析","分析")} ${st.read} | ${list.length}${L("개 방향","directions","方向","个方向")}</span><button class="sbtn" style="margin-left:auto" onclick="TF.autoList[TF.tab]=null;renderTF()">${L("다시 짜기","Redraw","作り直す","重新制定")}</button></div>
+  return `<div class="atac"><div class="atach"><b>${L("자동 택틱","Auto tactics","オートタクティク","自动战术")}</b> <span class="mute">${esc(st.n)} | ${list.length}${L("개 방향","directions","方向","个方向")}</span><button class="sbtn" style="margin-left:auto" onclick="TF.autoList[TF.tab]=null;renderTF()">${L("다시 짜기","Redraw","作り直す","重新制定")}</button></div>
   <p class="mute" style="font-size:11px;margin:2px 0 6px">${L("감독 전술 능력이 높을수록 방향이 많고 연계 실수가 적으며, 분석 능력이 높을수록 추천 순서와 상대 예측이 정확합니다. 실전에서는 전술 능력이 택틱 효과에, 분석 능력이 상대 예측이 맞았을 때의 이득에 반영됩니다.","Higher coach tactics = more directions and cleaner chains; higher analysis = better ranking and reads. In matches tactics scale the chain value and analysis the read bonus.","戦術が高いほど方向が多くミスが少なく、分析が高いほど推薦と予測が正確です。","战术越高方向越多、失误越少；分析越高推荐和预测越准。")}</p>
-  ${list.map((o,i)=>`<div class="atc ${o.best?"best":""}"><div class="atct">${o.best?"<span class='tbadge' style='border-color:var(--red);color:var(--red)'>"+L("코치 추천","Coach pick","コーチ推薦","教练推荐")+"</span> ":""}<b>${esc(o.name)}</b><span class="mute" style="margin-left:auto;font-size:11px">${L("코치 평가","Coach rating","コーチ評価","教练评分")} ${o.fit}/10 | ${L("예상 효과","Expected","予想効果","预计效果")} +${Math.max(0,o.ev*coTacMul()).toFixed(1)} | ${L("연계 성공률","Chain success","連携成功率","连携成功率")} ${Math.round(o.succ*100)}%${o.pred?` | ${L("예측 적중","Read hit","予測的中","预测命中")} ${Math.round(o.pred.acc*100)}%`:""}</span></div>
+  ${list.map((o,i)=>`<div class="atc ${o.best?"best":""}"><div class="atct">${o.best?"<span class='tbadge' style='border-color:var(--red);color:var(--red)'>"+L("코치 추천","Coach pick","コーチ推薦","教练推荐")+"</span> ":""}<b>${esc(o.name)}</b><span class="mute" style="margin-left:auto;font-size:11px">${L("예상 성공 확률","Expected success","予想成功率","预计成功率")} ${Math.round(o.succ*100)}%</span></div>
     <div class="mute" style="font-size:11.5px">${esc(AP[o.plan.pat])} | ${L("속도","Speed","速度","速度")} ${SPEEDK[o.plan.speed-1]} | ${side==="atk"?L("목표","Target","目標","目标")+" "+o.plan.target+(o.plan.fake?` (${o.plan.fake} ${L("페이크","fake","フェイク","佯攻")})`:""):L("스타팅","Start","スタート","起始")+" "+o.plan.start} | ${L("인원","Split","人数","人数")} ${Object.entries(o.plan.dist).filter(([k,n])=>n).map(([k,n])=>`${k==="Mid"?L("미드","Mid","ミッド","中路"):k} ${n}`).join(", ")}</div>
-    <div style="font-size:11.5px;margin:3px 0">${o.why.map(w=>"- "+esc(w)).join("<br>")}${o.flaw?`<br><span style="color:#F59E0B">- ${L("코치가 짠 연계에 순서나 위치가 어긋난 단계가 섞여 있습니다","The coach's chain has a step out of order or place","連携に順番か位置のずれがあります","连携中有步骤顺序或位置不对")}</span>`:""}</div>
+    <div style="font-size:11.5px;margin:3px 0">${o.why.map(w=>"- "+esc(String(w).replace(/\s*\(\d+%\)/g,"").replace(/[,.]?\s*(예측 정확도 약|read accuracy ~|Read accuracy ~|予測精度約|预测准确率约)\s*\d+%/gi,"").replace(/\s*\d+%\s*/g," "))).join("<br>")}${o.flaw?`<br><span style="color:#F59E0B">- ${L("코치가 짠 연계에 순서나 위치가 어긋난 단계가 섞여 있습니다","The coach's chain has a step out of order or place","連携に順番か位置のずれがあります","连携中有步骤顺序或位置不对")}</span>`:""}</div>
     <div class="mute" style="font-size:11px">${esc(chainTxt(o.chain))||"-"}</div>
     <button class="sbtn" style="margin-top:4px" onclick="autoTacUse(${i})">${L("이 택틱 적용","Use this","この作戦を適用","采用此战术")}</button></div>`).join("")}</div>`; }
 function autoTacOpen(){ TF.autoOpen=TF.autoOpen===TF.tab?null:TF.tab; renderTF(); }
@@ -6209,7 +6431,7 @@ function roundCombo(R){
 const TAC_SLOTS="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const TAC_LV=[[0,"버거움","Struggling","手に負えない","吃力","#ef4444"],[20,"낯섬","Unfamiliar","不慣れ","生疏","#f97316"],[40,"적응 중","Adapting","適応中","适应中","#f5c542"],[60,"능숙함","Proficient","熟練","熟练","#5eead4"],[80,"완벽함","Perfect","完璧","完美","#3ddba4"]];
 function tacLv(m){ let x=TAC_LV[0]; TAC_LV.forEach(l=>{ if(m>=l[0]) x=l; }); return x; }
-function tacLvTxt(m){ const l=tacLv(m); return `<span style="color:${l[5]};font-weight:700">${L(l[1],l[2],l[3],l[4])}</span> <span class="mute">${Math.round(m)}</span>`; }
+function tacLvTxt(m){ const l=tacLv(m); return `<span style="color:${l[5]};font-weight:700">${L(l[1],l[2],l[3],l[4])}</span>`; }
 const TAC_ADHOC=20;   // a chain that is not a saved/practiced tactic plays like an "unfamiliar" one
 function tacs(){ G.tacs=G.tacs||{}; G.tacPrac=G.tacPrac||[]; return G.tacs; }
 function tacFind(side,combo){ const sig=comboSig(combo); if(!sig) return null; const t=tacs(); return TAC_SLOTS.find(s=>t[s]&&t[s].side===side&&comboSig(t[s].combo)===sig)||null; }
@@ -6229,7 +6451,7 @@ function tacPickHTML(side){ const t=tacs(), cur=tacFind(side,TF.combo[side]), m=
   const own=TAC_SLOTS.filter(s=>t[s]&&t[s].side===side);
   const sr=Math.round(tacSuccess(TF.combo[side],m,id=>plAg(mePl(id)))*100);
   return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0 6px">
-    <select onchange="tcLoad(this.value)"><option value="">${L("저장된 택틱 불러오기","Load saved tactic","保存したタクティクを読み込む","载入已存战术")}</option>${own.map(s=>`<option value="${s}" ${s===cur?"selected":""}>${s}${t[s].name?" "+esc(t[s].name):""} | ${L(tacLv(t[s].m)[1],tacLv(t[s].m)[2],tacLv(t[s].m)[3],tacLv(t[s].m)[4])} ${Math.round(t[s].m)}</option>`).join("")}</select>
+    <select onchange="tcLoad(this.value)"><option value="">${L("저장된 택틱 불러오기","Load saved tactic","保存したタクティクを読み込む","载入已存战术")}</option>${own.map(s=>`<option value="${s}" ${s===cur?"selected":""}>${s}${t[s].name?" "+esc(t[s].name):""} | ${L(tacLv(t[s].m)[1],tacLv(t[s].m)[2],tacLv(t[s].m)[3],tacLv(t[s].m)[4])}</option>`).join("")}</select>
     <select onchange="tcSave(this.value);this.value=''"><option value="">${L("이 연계를 택틱으로 저장","Save this chain as","この連携を保存","保存为战术")}</option>${TAC_SLOTS.map(s=>`<option value="${s}">${s}${t[s]?" ("+L("덮어쓰기","overwrite","上書き","覆盖")+")":""}</option>`).join("")}</select>
     ${TF.combo[side].length?`<span class="mute" style="font-size:11.5px">${cur?L(`택틱 ${cur}`,`Tactic ${cur}`,`タクティク${cur}`,`战术${cur}`):L("저장 안 된 연계","Unsaved chain","未保存の連携","未保存连携")} | ${L("숙련","Mastery","熟練","熟练")} ${tacLvTxt(m)} | ${L("택틱 성공률","Success rate","成功率","成功率")} ${sr}%</span>`:""}</div>`; }
 /* ---- scrim practice: up to 5 tactics, growth scaled by agent proficiency ---- */
@@ -6281,8 +6503,8 @@ function tacLibHTML(){ const t=tacs(), list=TAC_SLOTS.filter(s=>t[s]);
       <td style="font-size:11.5px">${steps}</td><td style="min-width:120px"><div>${tacLvTxt(x.m)}</div><div class="bar" style="height:5px"><i style="width:${x.m}%;background:${lv[5]}"></i></div></td>
       <td>${Math.round(tacSuccess(x.combo,x.m,scrimAg)*100)}%</td>
       <td><button class="sbtn ${on?"on":""}" onclick="tacTogglePrac('${s}')">${on?L("연습 중","Practicing","練習中","练习中"):L("연습","Practice","練習","练习")}</button> <button class="sbtn" onclick="teOpen('${s}')">${L("편집","Edit","編集","编辑")}</button> <button class="sbtn" onclick="tacDel('${s}')">x</button></td></tr>`; };
-  return `<div id="tacLib"><div class="sub" style="margin-top:18px">${L("택틱 노트 (A~Z)","Tactic book (A-Z)","タクティクノート (A~Z)","战术笔记 (A~Z)")} <span class="mute" style="font-size:11px;font-weight:400">${L(`스크림 연습 ${(G.tacPrac||[]).length}/5 | 버거움 0 - 낯섬 20 - 적응 중 40 - 능숙함 60 - 완벽함 80`,`Practicing ${(G.tacPrac||[]).length}/5 | Struggling 0 - Unfamiliar 20 - Adapting 40 - Proficient 60 - Perfect 80`,`練習 ${(G.tacPrac||[]).length}/5`,`练习 ${(G.tacPrac||[]).length}/5`)}</span></div>
-    <p class="mute" style="font-size:12px;margin-bottom:6px">${L("스크림을 할 때마다 '연습'으로 고른 택틱(최대 5개)의 숙련도가 오릅니다. 택틱에 쓰인 요원의 숙련도가 높을수록 빨리 늡니다. 숙련도가 높을수록 경기에서 연계 효과와 스킬 성공률이 오르고, 상대가 늦게 읽습니다. 저장 안 된 연계는 '낯섬(20)'으로 취급합니다.","Each scrim raises mastery of the tactics marked Practice (up to 5). Higher agent proficiency in the tactic means faster growth. Higher mastery boosts the chain effect and skill success in matches, and opponents read it later. Unsaved chains count as Unfamiliar (20).","スクリムのたびに「練習」の戦術(最大5つ)の熟練度が上がります。","每次训练赛都会提升标记为练习的战术(最多5个)的熟练度。")}</p>
+  return `<div id="tacLib"><div class="sub" style="margin-top:18px">${L("택틱 노트 (A~Z)","Tactic book (A-Z)","タクティクノート (A~Z)","战术笔记 (A~Z)")} <span class="mute" style="font-size:11px;font-weight:400">${L(`스크림 연습 ${(G.tacPrac||[]).length}/5 | 버거움 - 낯섬 - 적응 중 - 능숙함 - 완벽함`,`Practicing ${(G.tacPrac||[]).length}/5 | Struggling - Unfamiliar - Adapting - Proficient - Perfect`,`練習 ${(G.tacPrac||[]).length}/5`,`练习 ${(G.tacPrac||[]).length}/5`)}</span></div>
+    <p class="mute" style="font-size:12px;margin-bottom:6px">${L("스크림을 할 때마다 '연습'으로 고른 택틱(최대 5개)의 숙련도가 오릅니다. 택틱에 쓰인 요원의 숙련도가 높을수록 빨리 늡니다. 숙련도가 높을수록 경기에서 연계 효과와 스킬 성공률이 오르고, 상대가 늦게 읽습니다. 저장 안 된 연계는 '낯섬'으로 취급합니다.","Each scrim raises mastery of the tactics marked Practice (up to 5). Higher agent proficiency in the tactic means faster growth. Higher mastery boosts the chain effect and skill success in matches, and opponents read it later. Unsaved chains count as Unfamiliar.","スクリムのたびに「練習」の戦術(最大5つ)の熟練度が上がります。","每次训练赛都会提升标记为练习的战术(最多5个)的熟练度。")}</p>
     ${list.length?`<table class="tbl"><tr><th></th><th>${L("공수","Side","攻守","攻守")}</th><th>${L("이름","Name","名前","名称")}</th><th>${L("순서","Steps","順序","顺序")}</th><th>${L("숙련도","Mastery","熟練度","熟练度")}</th><th>${L("성공률","Success","成功率","成功率")}</th><th></th></tr>${list.map(row).join("")}</table>`:`<p class="mute" style="font-size:12px">${L("저장된 택틱이 없습니다.","No saved tactics.","保存したタクティクがありません。","没有保存的战术。")}</p>`}
     <div style="margin-top:6px"><button class="sbtn" onclick="teOpen()">+ ${L("새 택틱 만들기","New tactic","新規タクティク","新建战术")}</button></div></div>`; }
 
@@ -6407,8 +6629,8 @@ function tfApply(){
 }
 function planFor(team,side){
   const man=team==="me"&&MX.manual&&MX.manual[side];
-  const base=iglChoose(team,side);
-  if(!man) return base;
+  let base=iglChoose(team,side);
+  if(!man){ try{ base=styleBias(team,side,base); }catch(e){} return base; }
   const sp=MX.M.sp, A=man._auto||{}, p={...base,dist:{...base.dist}};
   AFIELDS[side].forEach(k=>{ if(!A[k]) p[k]=k==="dist"?{...man.dist}:man[k]; });
   p.who=!A.dist&&man.who?{...man.who}:null;
@@ -6455,6 +6677,17 @@ function mapImg(m){ if(mapImgCache[m]!==undefined) return mapImgCache[m]; let sr
   if(!src) src=MAPIMG[m]||null; if(!src) return mapImgCache[m]=null; const im=new Image(); im.src=src; return mapImgCache[m]=im; }
 function cpx(M,x,y){ const o=M.off&&M.off[y]&&M.off[y][x]; return o?[(x+o[0])*CS,(y+o[1])*CS]:[x*CS+CS/2,y*CS+CS/2]; }
 /* position along this tick's path (piecewise, so dots follow corridors instead of cutting across walls) */
+/* where each player is looking: at a visible enemy, else along the way they last moved (or toward the threat) */
+function sightDraw(c,M,R,a){ const rng=Math.round(7*(M.spd||1)), asC=ctrOf(M.cells("AS")), tg=R.target?ctrOf(M.cells(R.target)):null;
+  R.pl.forEach(p=>{ if(!p.alive) return; const P=ppos(M,p,a), col=p.team==="me"?"248,113,113":"147,180,255";
+    if(p.trail&&p.trail.length){ const l=p.trail[p.trail.length-1], f=p.trail.length>1?p.trail[p.trail.length-2]:[p.px,p.py]; if(l[0]!==f[0]||l[1]!==f[1]) p.fdir=[l[0]-f[0],l[1]-f[1]]; }
+    let foe=null, fd=1e9; R.pl.forEach(e=>{ if(!e.alive||e.team===p.team) return; const d=Math.max(Math.abs(e.x-p.x),Math.abs(e.y-p.y)); if(d<=rng&&d<fd&&los(M,[p.x,p.y],[e.x,e.y])){ fd=d; foe=e; } });
+    c.setLineDash([2,3]); c.lineWidth=1.2;
+    if(foe){ const Q=ppos(M,foe,a); c.strokeStyle=`rgba(${col},.75)`; c.beginPath(); c.moveTo(P[0],P[1]); c.lineTo(Q[0],Q[1]); c.stroke(); }
+    else { let d=p.fdir; if(!d){ const g=p.side==="def"?asC:(tg||asC); d=g?[g[0]-p.x,g[1]-p.y]:[0,-1]; } const L=Math.hypot(d[0],d[1])||1, ux=d[0]/L, uy=d[1]/L;
+      let s=0; for(s=0.5;s<=4.5;s+=0.5){ const x=Math.round(p.x+ux*s), y=Math.round(p.y+uy*s); if(!M.g[y]||!M.g[y][x]||(R.smk&&R.smk.has(x+","+y))) break; }
+      const len=Math.max(0,s-0.5)*(cpx(M,1,0)[0]-cpx(M,0,0)[0]||CS); if(len>2){ c.strokeStyle=`rgba(${col},.45)`; c.beginPath(); c.moveTo(P[0],P[1]); c.lineTo(P[0]+ux*len,P[1]+uy*len); c.stroke(); } }
+    c.setLineDash([]); c.lineWidth=1; }); }
 function ppos(M,p,a){ const pts=[[p.px,p.py]].concat(p.trail&&p.trail.length?p.trail:[[p.x,p.y]]); if(pts.length<2) return cpx(M,p.x,p.y);
   const n=pts.length-1, f=Math.min(0.9999,Math.max(0,a))*n, i=Math.floor(f), t=f-i; const A=cpx(M,pts[i][0],pts[i][1]), B=cpx(M,pts[i+1][0],pts[i+1][1]);
   if(Math.abs(pts[i][0]-pts[i+1][0])>1||Math.abs(pts[i][1]-pts[i+1][1])>1) return t<0.5?A:B;   // teleport: no sliding through walls
@@ -6481,20 +6714,29 @@ function draw(a){
   if(!R) return;
   /* plan arrows */
   const ctr=k=>{ const r=M.sp.rooms[k]; return r?[(r[0]+r[2]/2)*CS,(r[1]+r[3]/2)*CS]:null; };
-  const arrow=(from,to,col,dash)=>{ if(!from||!to) return; c.strokeStyle=col; c.lineWidth=3; c.setLineDash(dash||[]); c.beginPath(); c.moveTo(from[0],from[1]); c.lineTo(to[0],to[1]); c.stroke(); c.setLineDash([]);
+  const arrow=(from,to,col,dash)=>{ if(!from||!to) return; R.apath=R.apath||{}; const key=from.join(",")+">"+to.join(",");
+    if(!R.apath[key]){ const cell=p=>{ const x=Math.floor(p[0]/CS), y=Math.floor(p[1]/CS); if(M.g0[y]&&M.g0[y][x]) return [x,y]; let b=null,bd=1e9; for(let j=y-4;j<=y+4;j++) for(let i=x-4;i<=x+4;i++){ if(M.g0[j]&&M.g0[j][i]){ const d=Math.hypot(i-x,j-y); if(d<bd){ bd=d; b=[i,j]; } } } return b; };
+      const a0=cell(from), b0=cell(to); let pts=[from,to]; if(a0&&b0){ const pth=bfs(M,a0,b0); if(pth&&pth.length) pts=[[a0[0]*CS+CS/2,a0[1]*CS+CS/2]].concat(pth.map(q=>[q[0]*CS+CS/2,q[1]*CS+CS/2])); } R.apath[key]=pts; }
+    const pts=R.apath[key]; c.strokeStyle=col; c.lineWidth=3; c.lineJoin="round"; c.setLineDash(dash||[]); c.beginPath(); c.moveTo(pts[0][0],pts[0][1]); pts.slice(1).forEach(q=>c.lineTo(q[0],q[1])); c.stroke(); c.setLineDash([]);
+    to=pts[pts.length-1]; from=pts[Math.max(0,pts.length-3)];
     const ang=Math.atan2(to[1]-from[1],to[0]-from[0]); c.fillStyle=col; c.beginPath(); c.moveTo(to[0],to[1]); c.lineTo(to[0]-10*Math.cos(ang-0.4),to[1]-10*Math.sin(ang-0.4)); c.lineTo(to[0]-10*Math.cos(ang+0.4),to[1]-10*Math.sin(ang+0.4)); c.fill(); c.lineWidth=1; };
   const acol=R.atkTeam==="me"?"rgba(220,38,38,.35)":"rgba(37,99,235,.35)";
   if(R.tick<70){ Object.entries(R.ap.dist).forEach(([lane,n])=>{ if(!n) return; const lr=ctr(M.sp.lanes[lane]); arrow(ctr("AS"),lr,acol,n===1?[6,4]:null); });
     if(R.target) arrow(ctr(M.sp.lanes[laneForSite(M.sp,R.target)]),ctr(R.target),acol);
     if(R.ap.pat==="fake"&&R.ap.fake) arrow(ctr(M.sp.lanes[laneForSite(M.sp,R.ap.fake)]),ctr(R.ap.fake),acol,[3,5]); }
   if(R.dp.pat==="stack"){ const r=M.sp.rooms[R.dp.start]; if(r){ c.strokeStyle=R.defTeam==="me"?"rgba(220,38,38,.6)":"rgba(37,99,235,.6)"; c.lineWidth=2; c.setLineDash([5,4]); c.strokeRect(r[0]*CS,r[1]*CS,r[2]*CS,r[3]*CS); c.setLineDash([]); c.lineWidth=1; } }
+  try{ abilDraw(c,M,R); }catch(e){}
   if(R.plant){ const [x,y]=R.plant; c.save(); { const P0=cpx(M,x,y); c.translate(P0[0],P0[1]); } c.rotate(Math.PI/4); c.fillStyle=(R.tick%4<2)?"#F59E0B":"#B45309"; c.fillRect(-6,-6,12,12); c.restore(); }
   R.shots.forEach(s=>{ c.strokeStyle=s.team==="me"?"rgba(248,113,113,.9)":"rgba(147,180,255,.9)"; c.lineWidth=2; c.beginPath(); { const A=cpx(M,s.a[0],s.a[1]), B=cpx(M,s.b[0],s.b[1]); c.moveTo(A[0],A[1]); c.lineTo(B[0],B[1]); } c.stroke(); });
+  try{ sightDraw(c,M,R,a); }catch(e){}
   c.lineWidth=1; c.font="600 9px Inter, sans-serif";
   R.pl.forEach(p=>{ const [x,y]=ppos(M,p,a);
     if(!p.alive){ c.strokeStyle="rgba(163,163,163,.6)"; c.beginPath(); c.moveTo(x-5,y-5); c.lineTo(x+5,y+5); c.moveTo(x+5,y-5); c.lineTo(x-5,y+5); c.stroke(); return; }
-    c.fillStyle=p.team==="me"?"#DC2626":"#2563EB"; c.beginPath(); c.arc(x,y,7,0,Math.PI*2); c.fill();
-    c.strokeStyle=p.side==="atk"?"#F5F5F5":"#0A0A0A"; c.stroke();
+    { const an=agEn(p.ref), ro=p.ref.ag!=null&&DB.agents[p.ref.ag]?DB.agents[p.ref.ag][2]:p.ref.role, rc={duelist:"#F97316",initiator:"#22C55E",controller:"#A855F7",sentinel:"#06B6D4"}[ro]||"#9CA3AF";
+      c.fillStyle=p.team==="me"?"#B91C1C":"#1D4ED8"; c.beginPath(); c.arc(x,y,8,0,Math.PI*2); c.fill(); c.lineWidth=2; c.strokeStyle=rc; c.stroke(); c.lineWidth=1;
+      c.strokeStyle=p.side==="atk"?"#F5F5F5":"#0A0A0A"; c.beginPath(); c.arc(x,y,9.6,0,Math.PI*2); c.stroke();
+      if(p.rev>R.tick){ const on=Math.floor(Date.now()/140)%2===0, rc2=p.team==="me"?"250,224,70":"59,130,246"; c.strokeStyle=`rgba(${rc2},${on?1:0.25})`; c.lineWidth=on?3:2; c.beginPath(); c.arc(x,y,on?11:10,0,Math.PI*2); c.stroke(); c.lineWidth=1; }
+    }
     if(p.tail||p.faker||p.pusher){ c.strokeStyle="#F59E0B"; c.beginPath(); c.arc(x,y,10,0,Math.PI*2); c.stroke(); }
     c.fillStyle="#F5F5F5"; c.fillText(p.ref.name.slice(0,8),x,y-12); });
   const left=R.plant?Math.max(0,45-(R.tick-R.ptick)):Math.max(0,115-R.tick);
