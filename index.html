@@ -3531,10 +3531,14 @@ function windowNote(){ if(!G.sea) return ""; const p0=curPhase(); if(p0.type==="
 function t2Player(p){ return !!p&&/^(Challengers|China 2부)/.test(p.league||"")&&!teamOf(p.id); }
 function needWindow(k){ if(k&&(k==="__t2"||(T(k)&&T(k).t2))&&!isT2()) return false; if(DF().lock&&!myTransferOpen()){ toast(L("임파서블 난이도: 오프시즌과 프리시즌이 끝나면 다음 오프시즌까지 선수를 영입할 수 없습니다.","Impossible: after the offseason/preseason you cannot sign players until the next offseason.","インポッシブル: オフシーズンとプレシーズンが終わると次のオフシーズンまで選手を獲得できません。","地狱难度: 休赛期和季前赛结束后，直到下个休赛期都无法签人。")); return true; } if(transferOpen()) return false; toast(windowNote()+L(". 이적과 트레이드는 국제대회가 끝난 뒤와 오프시즌에만 할 수 있습니다.",". Signings and trades are only allowed after international events and in the offseason.","。移籍とトレードは国際大会終了後とオフシーズンのみ可能です。","。转会和交易只能在国际赛事结束后和休赛期进行。")); return true; }
 const PH_CAPMUL={star:1.45,win:1.1,fran:1.15,vet:1.0,vetcore:0.9,scout:0.9,pot:0.8,tank:0.55};
-function teamCap(k){ const t=T(k), bud=k===G.team?G.budget:startBudget(k), ph=phOf(k);
-  return Math.round(((t.partner?1150000:550000)+Math.max(0,bud)*0.12)*(PH_CAPMUL[ph]||1)*(k===G.team?2*DF().cap:1.6*DF().aiCap)/1000)*1000; }
+/* cap grows with the club: fan base and fame add room, and the whole market inflates a little every year */
+function capGrowth(k){ const me=k===G.team, fame=me?(G.fame||30):clubFame(k), fans=me?(G.fans||fame*14000):fame*14000, yr=G.sea?G.sea.yr:2027;
+  const f0=me?(G.fans0||G.fansBase||fans):fame*14000;
+  return {add:fans*0.2+Math.max(0,fans-f0)*0.45+Math.max(0,fame-30)*4000, mul:1+0.05*Math.max(0,yr-2027)}; }
+function teamCap(k){ const t=T(k), bud=k===G.team?G.budget:startBudget(k), ph=phOf(k), g=capGrowth(k);
+  return Math.round(((t.partner?1150000:550000)+Math.max(0,bud)*0.12+g.add)*g.mul*(PH_CAPMUL[ph]||1)*(k===G.team?2*DF().cap:1.6*DF().aiCap)/1000)*1000; }
 function payroll(k){ return k===G.team?G.roster.reduce((s,r)=>s+(r.salary||0),0):rosterOf(k).reduce((s,id)=>s+marketAsk(P(id))*0.95,0); }
-function capLine(){ const c=teamCap(G.team), p=payroll(G.team); return L(`연봉 총액 ${short(p)} / 상한 ${short(c)} (${PH[phOf(G.team)].s} 기조, 재정 반영)`,`Payroll ${short(p)} / cap ${short(c)} (${PH[phOf(G.team)].s}, finances)`,`年俸総額 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方針、財政反映)`,`薪资总额 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方针，财政影响)`); }
+function capLine(){ const c=teamCap(G.team), p=payroll(G.team); return L(`연봉 총액 ${short(p)} / 상한 ${short(c)} (${PH[phOf(G.team)].s} 기조, 재정과 팬 규모 반영)`,`Payroll ${short(p)} / cap ${short(c)} (${PH[phOf(G.team)].s}, finances and fan base)`,`年俸総額 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方針、財政反映)`,`薪资总额 ${short(p)} / 上限 ${short(c)} (${PH[phOf(G.team)].s}方针，财政影响)`); }
 function poorClub(){ const t=T(G.team); return !t.partner&&G.budget<900000; }
 /* RFA: offer for a player under contract at another club */
 function rfaVal(id,k){ return Math.round(tradeVal(id,k)*1.15/1000)*1000; }
@@ -3695,7 +3699,7 @@ function takeJob(k){ const t=T(k), old=G.team;
     G.rosters[old]=G.roster.map(r=>r.id); try{ sortRoster(old); }catch(e){}
     const ids=(G.rosters[k]||t.roster).slice(0,MAXR); delete G.rosters[k];
     G.roster=ids.map(id=>({id,cond:80,fat:15,salary:Math.round(marketAsk(P(id))*0.95/1000)*1000,years:1+hash(id+"y")%2}));
-    const fame=clubFame(k); G.team=k; G.myPh=null; G.phPts=null; G.budget=startBudget(k); G.fame=fame; G.fans=fame*14000+hash(k)%9000; G.fansBase=G.fans;
+    const fame=clubFame(k); G.team=k; G.myPh=null; G.phPts=null; G.budget=startBudget(k); G.fame=fame; G.fans=fame*14000+hash(k)%9000; G.fansBase=G.fans; G.fans0=G.fans;
     G.fac={gear:2,dorm:2,lab:1}; G.synergy=45; G.maps=Object.fromEntries(ALL_MAPS.map(m=>[m,(DEF_POOL.includes(m)?40:25)+hash(k+m)%(DEF_POOL.includes(m)?35:20)])); G.comp={}; G.iglId=null;
     G.tBlock={}; G.tOffers=[]; G.nego={}; G.pcs=[]; G.pcOff=[]; G.released=[]; G.sponsors=[]; fitSponsors(true); G.jobs=[]; G.lock={};
     G.log.push(`단장 이적: ${T(old).name} -> ${t.name}`); txNews(`${T(old).name} 단장, ${t.name} 단장으로 전격 이적`);
