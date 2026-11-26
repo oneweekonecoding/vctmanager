@@ -3209,15 +3209,21 @@ function pmOpen(){ PM_MODE="player"; if(!PM_SLOTS.includes(SLOT)) SLOT=PM_SLOTS.
     </div><div class="foot" style="margin-top:12px"><button class="ghost" onclick="closeM()">${L("뒤로","Back","戻る","返回")}</button></div>`; $("#ov").classList.add("on"); }
 function pmPool(){ const out=[], seen=new Set(); try{ t2Cat(); }catch(e){}
   DB.teams.filter(t=>!t.custom).forEach(t=>(t.roster||[]).forEach(id=>{ if(!seen.has(id)&&DB.players[id]&&DB.players[id].status!=="FA"){ seen.add(id); out.push([id,t.key]); } }));
-  Object.values(typeof T2X!=="undefined"?T2X:{}).forEach(t=>(t.roster||[]).forEach(id=>{ if(!seen.has(id)&&DB.players[id]){ seen.add(id); out.push([id,t.key]); } })); return out; }
+  Object.values(typeof T2X!=="undefined"?T2X:{}).forEach(t=>(t.roster||[]).forEach(id=>{ if(!seen.has(id)&&DB.players[id]){ seen.add(id); out.push([id,t.key]); } }));
+  /* free agents and players of clubs that are not in the game: they pick a club from offers */
+  Object.values(DB.players).forEach(p=>{ if(p&&!seen.has(p.id)&&p.name&&p.status!=="RET"&&p.status!=="COACH"){ seen.add(p.id); out.push([p.id,null]); } }); return out; }
 function pmReal(){ $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><h2 style="margin:0 0 6px">${L("실제 선수 고르기","Pick a real player","実在選手を選ぶ","选择真实选手")}</h2>
     <input id="pmQ" value="${esc(PM_Q)}" oninput="PM_Q=this.value;pmRealList()" placeholder="${L("선수 이름, 팀, 국적으로 검색","Search by name, team or nationality","名前・チーム・国籍で検索","按姓名、队伍、国籍搜索")}" style="width:100%;background:#141414;color:#eee;border:1px solid #333;border-radius:4px;padding:7px 9px">
     <div id="pmList" style="max-height:52vh;overflow:auto;margin-top:8px"></div><div class="foot" style="margin-top:10px"><button class="ghost" onclick="pmOpen()">${L("뒤로","Back","戻る","返回")}</button></div>`;
   $("#ov").classList.add("on"); pmRealList(); }
 function pmRealList(){ const q=String(PM_Q||"").trim().toLowerCase(); const el=$("#pmList"); if(!el) return;
   const rows=pmPool().filter(([id,k])=>{ const p=P(id), t=T(k)||T2X[k]; return !q||p.name.toLowerCase().includes(q)||(t&&t.name.toLowerCase().includes(q))||String(p.nat||"").includes(q); }).sort((a,b)=>P(b[0]).ovr-P(a[0]).ovr).slice(0,60);
-  el.innerHTML=rows.map(([id,k])=>{ const p=P(id), t=T(k)||T2X[k]; return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid #222;font-size:12.5px">${ricon(p.role,13)}<b style="min-width:100px">${esc(p.name)}</b><span class="mute" style="flex:1">${esc(t?t.name:"-")}${t&&t.t2?" (2부)":""} | ${esc(p.nat||"-")}</span><span>OVR ${p.ovr}</span><button class="sbtn on" onclick="pmStartReal('${esc(id)}','${esc(k)}')">${L("이 선수로 시작","Start","開始","开始")}</button></div>`; }).join("")||`<p class="mute">${L("검색 결과가 없습니다.","No results.","結果なし。","无结果。")}</p>`; }
-function pmStartReal(id,k){ if(CUST_APPLIED) custReset(); PM_PENDING={me:id}; startGame(k,false); }
+  el.innerHTML=rows.map(([id,k])=>{ const p=P(id), t=k?(T(k)||T2X[k]):null, club=t?esc(t.name)+(t.t2?" (2부)":""):(p.status==="FA"?L("FA (무소속)","Free agent","FA (無所属)","自由球员"):esc(p.team||"-")+L(" (게임에 없는 팀)"," (club not in game)","","")); return `<div style="display:flex;align-items:center;gap:8px;padding:5px 2px;border-bottom:1px solid #222;font-size:12.5px;flex-wrap:wrap">${ricon(p.role,13)}<b style="min-width:100px">${esc(p.name)}</b><span class="mute" style="flex:1;min-width:140px">${club} | ${esc(p.nat||"-")}</span><span>OVR ${p.ovr}</span><button class="sbtn on" onclick="pmStartReal('${esc(id)}','${k?esc(k):""}')">${t?L("이 선수로 시작","Start","開始","开始"):L("입단 제안 보기","See offers","オファーを見る","查看报价")}</button></div>`; }).join("")||`<p class="mute">${L("검색 결과가 없습니다.","No results.","結果なし。","无结果。")}</p>`; }
+function pmStartReal(id,k){ if(!k||k==="null") return pmRealOffers(id); if(CUST_APPLIED) custReset(); PM_PENDING={me:id}; startGame(k,false); }
+function pmRealOffers(id){ const p=P(id); if(!p) return; const ags=(p.prof||[]).map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(x=>x[1]);
+  const D={real:id,name:p.name,nat:p.nat,ovr:p.ovr,pot:Math.max(p.ovr,p.pot||p.ovr+3),ags,role:p.role}; D.offers=pmDebutOffers(D).map(o=>Object.assign(o,{salary:pmSal(o.k,p,"bench",1)}));
+  PM_PENDING={draft:D}; pmDebutOpen(); }
+function pmRealGo(i){ const D=PM_PENDING.draft, o=(D.offers||[])[i]; if(!o) return; if(CUST_APPLIED) custReset(); PM_PENDING={me:D.real,realSal:o.salary,realYears:o.years}; startGame(o.k,false); }
 function pmRoll(){ const D=PM_PENDING&&PM_PENDING.draft; if(!D) return; const r=Math.random(); D.ovr=52+Math.floor(Math.pow(r,1.25)*17); D.pot=Math.min(96,Math.max(D.ovr+8,66+Math.floor(Math.pow(Math.random(),3)*31))); D.rolls=(D.rolls||0)+1; const a=$("#pmDice"); if(a) a.innerHTML=pmDiceHTML(); }
 function potStars(pot){ return pot>=91?5:pot>=86?4:pot>=80?3:pot>=74?2:1; }
 function starsHTML(n){ return `<span style="color:#f5c542;letter-spacing:1px">${"★".repeat(n)}<span style="color:#444">${"★".repeat(5-n)}</span></span>`; }
@@ -3277,10 +3283,10 @@ function pmDebutOffers(D){ const lang=LANG_OF[D.nat]||"영어", pot=D.pot, any=p
   sel=sel.filter((t,i,a)=>a.indexOf(t)===i).slice(0,8);
   const fake={ovr:D.ovr,intl:0,tier:2,role:pmRoleOf(D.ags)}; return sel.map(t=>({k:t.key,years:rint(2,3),t1:!t.t2,salary:pmSal(t.key,fake,"bench",0.9)})); }
 function pmDebutOpen(){ const D=PM_PENDING.draft, of=D.offers||[];
-  $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><h2 style="margin:0 0 4px">${L("데뷔 제안","Debut offers","デビューオファー","出道报价")}</h2>
-    <p class="mute" style="font-size:12.5px;margin:0 0 10px">${esc(D.name)} | ${pmRoleOf(D.ags)==="flex"?"FLEX":ROLE[pmRoleOf(D.ags)].k} | OVR ${D.ovr} | ${starsHTML(potStars(D.pot))} | ${esc(D.nat)}</p>
-    ${of.length?`<div class="pmofs">${of.map((o,i)=>{ const t=T(o.k)||T2X[o.k]; return pmOfCard(t,t.t2?esc(t2LgName(t.lg)):"VCT "+REG[t.region].n,[short(o.salary||0),`${o.years}${L("년","y","年","年")}`,`${L("팀","Team","チーム","队伍")} ${teamOvr(t.roster)}`],pmWhy(t,{id:"_new",name:D.name,role:pmRoleOf(D.ags),ovr:D.ovr,pot:D.pot,nat:D.nat},o),`<button class="sbtn on" onclick="pmDebutGo(${i})">${L("입단","Join","入団","加盟")}</button>`); }).join("")}</div>`:`<p>${L("제안이 없습니다. 주사위를 다시 굴려 보세요.","No offers. Try rolling again.","オファーなし。","没有报价。")}</p>`}
-    <div class="foot" style="margin-top:10px"><button class="ghost" onclick="pmCustom()">${L("뒤로","Back","戻る","返回")}</button></div>`; $("#ov").classList.add("on"); }
+  $("#md").innerHTML=`<button class="x" onclick="closeM()">x</button><h2 style="margin:0 0 4px">${D.real?L("입단 제안","Offers","入団オファー","加盟报价"):L("데뷔 제안","Debut offers","デビューオファー","出道报价")}</h2>
+    <p class="mute" style="font-size:12.5px;margin:0 0 10px">${esc(D.name)} | ${(D.role||pmRoleOf(D.ags))==="flex"?"FLEX":ROLE[(D.role||pmRoleOf(D.ags))].k} | OVR ${D.ovr} | ${starsHTML(potStars(D.pot))} | ${esc(D.nat)}</p>
+    ${of.length?`<div class="pmofs">${of.map((o,i)=>{ const t=T(o.k)||T2X[o.k]; return pmOfCard(t,t.t2?esc(t2LgName(t.lg)):"VCT "+REG[t.region].n,[short(o.salary||0),`${o.years}${L("년","y","年","年")}`,`${L("팀","Team","チーム","队伍")} ${teamOvr(t.roster)}`],pmWhy(t,{id:"_new",name:D.name,role:(D.role||pmRoleOf(D.ags)),ovr:D.ovr,pot:D.pot,nat:D.nat},o),`<button class="sbtn on" onclick="${D.real?`pmRealGo(${i})`:`pmDebutGo(${i})`}">${L("입단","Join","入団","加盟")}</button>`); }).join("")}</div>`:`<p>${L("제안이 없습니다. 주사위를 다시 굴려 보세요.","No offers. Try rolling again.","オファーなし。","没有报价。")}</p>`}
+    <div class="foot" style="margin-top:10px"><button class="ghost" onclick="${D.real?"pmReal()":"pmCustom()"}">${L("뒤로","Back","戻る","返回")}</button></div>`; $("#ov").classList.add("on"); }
 function pmDebutGo(i){ const D=PM_PENDING.draft, o=(D.offers||[])[i]; if(!o) return; PM_PENDING={custom:{name:D.name,nat:D.nat,role:pmRoleOf(D.ags),ovr:D.ovr,pot:D.pot,ags:D.ags.slice(),years:o.years,salary:o.salary}}; startGame(o.k,false); }
 function pmInit(o){ G.mode="player"; G.pmCash=0; G.pmFans=0; G.pmDay=-1; G.pmOffers=[];
   if(o.custom){ let p=null; for(let i=0;i<60&&(!p||p.role!==o.custom.role);i++) p=makeGen(o.custom.name,o.custom.nat); p.role=o.custom.role;
@@ -3288,21 +3294,24 @@ function pmInit(o){ G.mode="player"; G.pmCash=0; G.pmFans=0; G.pmDay=-1; G.pmOff
     if(o.custom.ags&&o.custom.ags.length){ p.prof=DB.agents.map((a,i)=>o.custom.ags.includes(i)?Math.min(96,Math.max(60,p.ovr+rint(14,20)-o.custom.ags.indexOf(i)*2)):a[2]===p.role?rint(25,45):rint(10,30)); p.topag=o.custom.ags.slice(); p.ag=o.custom.ags[0]; } p.pmc=true; p.car=[]; p.carV=2; p.carClean=1; p.rk=G.sea?G.sea.yr:2027; G.gen=G.gen||{}; G.gen[p.id]=p; G.me=p.id;
     if(G.roster.length>=MAXR){ const w=G.roster.slice().sort((a,b)=>P(a.id).ovr-P(b.id).ovr)[0]; G.roster=G.roster.filter(r=>r!==w); G.freed=(G.freed||[]).concat([w.id]); }
     G.roster.push({id:p.id,cond:92,fat:5,salary:o.custom.salary||pmSal(G.team,p,"bench",0.9),years:o.custom.years||3,signD:absNow()}); }
-  else { G.me=o.me; if(!G.roster.some(r=>r.id===o.me)) G.roster.push({id:o.me,cond:85,fat:10,salary:Math.round(marketAsk(P(o.me))*0.95/1000)*1000,years:2}); }
+  else { G.me=o.me; if(!G.roster.some(r=>r.id===o.me)){ if(G.roster.length>=MAXR){ const w=G.roster.slice().sort((a,b)=>P(a.id).ovr-P(b.id).ovr)[0]; G.roster=G.roster.filter(r=>r!==w); G.freed=(G.freed||[]).concat([w.id]); } G.roster.push({id:o.me,cond:85,fat:10,salary:o.realSal||Math.round(marketAsk(P(o.me))*0.95/1000)*1000,years:o.realYears||2,signD:absNow()}); } try{ (G.freed||[]).includes(o.me)&&(G.freed=G.freed.filter(x=>x!==o.me)); }catch(e){} }
   pmLineup(); const me=pmMe();
   G.brief=[L(`${me.name}의 커리어가 시작됐습니다. 소속: ${T(G.team).name}.`,`${me.name}'s career begins at ${T(G.team).name}.`,`${me.name}のキャリアが${T(G.team).name}で始まりました。`,`${me.name}在${T(G.team).name}开启生涯。`),
     L("매일 한 번 개인 행동(훈련, 휴식, 방송)을 고를 수 있습니다. 라인업과 전술, 영입은 구단 코치진이 정합니다. 오프시즌에는 이적 제안이 들어옵니다.","Once a day pick a personal action (training, rest, streaming). The staff set lineup, tactics and signings. Offers arrive each offseason.","毎日1回、個人行動を選べます。オフには移籍オファーが届きます。","每天可选择一次个人行动。休赛期会收到报价。")]; G.bi=0; }
 /* staff picks the five starters: form, condition and fatigue on top of OVR */
 function pmLineup(){ if(!pm()) return; const sc=r=>isOut(r)?-99:(r.id===G.me&&(G.pmBenchD||0)>0?-50:0)+P(r.id).ovr+((r.cond||80)-80)*0.08-(r.fat||0)*0.05+(morOf(r)-60)*0.03; G.roster.sort((a,b)=>sc(b)-sc(a)); }
 /* staff keep the squad at six and re-sign who they want */
+/* a 5-man roster must be ready before Red Bull Home Ground and before any international event (and before every match) */
+function pmRosterDeadline(){ try{ const now=absNow(); if(G.hg&&G.hg.stage!=="done"&&G.hg.start!=null&&G.hg.start-now<=7&&G.hg.start+4>=now) return "hg";
+  const ph=curPhase(), nx=PHASES[G.sea.pi+1]; if(ph&&ph.type==="intl") return "intl"; if(nx&&nx.type==="intl"&&G.sea.next==="phase"&&(G.dday||0)<=7) return "intl"; }catch(e){} return null; }
 function pmClubAI(){ if(!pm()) return; const own=ownedSet(), avg=teamOvr(G.roster.map(r=>r.id));
   const tl=teamLang(G.roster.map(r=>r.id)), reg=T(G.team).region, fit=p=>(langOf(p)===tl?6:tl==="영어"&&engOK(p)?3:-8)+(isImport(p,reg)?(impCount(G.roster.map(r=>r.id),reg)>=IMPORT_MAX?-50:-2):0);
   /* like the AI clubs in manager mode: pick a target, talk for a few days, and lose him if another club gets there first */
-  const urgent=healthyN()<5&&(G.dday||9)<=2;
+  const dl=pmRosterDeadline(), urgent=healthyN()<5&&(dl||(G.dday||9)<=2);
   if(G.pmBid){ const b=G.pmBid; if(own.has(b.id)||!isFree(P(b.id))){ G.pmBid=null; } else if(--b.d>0&&!urgent){ pmLineup(); return; } }
   if(G.roster.length>=6){ G.pmBid=null; pmLineup(); return; }
   if(!G.pmBid&&!urgent){ if(!transferOpen()||Math.random()>0.3){ pmLineup(); return; } }
-  let guard=0; while(G.roster.length<6&&guard++<1){ let c=G.pmBid&&!own.has(G.pmBid.id)&&isFree(P(G.pmBid.id))&&G.pmBid.d<=0?P(G.pmBid.id):null;
+  let guard=0; while(G.roster.length<6&&guard++<(urgent?5:1)){ if(urgent&&healthyN()>=5) break; let c=G.pmBid&&!own.has(G.pmBid.id)&&isFree(P(G.pmBid.id))&&G.pmBid.d<=0?P(G.pmBid.id):null;
     if(!c){ const pick=Object.values(DB.players).concat(Object.values(G.gen||{})).filter(p=>p&&isFree(p)&&!own.has(p.id)&&!(G.lock&&G.lock[p.id])&&p.id!==G.me&&p.ovr<=avg+3).sort((a,b)=>(b.ovr+fit(b))-(a.ovr+fit(a)))[Math.floor(Math.random()*3)]; if(!pick) break;
       if(!urgent){ G.pmBid={id:pick.id,d:rint(3,8)}; G.brief=(G.brief||[]).concat([L(`구단이 ${pick.name} 영입 협상을 시작했습니다.`,`The club opened talks with ${pick.name}.`,`球団が${pick.name}と交渉開始。`,`俱乐部开始与${pick.name}谈判。`)]); break; } c=pick; }
     G.pmBid=null; if(!c) break;
@@ -3811,7 +3820,7 @@ function pmEndOpen(){ if(document.getElementById("pmCred")) return; closeM(); co
     ${sec(L("통산 기록","CAREER TOTALS"),`<div>${L("공식 경기","Official maps")} ${maps}${L("맵","")} | K/D/A ${K}/${D}/${A} | K:D ${(K/Math.max(1,D)).toFixed(2)}</div>${best?`<div>${L("최고 시즌","Best season")} ${best[0]} | Rating ${rt(best).toFixed(2)}</div>`:""}<div>${L("최고 OVR","Peak OVR")} ${Math.max(G.pmPeak||0,me.ovr)} | ${L("우승","Titles")} ${hon.length}${L("회","")}</div><div>${L("누적 수입","Career earnings")} ${short(G.pmEarn||0)} | ${L("개인 팬","Fans")} ${(G.pmFans||0).toLocaleString()}</div>`)}
     ${sec(L("함께한 감독","COACHES"),`<div>${(()=>{ try{ const ks=[...new Set(((G.seaC||{})[G.me]||[]).map(x=>x[1]))]; return ks.map(k=>{ const c=coOf(k); return c?esc(c.n)+" ("+esc(T(k).name)+")":null; }).filter(Boolean).join(", ")||"-"; }catch(e){ return "-"; } })()}</div>`)}
     <div class="pcSec"><div class="pcThanks">THANK YOU, ${esc(String(me.name).toUpperCase())}</div></div>`;
-  const tro=hon.map((h,i)=>`<div class="pcTro" style="animation-delay:${i*1.6}s"><div class="pcTroImg">${trophySVG(h.kind,true,h.y)}</div><div class="pcTroY">${h.y}</div><div class="pcTroT">${esc(h.t)}</div></div>`).join("");
+  const tro=hon.map((h,i)=>`<div class="pcTro"><div class="pcTroImg">${trophySVG(h.kind,true,h.y)}</div><div class="pcTroY">${h.y}</div><div class="pcTroT">${esc(h.t)}</div></div>`).join("");
   const tk=rn&&(rn.tk||(DB.teams.find(t=>t.name===rn.team)||{}).key), tt=tk?T(tk):null;
   const el=document.createElement("div"); el.id="pmCred";
   el.innerHTML=`<div class="pcBg"></div><div class="pcStage" id="pcS1"><div class="pcRoll" id="pcRoll">${credits}</div></div>
@@ -3823,8 +3832,10 @@ let PMC_T=[];
 function pmCredRun(){ PMC_T.forEach(clearTimeout); PMC_T=[]; const r=$("#pcRoll"), s1=$("#pcS1"), s2=$("#pcS2"), s3=$("#pcS3"); if(!r) return;
   [s1,s2,s3].forEach(x=>x.style.display="none"); s1.style.display="block"; r.style.animation="none"; void r.offsetHeight;
   const dur=Math.max(18,Math.min(70,r.scrollHeight/45)); r.style.animation=`pcUp ${dur}s linear forwards`;
-  const n=document.querySelectorAll("#pcS2 .pcTro").length, d2=Math.max(4,n*1.6+4.5);
-  PMC_T.push(setTimeout(()=>{ s1.style.display="none"; s2.style.display="block"; s2.querySelectorAll(".pcTro").forEach(x=>{ x.style.animation="none"; void x.offsetHeight; x.style.animation=""; }); },dur*1000));
+  const tr=[...document.querySelectorAll("#pcS2 .pcTro")], n=tr.length, STEP=2.6, d2=Math.max(3,n*STEP+0.6);
+  tr.forEach(x=>x.classList.remove("pcOn"));
+  PMC_T.push(setTimeout(()=>{ s1.style.display="none"; s2.style.display="block"; },dur*1000));
+  tr.forEach((x,i)=>PMC_T.push(setTimeout(()=>{ tr.forEach(y=>y.classList.remove("pcOn")); void x.offsetHeight; x.classList.add("pcOn"); },(dur+i*STEP)*1000)));
   PMC_T.push(setTimeout(()=>{ s2.style.display="none"; s3.style.display="flex"; s3.classList.remove("on"); void s3.offsetHeight; s3.classList.add("on"); },(dur+d2)*1000)); }
 function pmCredSkip(){ PMC_T.forEach(clearTimeout); PMC_T=[]; ["#pcS1","#pcS2"].forEach(q=>{ const x=$(q); if(x) x.style.display="none"; }); const s3=$("#pcS3"); if(s3){ s3.style.display="flex"; s3.classList.add("on"); } }
 function pmCredReplay(){ pmCredRun(); }
@@ -3842,9 +3853,9 @@ function pmCredClose(){ PMC_T.forEach(clearTimeout); const el=$("#pmCred"); if(e
 #pmCred .pcDim{color:#6b7280}
 #pmCred .pcThanks{font:400 clamp(22px,5vw,40px) Anton,sans-serif;letter-spacing:3px;margin-top:12vh}
 #pmCred .pcLane{position:relative;height:62vh;margin-top:4vh;perspective:900px}
-#pmCred .pcTro{position:absolute;top:0;left:100%;width:min(280px,60vw);text-align:center;opacity:0;animation:pcPass 4.2s cubic-bezier(.4,.1,.6,.9) forwards}
+#pmCred .pcTro{position:absolute;top:0;left:100%;width:min(280px,60vw);text-align:center;opacity:0;display:none}#pmCred .pcTro.pcOn{display:block;animation:pcPass 2.6s cubic-bezier(.4,.1,.6,.9) forwards}
 @keyframes pcPass{0%{left:105%;opacity:0;transform:translateX(0) rotateY(-50deg) scale(.8)}15%{opacity:1}50%{left:50%;transform:translateX(-50%) rotateY(0) scale(1.08)}85%{opacity:1}100%{left:-5%;opacity:0;transform:translateX(-100%) rotateY(50deg) scale(.8)}}
-#pmCred .pcTroImg{height:38vh;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 18px 30px rgba(255,200,90,.25));animation:pcSpin 4.2s linear}
+#pmCred .pcTroImg{height:38vh;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 18px 30px rgba(255,200,90,.25))}#pmCred .pcTro.pcOn .pcTroImg{animation:pcSpin 2.6s linear}
 #pmCred .pcTroImg img,#pmCred .pcTroImg svg{max-height:38vh;max-width:100%}
 @keyframes pcSpin{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
 #pmCred .pcTroY{font:400 44px Anton,sans-serif;letter-spacing:3px;margin-top:10px;color:#f5c542}
