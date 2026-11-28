@@ -9791,12 +9791,12 @@ function o3Furniture(r){ const lv=o3Lv(r), x0=r.x, y0=r.y, W=r.w, D=r.d, out=[];
     out.push(o3BB(x0+180,y0+40,62,o3LogoHTML(t,r.ac))); }
   else if(r.k==="trophy"){ const all=G.trophies||[], last=all[all.length-1], rest=all.slice(0,-1).slice(-16).reverse(), front=rest.slice(0,8), back=rest.slice(8);
     B(30,20,0,W-60,10,150,"#1c1408"); B(30,30,0,W-60,40,46,"#3f2d12"); B(30,30,46,W-60,40,4,"#d4af37");
-    back.forEach((t,i)=>{ const x=x0+70+(i+0.5)*((W-140)/Math.max(8,back.length)); out.push(o3BB(x,y0+50,50,`<div class="o3tro md" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
+    back.forEach((t,i)=>{ const x=x0+70+(i+0.5)*((W-140)/Math.max(8,back.length)); out.push(o3BB(x,y0+50,50,`<div class="o3tro o3tMd" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
     const slots=Math.max(1,front.length), half=Math.ceil(slots/2);
     front.forEach((t,i)=>{ const side=i<half?-1:1, k=i<half?i:i-half, x=W/2+side*(150+k*((W/2-200)/Math.max(1,half-1||1))*(half>1?1:0))+(half===1?side*0:0), xx=Math.max(70,Math.min(W-70,x));
-      B(xx-34,120,0,68,58,30,"#2b2b31"); B(xx-36,118,30,72,62,4,"#d4af37"); out.push(o3BB(x0+xx,y0+150,34,`<div class="o3tro lg" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
+      B(xx-34,120,0,68,58,30,"#2b2b31"); B(xx-36,118,30,72,62,4,"#d4af37"); out.push(o3BB(x0+xx,y0+150,34,`<div class="o3tro o3tLg" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
     B(W/2-70,110,0,140,90,40,"#d4af37"); B(W/2-60,118,40,120,74,6,"#fde68a");
-    if(last) out.push(o3BB(x0+W/2,y0+156,46,`<div class="o3tro big" data-o3act="tro:${last.id}">${trophySVG(last.kind,true,last.yr)}<em>${last.yr} ${esc(last.event||"")}</em></div>`));
+    if(last) out.push(o3BB(x0+W/2,y0+156,46,`<div class="o3tro o3tBig" data-o3act="tro:${last.id}">${trophySVG(last.kind,true,last.yr)}<em>${last.yr} ${esc(last.event||"")}</em></div>`));
     else out.push(o3BB(x0+W/2,y0+156,46,`<div class="o3sign">${L("아직 트로피가 없습니다","No trophies yet","まだトロフィーはありません","尚无奖杯")}</div>`)); }
   return out.join(""); }
 function o3Room(r){ const lv=o3Lv(r), H=110, T_=8, glow=r.fac?Math.min(1,0.25+lv*0.075):0.6;
@@ -9890,7 +9890,7 @@ function o3Bind(){ const v=$("#o3v"); if(!v) return;
 :is(#o3,#o3bg) .o3tro{width:46px;pointer-events:auto;text-align:center;cursor:pointer;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
 :is(#o3,#o3bg) .o3tro img,:is(#o3,#o3bg) .o3tro svg{width:100%;height:auto;display:block}
 :is(#o3,#o3bg) .o3tro em{display:block;font:600 10px var(--body);color:#f5c542;font-style:normal}
-:is(#o3,#o3bg) .o3tro.big{width:150px}.o3tro.lg{width:92px}.o3tro.md{width:64px}.o3tro.lg em,.o3tro.md em{font-size:12px}:is(#o3,#o3bg) .o3tro.big em{font-size:12px}
+:is(#o3,#o3bg) .o3tro.o3tBig{width:150px}:is(#o3,#o3bg) .o3tro.o3tLg{width:92px}:is(#o3,#o3bg) .o3tro.o3tMd{width:64px}:is(#o3,#o3bg) .o3tro.o3tLg em,:is(#o3,#o3bg) .o3tro.o3tMd em{font-size:12px}:is(#o3,#o3bg) .o3tro.o3tBig em{font-size:12px}
 :is(#o3,#o3bg) .o3tro:hover{filter:drop-shadow(0 0 14px rgba(245,197,66,.8))}
 #o3 .o3top{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2}
 #o3 .o3t{font:600 13px var(--body);color:#9ca3af;letter-spacing:1px}
@@ -10208,7 +10208,7 @@ button,.sbtn{transition:transform .08s ease,background-color .15s ease,border-co
 :is(#o3,#o3bg) .o3fig{animation:uiBob 3.2s ease-in-out infinite}
 :is(#o3,#o3bg) .o3bb:nth-child(3n) .o3fig{animation-delay:-1.1s}:is(#o3,#o3bg) .o3bb:nth-child(3n+1) .o3fig{animation-delay:-2.2s}
 :is(#o3,#o3bg) .o3fig.empty{animation:uiPulse 1.6s ease-in-out infinite}
-:is(#o3,#o3bg) .o3tro{animation:uiBob 4s ease-in-out infinite}:is(#o3,#o3bg) .o3tro.big{animation:uiBob 4s ease-in-out infinite,uiGlow 2.6s ease-in-out infinite}
+:is(#o3,#o3bg) .o3tro{animation:uiBob 4s ease-in-out infinite}:is(#o3,#o3bg) .o3tro.o3tBig{animation:uiBob 4s ease-in-out infinite,uiGlow 2.6s ease-in-out infinite}
 :is(#o3,#o3bg) .o3logo{animation:uiGlow 3s ease-in-out infinite}
 #o3 .o3room.o3cur .o3fl{box-shadow:inset 0 0 0 2px var(--ac,#3ddba4),inset 0 0 40px color-mix(in srgb,var(--ac,#3ddba4) 35%,transparent);transition:box-shadow .3s}
 #o3.o3drag .o3fig,#o3.o3drag .o3tro,#o3.o3drag .o3logo,#o3.o3drag #goBtn{animation-play-state:paused}
