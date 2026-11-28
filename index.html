@@ -1116,6 +1116,7 @@ html.ovlock,html.ovlock body{overflow:hidden!important;overscroll-behavior:none}
     <div class="tright">
       <button class="sbtn red" id="undoBtn" style="display:none;align-items:center;gap:4px" onclick="undo()">되돌리기 <span></span></button>
       <div class="money" id="tMoney" data-tip=""></div>
+      <button class="ibtn o3btn" title="3D 구단 사무실" onclick="o3Open()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg></button>
       <button class="ibtn" title="설정" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
       <button class="ibtn" title="저장" onclick="save(true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg></button>
     </div>
@@ -2580,11 +2581,14 @@ function agePass(L){
 /* new rookie class every year: 17-20, random handle, random stats like generated prospects */
 function rookieClass(L,n0,mid){
   if(!G.gen) G.gen={}; if(!mid){ try{ genPrune(); }catch(e){ console.error(e); } }
-  const taken=new Set(allPlayers().map(p=>p.name.toLowerCase())), myNat=G.myNat||"한국";
+  const taken=new Set(allPlayers().map(p=>p.name.toLowerCase()));
   const nats=[]; allPlayers().forEach(p=>{ if(p.nat&&p.nat!=="-"&&!GEN_GENERIC.has(p.nat)) nats.push(p.nat); });
+  /* region of the club the player (manager or player-mode player) is with now: its nationalities get most of the class */
+  const reg=(T(G.team)||{}).region, rn=[]; try{ DB.teams.filter(t=>!t.custom&&t.region===reg).forEach(t=>(rosterOf(t.key)||t.roster||[]).forEach(id=>{ const q=P(id); if(q&&q.nat&&q.nat!=="-"&&!GEN_GENERIC.has(q.nat)) rn.push(q.nat); })); Object.values(typeof T2X!=="undefined"?T2X:{}).filter(t=>t.region===reg).forEach(t=>(t.roster||[]).forEach(id=>{ const q=P(id); if(q&&q.nat&&q.nat!=="-"&&!GEN_GENERIC.has(q.nat)) rn.push(q.nat); })); }catch(e){}
+  const cnt={}; rn.forEach(x=>cnt[x]=(cnt[x]||0)+1); const myNat=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||G.myNat||"한국"; G.myNat=myNat; G.rkReg=reg;
   const n=n0||rint(90,120), list=[];
   const yr0=G.sea?G.sea.yr:2027, pool=(G.namePool||[]).filter(e=>yr0-e[2]>=2&&!taken.has(String(e[0]).toLowerCase())&&!(G.gen&&G.gen["GEN:"+e[0]]));
-  for(let i=0;i<n;i++){ let nat=Math.random()<0.35?myNat:nats[rint(0,nats.length-1)], h=null;
+  for(let i=0;i<n;i++){ const rr=Math.random(); let nat=rr<0.25?myNat:(rr<0.7&&rn.length)?rn[rint(0,rn.length-1)]:nats[rint(0,nats.length-1)], h=null;
     if(pool.length&&Math.random()<0.25){ const e=pool.splice(rint(0,pool.length-1),1)[0]; if(!taken.has(String(e[0]).toLowerCase())){ h=e[0]; nat=e[1]||nat; taken.add(h.toLowerCase()); G.namePool=G.namePool.filter(x=>x[0]!==h); } }
     if(!h) h=procHandle(nat,taken); if(!h) continue;
     const p=makeGen(h,nat); p.ay=G.ageY; p.rk=G.sea?G.sea.yr+1:2028; list.push(p); }
@@ -3825,7 +3829,7 @@ function pmEndOpen(){ if(document.getElementById("pmCred")) return; closeM(); co
   const el=document.createElement("div"); el.id="pmCred";
   el.innerHTML=`<div class="pcBg"></div><div class="pcStage" id="pcS1"><div class="pcRoll" id="pcRoll">${credits}</div></div>
     <div class="pcStage" id="pcS2" style="display:none"><div class="pcH" style="text-align:center;margin-top:8vh">${L("트로피","TROPHIES")}</div><div class="pcLane">${tro||`<div class="pcDim" style="text-align:center">-</div>`}</div></div>
-    <div class="pcStage" id="pcS3" style="display:none">${rn?`<div class="pcRet">${tt&&tt.logo?`<img src="${tt.logo}" class="pcLogo">`:""}<div class="pcTeam">${esc(tt?tt.name:rn.team)}</div><div class="pcNo">${rn.no}</div><div class="pcRetT">${L("영구결번","RETIRED NUMBER")}</div><div class="pcRetN">${esc(me.name)} | ${rn.yrs}${L("년 헌신","-year legacy")}</div></div>`:`<div class="pcRet"><div class="pcNo" style="font-size:22vmin">GG</div><div class="pcRetN">${esc(me.name)} | ${y0} - ${y1}</div></div>`}</div>
+    <div class="pcStage" id="pcS3" style="display:none">${rn?`<div class="pcRet">${tt&&tt.logo?`<img src="${tt.logo}" class="pcLogo">`:""}<div class="pcTeam">${esc(tt?tt.name:rn.team)}</div><div class="pcNo">${rn.no}</div><div class="pcRetT">${L("영구결번","RETIRED NUMBER")}</div><div class="pcRetN">${esc(me.name)} | ${rn.yrs}${L("년 헌신","-year legacy")}</div>${pcHonSum(hon)}</div>`:`<div class="pcRet"><div class="pcNo" style="font-size:22vmin">GG</div><div class="pcRetN">${esc(me.name)} | ${y0} - ${y1}</div>${pcHonSum(hon)}</div>`}</div>
     <div class="pcBtns"><button class="ghost" onclick="pmCredSkip()">${L("건너뛰기","Skip")}</button><button class="ghost" onclick="pmCredReplay()">${L("다시 보기","Replay")}</button><button class="go" onclick="pmCredClose()">${L("처음 화면으로","Back to start")}</button></div>`;
   document.body.appendChild(el); document.documentElement.classList.add("ovlock"); pmCredRun(); }
 let PMC_T=[];
@@ -3837,6 +3841,23 @@ function pmCredRun(){ PMC_T.forEach(clearTimeout); PMC_T=[]; const r=$("#pcRoll"
   PMC_T.push(setTimeout(()=>{ s1.style.display="none"; s2.style.display="block"; },dur*1000));
   tr.forEach((x,i)=>PMC_T.push(setTimeout(()=>{ tr.forEach(y=>y.classList.remove("pcOn")); void x.offsetHeight; x.classList.add("pcOn"); },(dur+i*STEP)*1000)));
   PMC_T.push(setTimeout(()=>{ s2.style.display="none"; s3.style.display="flex"; s3.classList.remove("on"); void s3.offsetHeight; s3.classList.add("on"); },(dur+d2)*1000)); }
+function pcHonSum(hon){ if(!hon||!hon.length) return ""; const c={}; hon.forEach(h=>{ const k=/Champions|챔피언스/i.test(h.t)?"Champions":/Masters|마스터스/i.test(h.t)?"Masters":L("리그 / 기타","League / other"); c[k]=(c[k]||0)+1; });
+  return `<div class="pcHonS">${Object.entries(c).map(([k,n])=>`<span>${esc(k)} <b>x${n}</b></span>`).join("")}</div>`; }
+(function(){ const st=document.createElement("style"); st.id="pcCss2"; st.textContent=`
+#pmCred #pcS3{overflow-y:auto;overflow-x:hidden;box-sizing:border-box;padding:52px 14px 28px}
+#pmCred #pcS3 .pcRet{max-width:min(94vw,760px);margin:auto}
+#pmCred #pcS3 .pcLogo{width:min(120px,24vw,15vh);height:min(120px,24vw,15vh)}
+#pmCred #pcS3 .pcTeam{font-size:clamp(15px,min(4vw,4.6vh),30px);letter-spacing:min(6px,1.2vw);white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+#pmCred #pcS3 .pcNo{font-size:clamp(60px,min(38vmin,30vh),300px);margin:4px 0}
+#pmCred #pcS3 .pcRetT{font-size:clamp(14px,min(3.5vw,4vh),26px);letter-spacing:min(10px,2.4vw)}
+#pmCred #pcS3 .pcRetN{font-size:clamp(12px,min(3.4vw,3.6vh),16px);white-space:normal;overflow-wrap:anywhere}
+#pmCred .pcHonS{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;margin-top:12px}
+#pmCred .pcHonS span{font-size:clamp(11px,min(3.2vw,3.4vh),14px);color:#d1d5db;border:1px solid #3f3f46;border-radius:14px;padding:3px 10px;white-space:nowrap}
+#pmCred .pcHonS b{color:#f5c542}
+#pmCred .pcTroT{white-space:normal;overflow-wrap:anywhere;padding:0 6px}
+#pmCred .pcTroY{font-size:clamp(28px,6vh,44px)}
+#pmCred .pcTroImg{height:min(38vh,46vw)}#pmCred .pcTroImg img,#pmCred .pcTroImg svg{max-height:min(38vh,46vw)}
+@media (max-height:500px){ #pmCred .pcLane{height:72vh;margin-top:1vh} #pmCred .pcH{margin-bottom:4px} }`; document.head.appendChild(st); })();
 function pmCredSkip(){ PMC_T.forEach(clearTimeout); PMC_T=[]; ["#pcS1","#pcS2"].forEach(q=>{ const x=$(q); if(x) x.style.display="none"; }); const s3=$("#pcS3"); if(s3){ s3.style.display="flex"; s3.classList.add("on"); } }
 function pmCredReplay(){ pmCredRun(); }
 function pmCredClose(){ PMC_T.forEach(clearTimeout); const el=$("#pmCred"); if(el) el.remove(); document.documentElement.classList.remove("ovlock"); try{ $("#ov").dataset.sticky=""; closeM(); }catch(e){} toSelect(); }
@@ -4759,7 +4780,8 @@ function renderTop(){ requestAnimationFrame(()=>{ const h=$("#top"); if(h) docum
     tf.style.setProperty("--fc",s0.c); tf.innerHTML=`<span>팀 피로</span><b>${af}</b><em>${s0.t}${hi?` | 과로 ${hi}명`:""}</em><i style="width:${af}%"></i>`; tf.title="주전 평균 피로도. 누르면 선수단/훈련 화면으로 이동합니다."; }
   $("#tDday").innerHTML=`${G.dday>0?"D-"+G.dday:"D-DAY"}<small>${esc(G.sea&&G.sea.fx?G.sea.fx.label:fxLabel())}</small>`;
   const w=weekly();
-  $("#tMoney").innerHTML=`<div class="osw" title="${won(G.budget)}">${krwText(G.budget)}</div><small class="${w.net>=0?'pos':'neg'}">주간 ${w.net>=0?"+":""}${short(w.net)}</small>`;
+  if(typeof pm==="function"&&pm()){ const r=rOf(G.me), wk=r?Math.round((r.salary||0)/52):0; $("#tMoney").innerHTML=`<div class="osw" title="${won(G.pmCash||0)}">${krwText(G.pmCash||0)}</div><small class="pos">${L("내 자산","My cash","所持金","我的资产")} | ${L("주급","Weekly","週給","周薪")} +${short(wk)}</small>`; }
+  else $("#tMoney").innerHTML=`<div class="osw" title="${won(G.budget)}">${krwText(G.budget)}</div><small class="${w.net>=0?'pos':'neg'}">주간 ${w.net>=0?"+":""}${short(w.net)}</small>`;
   $("#tMoney").dataset.tip=`<h6>주간 예상 수지</h6><div class="g">
     <span>스폰서 수입</span><span class="pos">+${short(w.sp)}</span><span>리그 지원금</span><span class="pos">+${short(w.stipend)}</span><span>굿즈/스트리밍</span><span class="pos">+${short(w.merch)}</span>
     <span>선수 연봉</span><span class="neg">-${short(w.pay)}</span><span>코칭스태프</span><span class="neg">-${short(w.staff)}</span><span>시설 유지비</span><span class="neg">-${short(w.facCost)}</span>
@@ -9609,6 +9631,589 @@ idbReady(()=>{ try{
 /* iOS Safari: rapid taps (e.g. mental coaching) must not trigger double-tap zoom; keep the second tap as a click */
 (function(){ let last=0, lastEl=null; document.addEventListener("touchend",e=>{ if(e.touches&&e.touches.length) { last=0; return; } if(e.changedTouches&&e.changedTouches.length>1){ last=0; return; } const now=Date.now(); const el=e.target&&e.target.closest?e.target.closest("button,.sbtn,[onclick]"):null;
     if(el&&el===lastEl&&now-last<350){ if(e.cancelable) e.preventDefault(); if(typeof el.click==="function") el.click(); } last=now; lastEl=el; },{passive:false}); })();
+
+/* ==== 3D MODULES (appended from office3d.js and arena3d.js) ==== */
+/* ===== 3D club building: walk-around office with clickable, upgradable rooms (pure CSS 3D, no libraries) ===== */
+const O3={yaw:-28,pitch:58,dist:0,cx:0,cy:40,tgt:null,room:null,raf:0,ptr:new Map(),drag:null,moved:0,bbs:[]};
+const O3_ROOMS=[
+  {k:"lobby",fac:null,   x:-180,y:-110,w:360,d:300,floor:"#2a1d1f",ac:"#ef4444",n:()=>L("로비 / 집무실","Lobby / Office","ロビー / 執務室","大厅 / 办公室")},
+  {k:"squad",fac:null,   x:-580,y:210, w:1160,d:240,floor:"#16211f",ac:"#14b8a6",n:()=>L("선수단 라운지","Squad lounge","選手ラウンジ","队员休息室")},
+  {k:"league",fac:null,  x:-580,y:-750,w:380,d:300,floor:"#142029",ac:"#38bdf8",n:()=>L("리그 / 일정 상황실","League room","リーグ室","联赛室")},
+  {k:"tactic",fac:null,  x:-180,y:-750,w:360,d:300,floor:"#1c1d33",ac:"#818cf8",n:()=>L("전술 / 스크림실","Tactics room","戦術室","战术室")},
+  {k:"market",fac:null,  x:200, y:-750,w:380,d:300,floor:"#2b2016",ac:"#fb923c",n:()=>L("이적 협상실","Transfer room","移籍交渉室","转会室")},
+  {k:"gear", fac:"gear", x:-580,y:-430,w:380,d:300,floor:"#1d2430",ac:"#3b82f6",n:()=>L("연습실","Practice room","練習室","训练室")},
+  {k:"lab",  fac:"lab",  x:-180,y:-430,w:360,d:300,floor:"#1f2a26",ac:"#22c55e",n:()=>L("분석실","Analysis room","分析室","分析室")},
+  {k:"scout",fac:"scout",x:200, y:-430,w:380,d:300,floor:"#2a2620",ac:"#f59e0b",n:()=>L("스카우터실","Scouting room","スカウト室","球探室")},
+  {k:"dorm", fac:"dorm", x:-580,y:-110,w:380,d:300,floor:"#262033",ac:"#a78bfa",n:()=>L("숙소","Dorm","寮","宿舍")},
+  {k:"promo",fac:"promo",x:200, y:-110,w:380,d:300,floor:"#2a1f2a",ac:"#ec4899",n:()=>L("홍보실","PR room","広報室","宣传室")},
+  {k:"trophy",fac:null,  x:-580,y:470, w:1160,d:220,floor:"#211d14",ac:"#f5c542",n:()=>L("트로피 진열장","Trophy hall","トロフィー展示室","奖杯陈列室")}];
+function o3Shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255; r=Math.max(0,Math.min(255,Math.round(r*f))); g=Math.max(0,Math.min(255,Math.round(g*f))); b=Math.max(0,Math.min(255,Math.round(b*f))); return `rgb(${r},${g},${b})`; }
+/* a box sitting on the floor: x,y = corner on the floor plan, z = height of its base */
+function o3Box(x,y,z,w,d,h,col,op){ const a=op==null?"":`;opacity:${op}`, f=(st,c)=>`<i class="o3f" style="${st};background:${c}${a}"></i>`;
+  return `<b class="o3b" style="transform:translate3d(${x}px,${y}px,${z}px)">`+
+    f(`width:${w}px;height:${d}px;transform:translateZ(${h}px)`,o3Shade(col,1.15))+
+    f(`width:${w}px;height:${h}px;transform:translate3d(0,${d}px,0) rotateX(90deg)`,o3Shade(col,.85))+
+    f(`width:${w}px;height:${h}px;transform:rotateX(90deg)`,o3Shade(col,.7))+
+    f(`width:${h}px;height:${d}px;transform:rotateY(-90deg)`,o3Shade(col,.62))+
+    f(`width:${h}px;height:${d}px;transform:translate3d(${w}px,0,0) rotateY(-90deg)`,o3Shade(col,.75))+`</b>`; }
+function o3Panel(x,y,z,w,h,html,cls){ /* upright flat panel facing +y; z = its bottom edge */
+  return `<b class="o3b" style="transform:translate3d(${x}px,${y}px,${z+h}px)"><i class="o3f ${cls||""}" style="width:${w}px;height:${h}px;transform:rotateX(90deg) translateZ(1px) scaleY(-1)"><span style="display:block;width:100%;height:100%">${html||""}</span></i></b>`; }
+function o3BB(x,y,z,html,cls){ O3.bbs.push(1); return `<div class="o3bb ${cls||""}" data-x="${x}" data-y="${y}" data-z="${z}">${html}</div>`; }
+function o3Lv(r){ return r.fac?facLv(r.fac):0; }
+function o3Furniture(r){ const lv=o3Lv(r), x0=r.x, y0=r.y, W=r.w, D=r.d, out=[]; const B=(x,y,z,w,d,h,c,op)=>out.push(o3Box(x0+x,y0+y,z,w,d,h,c,op));
+  const screen=(x,w,h,z,txt,c)=>out.push(o3Panel(x0+x,y0+12,z,w,h,`<span class="o3scr" style="--c:${c||r.ac}">${txt||""}</span>`));
+  if(r.k==="gear"){ const n=Math.min(8,2+Math.ceil(lv/1.5)); for(let i=0;i<n;i++){ const col=i%4, row=Math.floor(i/4), x=24+col*88, y=70+row*110;
+      B(x,y,0,74,36,30,"#3a3f4a"); B(x+16,y+4,30,42,5,26,"#111827"); out.push(o3Panel(x0+x+16,y0+y+4,31,42,25,`<span class="o3scr" style="--c:${r.ac}"></span>`)); B(x+26,y+46,0,22,22,18,lv>=6?"#dc2626":"#4b5563"); }
+    if(lv>=5) screen(110,160,70,40,"AIM LAB",r.ac); if(lv>=8) B(8,14,96,W-16,6,6,r.ac); }
+  else if(r.k==="lab"){ B(60,120,0,240,70,30,"#334155"); const lp=Math.min(6,2+Math.floor(lv/2)); for(let i=0;i<lp;i++) B(72+i*38,126,30,26,18,3,"#94a3b8");
+    const sc=Math.min(4,1+Math.floor(lv/3)); for(let i=0;i<sc;i++) screen(20+i*84,74,52,46,i%2?"VOD":"STATS",r.ac); B(W-60,210,0,40,40,70,"#e5e7eb"); }
+  else if(r.k==="scout"){ const n=Math.min(5,1+Math.floor(lv/2)); for(let i=0;i<n;i++) B(30+i*68,150,0,56,34,30,"#57534e"); screen(40,140,80,40,"MAP",r.ac); if(lv>=3) for(let i=0;i<Math.min(4,lv-2);i++) B(W-50,40+i*48,0,36,40,64,"#78716c"); if(lv>=6) screen(200,120,70,40,"TARGETS","#f97316"); }
+  else if(r.k==="dorm"){ const n=Math.min(6,1+Math.floor(lv/2)); for(let i=0;i<n;i++){ const x=18+(i%3)*118, y=36+Math.floor(i/3)*120; B(x,y,0,96,60,22,"#cbd5e1"); B(x,y,22,96,16,10,"#f1f5f9"); B(x+70,y+64,0,22,22,26,"#6b7280"); }
+    if(lv>=6){ B(120,250,0,140,36,26,"#7c3aed"); screen(150,90,50,36,"TV","#a78bfa"); } if(lv>=9){ B(W-70,240,0,46,40,40,"#374151"); } }
+  else if(r.k==="promo"){ B(40,140,0,8,8,96,"#9ca3af"); B(30,128,96,28,28,22,"#111827"); out.push(o3Panel(x0+20,y0+12,10,W-40,110,`<span class="o3scr" style="--c:${r.ac}">${esc((T(G.team)||{}).name||"")}</span>`));
+    const n=Math.min(4,1+Math.floor(lv/3)); for(let i=0;i<n;i++) B(140+i*58,190,0,48,32,28,"#4b5563"); if(lv>=5) B(W-90,150,0,6,6,110,"#f472b6"); if(lv>=8) B(14,14,110,W-28,6,6,r.ac); }
+  else if(r.k==="lobby"){ const t=T(G.team)||{}; B(110,130,0,140,60,34,"#78350f"); B(160,200,0,40,36,44,"#1f2937"); B(30,230,0,110,40,24,"#7f1d1d"); B(30,190,0,30,40,24,"#7f1d1d"); B(W-50,240,0,28,28,50,"#166534");
+    out.push(o3BB(x0+180,y0+40,62,o3LogoHTML(t,r.ac))); }
+  else if(r.k==="trophy"){ const all=G.trophies||[], last=all[all.length-1], rest=all.slice(0,-1).slice(-16).reverse(), front=rest.slice(0,8), back=rest.slice(8);
+    B(30,20,0,W-60,10,150,"#1c1408"); B(30,30,0,W-60,40,46,"#3f2d12"); B(30,30,46,W-60,40,4,"#d4af37");
+    back.forEach((t,i)=>{ const x=x0+70+(i+0.5)*((W-140)/Math.max(8,back.length)); out.push(o3BB(x,y0+50,50,`<div class="o3tro md" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
+    const slots=Math.max(1,front.length), half=Math.ceil(slots/2);
+    front.forEach((t,i)=>{ const side=i<half?-1:1, k=i<half?i:i-half, x=W/2+side*(150+k*((W/2-200)/Math.max(1,half-1||1))*(half>1?1:0))+(half===1?side*0:0), xx=Math.max(70,Math.min(W-70,x));
+      B(xx-34,120,0,68,58,30,"#2b2b31"); B(xx-36,118,30,72,62,4,"#d4af37"); out.push(o3BB(x0+xx,y0+150,34,`<div class="o3tro lg" data-o3act="tro:${t.id}">${trophySVG(t.kind,false,t.yr)}<em>${t.yr}</em></div>`)); });
+    B(W/2-70,110,0,140,90,40,"#d4af37"); B(W/2-60,118,40,120,74,6,"#fde68a");
+    if(last) out.push(o3BB(x0+W/2,y0+156,46,`<div class="o3tro big" data-o3act="tro:${last.id}">${trophySVG(last.kind,true,last.yr)}<em>${last.yr} ${esc(last.event||"")}</em></div>`));
+    else out.push(o3BB(x0+W/2,y0+156,46,`<div class="o3sign">${L("아직 트로피가 없습니다","No trophies yet","まだトロフィーはありません","尚无奖杯")}</div>`)); }
+  return out.join(""); }
+function o3Room(r){ const lv=o3Lv(r), H=110, T_=8, glow=r.fac?Math.min(1,0.25+lv*0.075):0.6;
+  return `<div class="o3room" data-room="${r.k}">`+
+    `<b class="o3b" style="transform:translate3d(${r.x}px,${r.y}px,0)"><i class="o3f o3fl" style="width:${r.w}px;height:${r.d}px;background:${r.floor};box-shadow:inset 0 0 0 2px ${r.ac}55, inset 0 0 ${30+lv*6}px ${r.ac}${Math.round(glow*80).toString(16).padStart(2,"0")}"></i></b>`+
+    o3Box(r.x,r.y,0,r.w,T_,H,"#30343c",0.92)+o3Box(r.x,r.y,0,T_,r.d,H,"#2a2e35",0.55)+o3Box(r.x+r.w-T_,r.y,0,T_,r.d,H,"#2a2e35",0.55)+
+    o3Box(r.x+10,r.y+T_,H-8,r.w-20,4,4,r.ac,Math.min(1,0.3+lv*0.07))+
+    (O3_XF[r.k]?O3_XF[r.k](r):o3Furniture(r))+
+    o3BB(r.x+r.w/2,r.y+r.d/2,H+40,`<div class="o3sign" style="--c:${r.ac}">${esc(r.n())}${r.fac?` <b>Lv.${lv}</b>`:""}</div>`)+`</div>`; }
+function o3Html(){ O3.bbs=[]; return `<b class="o3b" style="transform:translate3d(-640px,-800px,-2px)"><i class="o3f" style="width:160px;height:193px;transform:scale(8);background:radial-gradient(ellipse at center,#191a1f 0%,#0c0c0f 75%);"></i></b>`+O3_ROOMS.map(o3Room).join(""); }
+function o3Build(){ const s=$("#o3s"); if(!s) return; s.innerHTML=o3Html(); o3Cam(); }
+function o3CamOn(s,c,sc,dy){ if(!s) return; s.style.transform=`translate3d(0,${dy}px,${c.dist}px) scale3d(${sc},${sc},${sc}) rotateX(${c.pitch}deg) rotateZ(${c.yaw}deg) translate3d(${-c.cx}px,${-c.cy}px,0)`;
+  if(!s._bbs||s._bbH!==s.firstChild){ s._bbs=[...s.querySelectorAll(".o3bb")]; s._bbH=s.firstChild; } const bt=`rotateZ(${-c.yaw}deg) rotateX(${-c.pitch}deg) translate(-50%,-100%)`; s._bbs.forEach(b=>{ if(!b._p) b._p=`translate3d(${b.dataset.x}px,${b.dataset.y}px,${b.dataset.z}px) `; b.style.transform=b._p+bt; }); if(0) s.querySelectorAll(".o3bb").forEach(b=>{ b.style.transform=`translate3d(${b.dataset.x}px,${b.dataset.y}px,${b.dataset.z}px) rotateZ(${-c.yaw}deg) rotateX(${-c.pitch}deg) translate(-50%,-100%)`; }); }
+function o3Cam(){ o3CamOn($("#o3s"),O3,Math.max(0.42,Math.min(1,innerWidth/1250)),innerWidth<700?-30:60); }
+function o3Fly(cx,cy,dist,yaw,pitch){ cancelAnimationFrame(O3.raf); const a={cx:O3.cx,cy:O3.cy,dist:O3.dist,yaw:O3.yaw,pitch:O3.pitch}, b={cx,cy,dist,yaw:yaw==null?O3.yaw:yaw,pitch:pitch==null?O3.pitch:pitch}, t0=performance.now(), T=650;
+  const st=t=>{ const k=Math.min(1,(t-t0)/T), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; for(const q in a) O3[q]=a[q]+(b[q]-a[q])*e; o3Cam(); if(k<1) O3.raf=requestAnimationFrame(st); }; O3.raf=requestAnimationFrame(st); }
+function o3Home(){ O3.room=null; o3PanelHide(); const m=innerWidth<700; o3Fly(0,30,m?-150:-300,-28,58); o3Chips(); }
+function o3Focus(k){ const r=O3_ROOMS.find(x=>x.k===k); if(!r) return; O3.room=k; const m=innerWidth<700; o3Fly(r.x+r.w/2,r.y+r.d/2+(m?190:0),m?(k==="trophy"?300:420):(k==="trophy"?250:420),O3.yaw,k==="trophy"?40:52); o3PanelShow(r); o3Chips(); }
+function o3Chips(){ const c=$("#o3chips"); if(!c) return; c.innerHTML=O3_ROOMS.map(r=>`<button class="sbtn ${O3.room===r.k?"on":""}" onclick="o3Focus('${r.k}')">${esc(r.n())}${r.fac?" "+o3Lv(r):""}</button>`).join(""); }
+function o3PanelHide(){ const p=$("#o3p"); if(p) p.classList.remove("on"); const o=$("#o3"); if(o) o.classList.remove("pnl"); }
+function o3PanelBody(r){ const pmm=typeof pm==="function"&&pm(); let h=`<button class="x" onclick="o3Home()">x</button><div class="o3pk" style="color:${r.ac}">${r.fac?"FACILITY":r.k==="trophy"?"TROPHIES":"OFFICE"}</div><h3>${esc(r.n())}</h3>`;
+  if(r.fac){ const f=FAC.find(x=>x.k===r.fac), lv=facLv(r.fac), mx=lv>=FAC_MAX, c=mx?0:upCost(r.fac), fx=FAC_FX[r.fac]||{};
+    h+=`<div class="lvbar" style="margin:6px 0 8px">${Array.from({length:FAC_MAX},(_,i)=>`<i class="${i<lv?"on":""}"></i>`).join("")}</div><div class="o3row"><span>${L("레벨","Level","レベル","等级")}</span><b>Lv.${lv} / ${FAC_MAX}</b></div>
+      <div class="o3row"><span>${L("효과","Effect","効果","效果")}</span><b>${fx.eff?fx.eff(lv):""}${fx.eff2?"<br>"+fx.eff2(lv):""}</b></div><div class="mute" style="font-size:12px;margin:4px 0 10px">${facDs(f)}</div>`;
+    if(pmm) h+=`<div class="mute" style="font-size:12px">${L("선수 키우기 모드에서는 구단 시설을 둘러볼 수만 있습니다. 시설 투자는 구단이 합니다.","In player mode you can only look around; the club handles facilities.","選手モードでは見学のみ。","选手模式仅可参观。")}</div>`;
+    else h+=`<div class="o3row"><span>${L("다음 레벨 비용","Next level","次のレベル費用","升级费用")}</span><b>${mx?L("최대 레벨","Max","最大","满级"):short(c)}</b></div><div class="o3row"><span>${L("구단 잔액","Budget","残高","余额")}</span><b>${short(G.budget)}</b></div>
+      <button class="go" style="width:100%;margin-top:10px" ${mx||G.budget<c?"disabled":""} onclick="o3Up('${r.fac}')">${mx?L("최대 레벨","Max level","最大レベル","已满级"):G.budget<c?L("자금 부족","Not enough budget","資金不足","资金不足"):L(`업그레이드 (${short(c)})`,`Upgrade (${short(c)})`,`アップグレード`,`升级`)}</button>`; }
+  else if(r.k==="lobby"){ const t=T(G.team)||{}; h+=`<div class="o3row"><span>${L("구단","Club","球団","俱乐部")}</span><b>${esc(t.name||"")}</b></div><div class="o3row"><span>${L("명성 / 팬","Fame / fans","名声 / ファン","名声 / 粉丝")}</span><b>${G.fame} / ${Math.round(G.fans||0).toLocaleString()}</b></div>
+      <div class="o3row"><span>${L("시즌 전적","Season record","今季成績","赛季战绩")}</span><b>${(G.record||{}).w||0}${L("승","W")} ${(G.record||{}).l||0}${L("패","L")}</b></div>
+      <div class="o3row"><span>${pmm?L("내 자산","My cash"):L("구단 잔액","Budget")}</span><b>${short(pmm?(G.pmCash||0):G.budget)}</b></div>
+      <div class="o3row"><span>${L("시설 레벨 합","Facility levels","施設レベル合計","设施等级")}</span><b>${FAC.reduce((s,f)=>s+facLv(f.k),0)} / ${FAC.length*FAC_MAX}</b></div>
+`; }
+  else if(r.k==="squad"){ h+=`<div class="mute" style="font-size:12px;margin-bottom:4px">${pmm?L("우리 팀 선수들입니다. 주전 구성과 조합은 코칭스태프가 정합니다.","Your teammates. Staff pick the lineup."):L("선수를 누르면 능력치와 경력이 열립니다. 빈 자리는 이적시장에서 채웁니다.","Tap a player for details. Fill empty spots in the market.")}</div>`; }
+  else if(O3_XB[r.k]) h+=O3_XB[r.k](r,pmm);
+  else if(r.k==="trophy"){ const tr=G.trophies||[]; h+=`<div class="o3row"><span>${L("보유 트로피","Trophies","トロフィー","奖杯")}</span><b>${tr.length}</b></div>${tr.slice(-6).reverse().map(t=>`<div class="o3row" style="cursor:pointer" onclick="o3Trophy('${t.id}')"><span>${t.yr}</span><b>${esc(t.name||"")}</b></div>`).join("")}
+      <div class="mute" style="font-size:12px;margin-top:6px">${L("트로피를 누르면 우승 기록을 볼 수 있습니다.","Tap a trophy for its story.","トロフィーを押すと記録を表示。","点击奖杯查看记录。")}</div>`; }
+  return h; }
+const O3_ACT={
+  lobby:{m:[["room:league","리그 / 일정 상황실로","League room"],["room:squad","선수단 라운지로","Squad lounge"]],p:[["sheet:invest","개인 투자","Upgrades"],["room:league","리그 / 일정 상황실로","League room"]]},
+  gear:{m:[["sheet:squad","선수단 / 훈련 관리","Squad and training"]],p:[["act:aim","에임 훈련","Aim training"],["act:entry","교전/진입 연습","Duels"],["sheet:squad","선수단 보기","Squad"]]},
+  lab:{m:[["sheet:tactic","전술 / 스크림","Tactics and scrims"]],p:[["act:vod","VOD 분석","VOD review"],["act:util","유틸 연구","Utility study"],["act:agent","주력 요원 연습","Agent practice"]]},
+  scout:{m:[["sheet:market","이적시장 / 스카우팅","Transfer market"]],p:[["sheet:market","받은 제안 / 이적시장","Offers and market"]]},
+  dorm:{m:[["sheet:squad","선수 컨디션 보기","Player condition"]],p:[["act:rest","휴식","Rest"],["act:lang","언어 과외","Language lesson"]]},
+  promo:{m:[["sheet:club","구단 / 스폰서 / 시설","Club and sponsors"]],p:[["act:stream","개인 방송","Stream"],["sheet:invest","개인 투자","Upgrades"]]},
+  squad:{m:[["sheet:squad","선수단 / 훈련 관리","Squad and training"],["sheet:market","이적시장","Transfer market"]],p:[["sheet:squad","선수단 / 맵별 조합 보기","Squad and comps"]]},
+  trophy:{m:[["sheet:trophy","전시장 열기","Open trophy room"]],p:[["sheet:trophy","전시장 열기","Open trophy room"]]}};
+function o3ActsHTML(k){ const pmm=typeof pm==="function"&&pm(), a=(O3_ACT[k]||{})[pmm?"p":"m"]||[]; if(!a.length) return "";
+  const today=pmm&&G.pmDay===absNow();
+  return `<div class="o3acts">${a.map(([c,ko,en])=>{ const dis=c.startsWith("act:")&&today; return `<button class="${c==="go"?"go":"ghost"}" ${dis?"disabled":""} onclick="o3Do('${c}')">${L(ko,en,en,en)}${dis?L(" (오늘 완료)"," (done)"):""}</button>`; }).join("")}</div>`; }
+function o3Do(c){ try{ if(c==="go"){ advance(); } else if(c==="auto"){ openAuto(); } else if(c==="cal"){ openCalendar(); } else if(c.startsWith("sheet:")){ openSheet(c.slice(6)); } else if(c.startsWith("act:")){ pmAct(c.slice(4)); } else if(c.startsWith("room:")){ o3Focus(c.slice(5)); return; } else if(c.startsWith("tro:")){ o3Trophy(c.slice(4)); return; } }catch(e){ console.error(e); }
+  setTimeout(o3Refresh,250); }
+function o3Refresh(){ if(!$("#o3")||!$("#o3").classList.contains("on")||!G) return; o3Hud(); const sig=o3Sig(); if(sig!==O3.sig){ O3.sig=sig; o3Build(); o3Chips(); } if(O3.room){ const r=O3_ROOMS.find(x=>x.k===O3.room); if(r&&$("#o3p").classList.contains("on")) o3PanelShow(r); } }
+function o3Sig(){ return G?[G.team,G.week,G.dday,(G.record||{}).w,(G.pmOffers||[]).length,JSON.stringify(G.fac||{}),(G.trophies||[]).length,(G.roster||[]).map(r=>{ const p=P(r.id); return r.id+":"+(p?p.ovr:0); }).join(",")].join("|"):""; }
+function o3Hud(){ const h=$("#o3hud"); if(!h||!G) return; const pmm=typeof pm==="function"&&pm(), ph=curPhase(), bb=(G.brief||[]);
+  const money=pmm?L("내 자산","My cash")+" "+krwText(G.pmCash||0):krwText(G.budget||0);
+  h.innerHTML=`<div class="o3hd"><b>${G.sea?G.sea.yr:""} ${esc(ph?ph.n:"")}</b> <span class="mute">W${G.week||""}</span> <span class="o3dd">D-${G.dday}</span> <span class="mute o3nx">${esc(fxLabel())}</span></div>
+    <div class="o3hm"><span>${money}</span><button class="ghost" onclick="o3Do('auto')">${L("자동 진행","Auto")}</button><button class="go" onclick="o3Do('go')">${L("다음 일정","Next day")}</button></div>
+    ${bb.length?`<div class="o3brief" onclick="o3Focus('lobby')">${esc(String(bb[(G.bi||0)%bb.length]||""))}</div>`:""}`; }
+function o3Trophy(id){ try{ openTrophy(id); }catch(e){ console.error(e); } }
+function o3Up(k){ const before=facLv(k); try{ upgrade(k); }catch(e){ console.error(e); } if(facLv(k)!==before){ o3Build(); const r=O3_ROOMS.find(x=>x.fac===k); if(r) o3PanelShow(r); o3Chips(); } }
+function o3Open(){ if(!G) return; let el=$("#o3"); if(!el){ el=document.createElement("div"); el.id="o3"; document.body.appendChild(el); }
+  el.innerHTML=`<div class="o3v" id="o3v"><div class="o3s" id="o3s"></div></div>
+    <div class="o3top"><button class="ghost" onclick="o3Close()">${L("2D 화면","2D view","2D画面","2D界面")}</button><button class="ghost" onclick="o3Home()">${L("전체 보기","Overview","全体表示","全景")}</button><span class="o3t">${esc((T(G.team)||{}).name||"")}</span></div><div class="o3hud" id="o3hud"></div>
+    <div class="o3chips" id="o3chips"></div><div class="o3hint">${L("드래그: 회전 | 휠, 두 손가락: 확대 | 방을 누르면 들어갑니다","Drag to rotate | wheel or pinch to zoom | tap a room","ドラッグで回転 | ホイール/ピンチで拡大 | 部屋をタップ","拖动旋转 | 滚轮/双指缩放 | 点击房间")}</div><div class="o3p" id="o3p"></div>`;
+  el.classList.add("on"); document.body.classList.add("o3on"); try{ const sh=$("#sheet"); if(sh&&sh.parentNode!==document.body){ O3.shP=sh.parentNode; O3.shN=sh.nextSibling; document.body.appendChild(sh); } }catch(e){} document.documentElement.classList.add("ovlock"); O3.sig=o3Sig(); o3Build(); o3Bind(); o3Home(); o3Hud(); clearInterval(O3.iv); O3.iv=setInterval(o3Refresh,800); }
+function o3Close(){ const el=$("#o3"); if(el){ el.classList.remove("on"); el.innerHTML=""; } clearInterval(O3.iv); cancelAnimationFrame(O3.raf); document.body.classList.remove("o3on"); try{ const sh=$("#sheet"); if(sh&&O3.shP){ O3.shP.insertBefore(sh,O3.shN&&O3.shN.parentNode===O3.shP?O3.shN:null); O3.shP=null; } }catch(e){} document.documentElement.classList.remove("ovlock"); try{ renderAll(); }catch(e){} }
+function o3Bind(){ const v=$("#o3v"); if(!v) return;
+  v.addEventListener("pointerdown",e=>{ v.setPointerCapture&&v.setPointerCapture(e.pointerId); O3.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY}); O3.moved=0; if(O3.ptr.size===2){ const [a,b]=[...O3.ptr.values()]; O3.pinch={d:Math.hypot(a.x-b.x,a.y-b.y),dist:O3.dist}; } });
+  v.addEventListener("pointermove",e=>{ const p=O3.ptr.get(e.pointerId); if(!p) return; const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY; O3.moved+=Math.abs(dx)+Math.abs(dy);
+    if(O3.ptr.size>=2&&O3.pinch){ const [a,b]=[...O3.ptr.values()], d=Math.hypot(a.x-b.x,a.y-b.y); O3.dist=Math.max(-1400,Math.min(700,O3.pinch.dist+(d-O3.pinch.d)*2.2)); o3Cam(); return; }
+    cancelAnimationFrame(O3.raf); O3.yaw+=dx*0.35; O3.pitch=Math.max(18,Math.min(78,O3.pitch-dy*0.25)); o3Cam(); });
+  const up=e=>{ const had=O3.ptr.has(e.pointerId); O3.ptr.delete(e.pointerId); if(O3.ptr.size<2) O3.pinch=null; if(!had||O3.moved>8) return;
+    const hit=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.closest&&x.closest("[data-room]")); const rm=hit&&hit.closest("[data-room]"); if(rm) o3Focus(rm.dataset.room); };
+  v.addEventListener("pointerup",up); v.addEventListener("pointercancel",e=>{ O3.ptr.delete(e.pointerId); O3.pinch=null; });
+  v.addEventListener("wheel",e=>{ e.preventDefault(); cancelAnimationFrame(O3.raf); O3.dist=Math.max(-1400,Math.min(700,O3.dist-e.deltaY*0.8)); o3Cam(); },{passive:false}); }
+(function(){ if(document.getElementById("o3Css")) return; const st=document.createElement("style"); st.id="o3Css"; st.textContent=`
+#o3{position:fixed;inset:0;z-index:45;display:none;background:#08080a;color:#eee;touch-action:none;user-select:none;-webkit-user-select:none}
+#o3.on{display:block}
+#o3 .o3v{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 45%;overflow:hidden;cursor:grab}
+#o3 .o3v:active{cursor:grabbing}
+#o3 .o3s,#o3bg .o3s{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
+:is(#o3,#o3bg) .o3s *{transform-style:preserve-3d}
+:is(#o3,#o3bg) .o3room{position:absolute;left:0;top:0}
+:is(#o3,#o3bg) .o3b{position:absolute;left:0;top:0;display:block}
+:is(#o3,#o3bg) .o3f{position:absolute;left:0;top:0;display:block;transform-origin:0 0;backface-visibility:visible}
+:is(#o3,#o3bg) .o3fl{border-radius:2px}
+:is(#o3,#o3bg) .o3bb{position:absolute;left:0;top:0;pointer-events:auto;transform-style:flat}
+:is(#o3,#o3bg) .o3sign{white-space:nowrap;padding:5px 11px;border-radius:14px;background:rgba(10,10,12,.82);border:1px solid var(--c,#666);font:600 15px var(--body);color:#fff;box-shadow:0 0 18px color-mix(in srgb,var(--c,#666) 40%,transparent)}
+:is(#o3,#o3bg) .o3sign b{color:var(--c,#fff);margin-left:4px}
+:is(#o3,#o3bg) .o3scr{display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(160deg,#0b1220,#111827);border:2px solid var(--c,#3b82f6);font:700 13px var(--body);letter-spacing:2px;color:var(--c,#3b82f6);box-shadow:inset 0 0 18px color-mix(in srgb,var(--c,#3b82f6) 45%,transparent);overflow:hidden;text-align:center}
+:is(#o3,#o3bg) .o3tro{width:46px;pointer-events:auto;text-align:center;cursor:pointer;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
+:is(#o3,#o3bg) .o3tro img,:is(#o3,#o3bg) .o3tro svg{width:100%;height:auto;display:block}
+:is(#o3,#o3bg) .o3tro em{display:block;font:600 10px var(--body);color:#f5c542;font-style:normal}
+:is(#o3,#o3bg) .o3tro.big{width:150px}.o3tro.lg{width:92px}.o3tro.md{width:64px}.o3tro.lg em,.o3tro.md em{font-size:12px}:is(#o3,#o3bg) .o3tro.big em{font-size:12px}
+:is(#o3,#o3bg) .o3tro:hover{filter:drop-shadow(0 0 14px rgba(245,197,66,.8))}
+#o3 .o3top{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;z-index:2}
+#o3 .o3t{font:600 13px var(--body);color:#9ca3af;letter-spacing:1px}
+#o3 .o3chips{position:absolute;left:12px;right:12px;bottom:14px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;z-index:2}
+#o3 .o3hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:11.5px;color:#6b7280;pointer-events:none;white-space:nowrap}
+#o3 .o3p{position:absolute;right:14px;top:60px;width:300px;max-height:calc(100% - 130px);overflow:auto;background:rgba(17,17,20,.94);border:1px solid #2a2a2a;border-radius:8px;padding:14px 16px;display:none;z-index:3}
+#o3 .o3p.on{display:block;animation:fxIn .2s ease-out}
+#o3 .o3p h3{margin:2px 0 4px;font-size:19px}
+#o3 .o3pk{font:600 11px var(--body);letter-spacing:3px}
+#o3 .o3p .x{position:absolute;right:10px;top:8px}
+#o3 .o3row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px solid #222}
+#o3 .o3row span{color:#9ca3af}#o3 .o3row b{text-align:right}
+#o3 .o3hud{position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;z-index:2;max-width:min(760px,60vw)}
+#o3 .o3hd{font-size:13px;background:rgba(10,10,12,.78);border:1px solid #2a2a2a;border-radius:16px;padding:5px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#o3 .o3dd{color:#f5c542;font-weight:700;margin:0 4px}
+#o3 .o3hm{display:flex;gap:6px;align-items:center;font-size:12.5px}#o3 .o3hm span{color:#9ca3af;margin-right:4px}
+#o3 .o3brief{font-size:12px;color:#d1d5db;background:rgba(10,10,12,.7);border-left:3px solid #22c55e;padding:4px 10px;border-radius:3px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+#o3 .o3hint{top:auto;bottom:58px}
+#o3 .o3acts{display:grid;gap:6px;margin-top:12px}#o3 .o3acts button{width:100%}
+body.o3on #sheet{position:fixed!important;display:none;z-index:47!important;top:64px!important;bottom:64px!important;left:max(12px,5vw)!important;right:max(12px,5vw)!important}
+body.o3on.sheet-open #sheet{display:flex}
+body.o3on.sheet-open #o3 .o3p,body.o3on.sheet-open #o3 .o3chips{display:none}
+#o3bg{position:absolute;inset:0;cursor:pointer;display:none;background:radial-gradient(ellipse at 50% 45%,#16171c 0%,#09090b 72%)}
+#bg.b3d{opacity:1!important}#bg.b3d>svg,#bg.b3d>:not(#o3bg){visibility:hidden}
+#o3bg .o3bgv{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 40%;overflow:hidden;pointer-events:none}
+#o3bg .o3s{position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d}
+#o3bg .o3bb{pointer-events:none}
+#o3bg .o3cta{position:absolute;left:50%;top:16%;transform:translateX(-50%);z-index:1;padding:8px 18px;border-radius:20px;background:rgba(10,10,12,.75);border:1px solid #dc2626;color:#fff;font:600 13px var(--body);cursor:pointer;box-shadow:0 0 18px rgba(220,38,38,.35)}
+#o3bg .o3cta:hover{background:#dc2626}
+@media (max-width:700px){ #o3 .o3hud{left:8px;right:8px;transform:none;top:52px;max-width:none} #o3 .o3hd{font-size:11.5px} #o3.pnl .o3hud .o3brief{display:none} }
+@media (max-width:700px){ #o3.pnl .o3chips,#o3.pnl .o3hint{display:none} #o3 .o3p{left:8px;right:8px;top:auto;bottom:10px;width:auto;max-height:48%} #o3 .o3hint{top:auto;bottom:112px;white-space:normal;text-align:center;width:90%} #o3 .o3t{display:none} #o3 .o3chips .sbtn{padding:4px 8px;font-size:11.5px} }`;
+document.head.appendChild(st); })();
+
+/* lobby background: the building itself, slowly turning; click it to walk in */
+const O3B={yaw:-30,pitch:56,dist:-260,cx:0,cy:20,sig:"",raf:0,t:0};
+function o3BgSync(){ if(!G) return; const bg=$("#bg"); if(!bg) return; const bi=$("#bgimg"), custom=bi&&bi.style.display==="block"&&bi.style.backgroundImage&&bi.style.backgroundImage!=="none";
+  let v=$("#o3bg"); if(custom||!o3Pref()){ if(v) v.style.display="none"; bg.classList.remove("b3d"); return; }
+  if(!v){ v=document.createElement("div"); v.id="o3bg"; v.innerHTML=`<div class="o3bgv"><div class="o3s" id="o3bgs"></div></div><button class="o3cta" onclick="o3Open()">${L("건물 안으로 들어가기","Enter the building","建物に入る","进入大楼")}</button>`; v.addEventListener("click",e=>{ if(!e.target.closest("button")) o3Open(); }); bg.appendChild(v); }
+  v.style.display="block"; bg.classList.add("b3d"); const sig=o3Sig(); if(sig!==O3B.sig){ O3B.sig=sig; const st=$("#o3bgs"); st.innerHTML=o3Html(); }
+  if(!O3B.raf) o3BgLoop(); }
+function o3BgLoop(){ O3B.raf=requestAnimationFrame(t=>{ O3B.raf=0; const v=$("#o3bg"); const lob=$("#lobby"); const vis=v&&v.style.display!=="none"&&lob&&lob.style.display!=="none"&&!document.hidden&&!(document.body.classList.contains("o3on"));
+  if(vis&&t-O3B.t>40){ O3B.t=t; O3B.yaw+=0.06; const w=Math.max(320,Math.min(innerWidth,1400)); o3CamOn($("#o3bgs"),O3B,Math.max(0.3,Math.min(0.62,w/2100)),innerWidth<700?-40:-10); }
+  if(v) setTimeout(o3BgLoop,vis?30:600); }); }
+(function(){ const _ra=renderAll; renderAll=function(){ const r=_ra.apply(this,arguments); try{ o3BgSync(); }catch(e){ console.error(e); } return r; }; })();
+/* ===== 3D hub v2: the building is the home screen; 2D widgets are docked into it ===== */
+function o3IsPm(){ return typeof pm==="function"&&!!G&&pm(); }
+function o3Squad(r){ const out=[], x0=r.x, y0=r.y, W=r.w, D=r.d, B=(x,y,z,w,d,h,c,op)=>out.push(o3Box(x0+x,y0+y,z,w,d,h,c,op)), pmm=o3IsPm(), t=T(G.team)||{};
+  B(20,22,0,700,D-44,2,"#1b2a28"); /* carpet */
+  out.push(o3BB(x0+370,y0+30,70,o3LogoHTML(t,r.ac)));
+  B(780,40,0,330,60,26,"#334155"); B(780,40,26,330,16,26,"#3f4c63"); B(780,100,0,20,90,26,"#334155"); B(1090,100,0,20,90,26,"#334155"); /* sofa */
+  B(880,150,0,130,50,18,"#78350f"); /* table */
+  const st=(G.roster||[]).slice(0,5), bn=(G.roster||[]).slice(5,10);
+  for(let i=0;i<5;i++){ const x=x0+90+i*135, y=y0+D-60, rr=st[i], p=rr&&P(rr.id), me=pmm&&rr&&rr.id===G.me;
+    out.push(o3Box(x-30,y-30,0,60,60,4,me?"#f5c542":p?r.ac:"#3f3f46"));
+    out.push(o3BB(x,y,6,p?o3FigHTML(p,rr,me,false):`<div class="o3fig empty" ${pmm?"":`data-o3act="sheet:market"`}><b>+</b><em>${pmm?L("빈 자리","Empty"):L("영입 필요","Sign a player")}</em></div>`)); }
+  bn.forEach((rr,i)=>{ const p=P(rr.id); if(!p) return; const x=bn.length>1?x0+815+i*260/(bn.length-1):x0+945, y=y0+84, me=pmm&&rr.id===G.me;
+    out.push(o3BB(x,y,30,o3FigHTML(p,rr,me,true))); });
+  return out.join(""); }
+function o3FigHTML(p,rr,me,small){ const f=Math.round(rr.fat||0), fc=f>=70?"#ef4444":f>=45?"#f59e0b":"#22c55e", ov=Math.round(p.ovr||0);
+  let img=""; try{ img=`<img src="${pixAvatar(String(p.name),p.nat)}" alt="">`; }catch(e){}
+  return `<div class="o3fig${small?" sm":""}${me?" me":""}" data-pid="${esc(String(rr.id))}">${img}<b>${esc(p.name)}</b><span>${ov}</span><i><s style="width:${Math.max(4,100-f)}%;background:${fc}"></s></i></div>`; }
+
+const O3_TOP=["undoBtn","calBtn","tDday","tFat","tMoney"], O3_GO=["autoBtn","skipBtn","goBtn"];
+const O3_DOCK={squad:[["pmCard",""],["rosterList",["주전 5인","Starting five"]],["staff",["코칭스태프 버프","Staff buffs"]]],
+  lobby:[["brief",""],["coachTip",""]], tactic:[["cal",["이번 주 일정 (스크림 / 훈련 / 휴식)","This week"]]], promo:[["sponsors",["스폰서십","Sponsors"]]]};
+function o3Borrow(id,dest){ const n=document.getElementById(id); if(!n||!dest||n.parentNode===dest) return; O3.ph=O3.ph||{};
+  if(!O3.ph[id]||!O3.ph[id].parentNode){ const c=document.createComment("o3:"+id); n.parentNode.insertBefore(c,n); O3.ph[id]=c; } dest.appendChild(n); }
+function o3Give(id){ const c=(O3.ph||{})[id], n=document.getElementById(id); if(c&&c.parentNode){ if(n) c.parentNode.insertBefore(n,c); c.parentNode.removeChild(c); } if(O3.ph) delete O3.ph[id]; }
+function o3GiveAll(){ Object.keys(O3.ph||{}).forEach(o3Give); O3.dockRoom=null; }
+function o3Slots(){ const a=$("#o3sTop"), b=$("#o3sGo"); O3_TOP.forEach(id=>o3Borrow(id,a)); O3_GO.forEach(id=>o3Borrow(id,b)); }
+function o3Dock(k){ const d=$("#o3pDock"); if(!d) return; if(O3.dockRoom===k) return;
+  (O3_DOCK[O3.dockRoom]||[]).forEach(([id])=>o3Give(id)); d.innerHTML=""; O3.dockRoom=k;
+  (O3_DOCK[k]||[]).forEach(([id,h])=>{ if(!document.getElementById(id)) return; const w=document.createElement("div"); w.className="o3dk"; if(h) w.innerHTML=`<div class="o3dh">${L(h[0],h[1])}</div>`; d.appendChild(w); o3Borrow(id,w); }); }
+function o3PanelShow(r){ const p=$("#o3p"); if(!p) return; try{ coachTipRender(); }catch(e){}
+  $("#o3pTop").innerHTML=`<button class="x" onclick="o3Home()">x</button>`+o3PanelBody(r); o3Dock(r.k); $("#o3pActs").innerHTML=o3ActsHTML(r.k);
+  if(!p.classList.contains("on")) p.scrollTop=0; p.classList.add("on"); const o=$("#o3"); if(o) o.classList.add("pnl"); }
+function o3PanelHide(){ const p=$("#o3p"); if(p) p.classList.remove("on"); const o=$("#o3"); if(o) o.classList.remove("pnl"); }
+function o3Port(){ return innerWidth<760&&innerHeight>innerWidth; }
+function o3Sc(){ return o3Port()?Math.max(0.3,Math.min(0.6,innerWidth/1180)):Math.max(0.38,Math.min(0.95,Math.min(innerWidth/1500,innerHeight/1000))); }
+function o3PhDy(){ try{ const pr=$("#o3p").getBoundingClientRect(), bt=$("#o3 .o3bar").getBoundingClientRect().bottom; return Math.round((bt+pr.top)/2-innerHeight*0.5+(O3.room==="squad"?40:120)); }catch(e){ return -200; } }
+function o3Cam(){ if(O3.camQ) return; O3.camQ=requestAnimationFrame(()=>{ O3.camQ=0; o3CamNow(); }); }
+function o3CamNow(){ const pt=o3Port(), pn=O3.room&&$("#o3p")&&$("#o3p").classList.contains("on"); o3CamOn($("#o3s"),O3,o3Sc(),pt?(pn?o3PhDy():-10):(pn?0:10)); }
+function o3Home(){ O3.room=null; o3Occl(); o3PanelHide(); o3Cam(); const pt=o3Port(); o3Fly(0,-30,pt?30:-330,pt?-4:-24,pt?50:56); o3Chips(); }
+function o3Occl(){ const s=$("#o3s"); if(!s) return; const f=O3.room&&O3_ROOMS.find(x=>x.k===O3.room); s.querySelectorAll(".o3room").forEach(el=>{ const r=O3_ROOMS.find(x=>x.k===el.dataset.room); el.classList.toggle("o3hide",!!(f&&r&&r!==f&&r.y>f.y)); }); }
+function o3Focus(k){ const r=O3_ROOMS.find(x=>x.k===k); if(!r) return; O3.room=k; o3Occl(); const pt=o3Port(), wide=r.w>800;
+  o3PanelShow(r); const sq=pt&&k==="squad"; const tr=k==="trophy"; o3Fly(sq?r.x+390:r.x+r.w/2,sq?r.y+30:tr?r.y+r.d*0.6:r.y+r.d/2,pt?(sq?470:tr?800:wide?330:880):(tr?460:wide?300:430),pt?-4:O3.yaw,tr?50:k==="squad"?44:52); o3Chips(); }
+function o3Chips(){ const c=$("#o3chips"); if(!c) return; c.innerHTML=O3_ROOMS.map(r=>`<button class="sbtn ${O3.room===r.k?"on":""}" onclick="o3Focus('${r.k}')">${esc(r.n())}${r.fac?` <b>${o3Lv(r)}</b>`:""}</button>`).join(""); }
+function o3Hud(){ if(!G) return; const ph=curPhase()||{}, bb=G.brief||[], d=$("#o3date"), n=$("#o3nx"), b=$("#o3brief");
+  if(d) d.textContent=`${G.sea?G.sea.yr:""} ${ph.n||""} W${G.week||""}`;
+  if(n){ let nx=""; try{ nx=fxLabel(); }catch(e){} n.textContent=nx; }
+  if(b){ const t=String(bb[(G.bi||0)%Math.max(1,bb.length)]||""); b.textContent=t; b.style.display=t?"":"none"; } }
+function o3Refresh(){ const o=$("#o3"); if(!o||!o.classList.contains("on")||!G) return; if(document.body.classList.contains("mton")) return; const lob=$("#lobby"); if(!lob||lob.style.display==="none"){ o3Close(true); return; }
+  o3Slots(); o3Hud(); const sig=o3Sig(); if(sig!==O3.sig){ O3.sig=sig; o3Build(); o3Chips(); o3Occl(); }
+  if(O3.room&&$("#o3p").classList.contains("on")){ const r=O3_ROOMS.find(x=>x.k===O3.room); if(r){ $("#o3pTop").innerHTML=`<button class="x" onclick="o3Home()">x</button>`+o3PanelBody(r); $("#o3pActs").innerHTML=o3ActsHTML(r.k); } } }
+function o3Pref(){ try{ return localStorage.getItem("vctmgr_home")!=="2d"; }catch(e){ return true; } }
+function o3Open(){ if(!G) return; try{ localStorage.setItem("vctmgr_home","3d"); }catch(e){} let el=$("#o3"); if(!el){ el=document.createElement("div"); el.id="o3"; document.body.appendChild(el); }
+  if(el.classList.contains("on")) return;
+  el.innerHTML=`<div class="o3v" id="o3v"><div class="o3s" id="o3s"></div></div>
+    <div class="o3bar"><div class="o3row1"><button class="ghost o3i" onclick="o3To2D()" title="2D">2D</button><button class="ghost o3i" onclick="o3Home()" title="${L("전체 보기","Overview")}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg></button>
+      <span style="flex:1"></span><div class="o3sTop" id="o3sTop"></div></div>
+      <div class="o3info"><b id="o3date"></b><span id="o3nx"></span></div><div class="o3brief" id="o3brief" onclick="o3Focus('lobby')"></div></div>
+    <div class="o3p" id="o3p"><div id="o3pTop"></div><div id="o3pDock"></div><div id="o3pActs"></div></div>
+    <div class="o3dock"><div class="o3hint">${L("드래그: 회전 | 휠, 두 손가락: 확대 | 방이나 선수를 누르세요","Drag to rotate | wheel or pinch to zoom | tap a room or a player")}</div><div class="o3chips" id="o3chips"></div><div class="o3go" id="o3sGo"></div></div>`;
+  el.classList.add("on"); document.body.classList.add("o3on"); try{ const sh=$("#sheet"); if(sh&&sh.parentNode!==document.body){ O3.shP=sh.parentNode; O3.shN=sh.nextSibling; document.body.appendChild(sh); } }catch(e){}
+  document.documentElement.classList.add("ovlock"); O3.dockRoom=null; o3Slots(); O3.sig=o3Sig(); o3Build(); o3Bind(); o3Home(); o3Hud(); clearInterval(O3.iv); O3.iv=setInterval(o3Refresh,800); }
+function o3To2D(){ try{ localStorage.setItem("vctmgr_home","2d"); }catch(e){} o3Close(); }
+function o3Close(quiet){ const el=$("#o3"); o3GiveAll(); if(el){ el.classList.remove("on"); el.innerHTML=""; } clearInterval(O3.iv); cancelAnimationFrame(O3.raf); document.body.classList.remove("o3on");
+  try{ const sh=$("#sheet"); if(sh&&O3.shP){ O3.shP.insertBefore(sh,O3.shN&&O3.shN.parentNode===O3.shP?O3.shN:null); O3.shP=null; } }catch(e){} document.documentElement.classList.remove("ovlock"); if(!quiet) try{ renderAll(); }catch(e){} }
+function o3Bind(){ const v=$("#o3v"); if(!v) return; const o=$("#o3");
+  const draw=()=>{ if(O3.camQ) return; O3.camQ=requestAnimationFrame(()=>{ O3.camQ=0; o3Cam(); }); };
+  const glide=()=>{ cancelAnimationFrame(O3.gl); const st=()=>{ O3.vx*=0.82; O3.vy*=0.82; if(Math.abs(O3.vx)<0.05&&Math.abs(O3.vy)<0.05){ o&&o.classList.remove("o3drag"); return; }
+      O3.yaw+=O3.vx; O3.pitch=Math.max(18,Math.min(78,O3.pitch-O3.vy)); o3Cam(); O3.gl=requestAnimationFrame(st); }; O3.gl=requestAnimationFrame(st); };
+  v.addEventListener("pointerdown",e=>{ cancelAnimationFrame(O3.gl); cancelAnimationFrame(O3.raf); try{ v.setPointerCapture(e.pointerId); }catch(er){}
+    O3.ptr.set(e.pointerId,{x:e.clientX,y:e.clientY}); O3.moved=0; O3.vx=0; O3.vy=0;
+    if(O3.ptr.size===2){ const [a,b]=[...O3.ptr.values()]; O3.pinch={d:Math.hypot(a.x-b.x,a.y-b.y),dist:O3.dist}; } });
+  v.addEventListener("pointermove",e=>{ const p=O3.ptr.get(e.pointerId); if(!p) return; e.preventDefault(); const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY; O3.moved+=Math.abs(dx)+Math.abs(dy);
+    if(O3.ptr.size>=2&&O3.pinch){ const [a,b]=[...O3.ptr.values()], d=Math.hypot(a.x-b.x,a.y-b.y); O3.dist=Math.max(-1400,Math.min(1000,O3.pinch.dist+(d-O3.pinch.d)*2.2)); draw(); return; }
+    if(O3.moved<4) return; o&&o.classList.add("o3drag");
+    const k=e.pointerType==="touch"?0.45:0.35; O3.vx=dx*k; O3.vy=dy*0.22; O3.yaw+=O3.vx; O3.pitch=Math.max(18,Math.min(78,O3.pitch-O3.vy)); draw(); },{passive:false});
+  const up=e=>{ const had=O3.ptr.has(e.pointerId); O3.ptr.delete(e.pointerId); if(O3.ptr.size<2) O3.pinch=null; if(!had) return;
+    if(O3.moved>10){ if(O3.ptr.size===0) glide(); return; } o&&o.classList.remove("o3drag");
+    const hits=document.elementsFromPoint(e.clientX,e.clientY), f=hits.map(x=>x.closest&&x.closest("[data-pid],[data-o3act]")).find(Boolean);
+    if(f){ if(f.dataset.pid){ try{ openPlayer(f.dataset.pid); }catch(er){ console.error(er); } } else o3Do(f.dataset.o3act); return; }
+    const rm=hits.map(x=>x.closest&&x.closest("[data-room]")).find(Boolean); if(rm) o3Focus(rm.dataset.room); };
+  v.addEventListener("pointerup",up); v.addEventListener("pointercancel",e=>{ O3.ptr.delete(e.pointerId); O3.pinch=null; if(!O3.ptr.size) glide(); });
+  ["touchstart","touchmove"].forEach(ev=>v.addEventListener(ev,e=>{ if(e.cancelable) e.preventDefault(); },{passive:false}));
+  v.addEventListener("wheel",e=>{ e.preventDefault(); cancelAnimationFrame(O3.raf); O3.dist=Math.max(-1400,Math.min(1000,O3.dist-e.deltaY*0.8)); draw(); },{passive:false}); }
+addEventListener("resize",()=>{ if($("#o3")&&$("#o3").classList.contains("on")) o3Cam(); });
+(function(){ const _el=enterLobby; enterLobby=function(){ const r=_el.apply(this,arguments); try{ if(o3Pref()&&G) o3Open(); }catch(e){ console.error(e); } return r; }; })();
+
+/* tutorial: when the building is the home screen, steps that point at the 2D lobby are re-aimed at rooms */
+const O3_TUT_INTRO=[
+ {sel:null,pre:"o3Home()",t:["구단 건물이 메인 화면입니다","The building is your home screen"],d:["방이 곧 메뉴입니다. 드래그로 돌리고 휠이나 두 손가락으로 확대합니다. 방을 누르면 그 방의 정보와 버튼이 아래에 열립니다.","Rooms are the menu. Drag to rotate, pinch or scroll to zoom, tap a room to open it."]},
+ {sel:"#o3chips",pre:"o3Home()",t:["방 바로가기","Room shortcuts"],d:["아래 버튼으로 원하는 방에 바로 들어갑니다. 숫자는 시설 레벨입니다.","Jump straight to a room. Numbers are facility levels."]},
+ {sel:"#o3 .o3row1 .o3i",pre:"o3Home()",t:["2D 화면으로 바꾸기","Switch to 2D"],d:["예전 2D 화면이 편하면 이 버튼을 누르세요. 2D 화면 위쪽 큐브 버튼으로 언제든 건물로 돌아옵니다. 고른 화면은 다음 접속 때도 유지됩니다.","Prefer the old 2D screen? Tap here. The cube button brings you back. Your choice is remembered."]}];
+const O3_TUT_ROOM={"#left":"squad","#rosterList":"squad","#coachTip":"lobby","#cal":"tactic","#brief":"lobby","#sponsors":"promo"};
+function o3TutMap(base){ const out=[]; base.forEach((s,i)=>{ let n=Object.assign({},s); const sel=n.sel||"";
+    const room=O3_TUT_ROOM[sel]||(sel.startsWith("#pmCard")?"squad":null);
+    if(sel==="#dock") n=Object.assign(n,{sel:"#o3chips",d:["메뉴는 방 안의 버튼으로 엽니다. 선수단 라운지=선수단, 리그 / 일정 상황실=리그와 캘린더, 전술 / 스크림실=전술과 주간 일정, 이적 협상실=이적시장, 홍보실=구단, 트로피 진열장=전시장입니다.","Each room opens a menu: lounge=squad, league room=league and calendar, tactics room=tactics and week plan, transfer room=market, PR=club, trophy hall=trophies."]});
+    if(sel==="#left") n.sel="#o3p";
+    if(sel==="#left") n.d=["선수단 라운지에 주전 5명이 서 있고 후보는 소파에 있습니다. 5명이 다 차야 경기를 치릅니다. 선수를 누르면 능력치와 경력, 빈 자리를 누르면 이적시장이 열립니다.","Starters stand in the lounge, subs sit on the sofa. Tap a player for details, an empty spot for the market."];
+    if(room) n.pre=`if(curTab!=='lobby') closeSheet(); o3Focus('${room}');`;
+    else if(n.pre==="closeSheet") n.pre="if(curTab!=='lobby') closeSheet(); o3Home();";
+    out.push(n); if(i===0) out.push(...O3_TUT_INTRO); });
+  return out; }
+function TUTS(){ const base=o3IsPm()?PM_TUT:TUT; if(!document.body.classList.contains("o3on")) return base;
+  if(!O3.tut||O3.tut.b!==base) O3.tut={b:base,l:o3TutMap(base)}; return O3.tut.l; }
+
+(function(){ if(document.getElementById("o3Css2")) return; const st=document.createElement("style"); st.id="o3Css2"; st.textContent=`
+body.o3on #lobby{visibility:hidden}
+#o3 .o3top,#o3 .o3hud{display:none}
+#o3 .o3bar{position:absolute;left:0;right:0;top:0;z-index:4;padding:8px 10px 6px;background:linear-gradient(#08080af2 60%,#08080a00);display:flex;flex-direction:column;gap:4px;pointer-events:none}
+#o3 .o3bar>*{pointer-events:auto}
+#o3 .o3row1{display:flex;align-items:center;gap:6px}
+#o3 .o3i{padding:6px 10px;min-width:38px;display:inline-flex;align-items:center;justify-content:center}
+#o3 .o3sTop{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+#o3 .o3sTop>*{position:static!important;transform:none!important;margin:0!important}
+#o3 #tMoney{text-align:right;font-size:13px;line-height:1.2}
+#o3 #tDday{font-size:13px;padding:3px 8px}#o3 #tDday small{display:none}
+#o3 #tFat{transform:none!important}
+#o3 .o3info{display:flex;gap:8px;align-items:baseline;font-size:12.5px;white-space:nowrap;overflow:hidden;align-self:flex-start;max-width:100%}
+#o3 .o3info span{color:#9ca3af;overflow:hidden;text-overflow:ellipsis}
+#o3 .o3brief{align-self:flex-start;max-width:min(720px,100%);font-size:12px;color:#d1d5db;background:rgba(10,10,12,.7);border-left:3px solid #22c55e;padding:4px 10px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+#o3 .o3dock{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#08080a00,#08080af2 35%);display:flex;flex-direction:column;gap:7px;align-items:center}
+#o3 .o3hint{position:static;transform:none;font-size:11px;color:#6b7280;pointer-events:none}
+#o3 .o3chips{position:static;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:none;justify-content:flex-start}
+#o3 .o3chips::-webkit-scrollbar{display:none}
+#o3 .o3chips .sbtn{flex:0 0 auto;padding:6px 10px;font-size:12px;white-space:nowrap}
+#o3 .o3chips .sbtn b{color:#f5c542;margin-left:2px}
+#o3 .o3go{display:flex;gap:8px;width:min(620px,100%);align-items:stretch}
+#o3 .o3go>*{position:static!important;transform:none!important;margin:0!important;left:auto!important;right:auto!important;bottom:auto!important}
+#o3 #goBtn{flex:2;padding:10px 14px!important;font-size:18px!important;box-shadow:0 0 16px rgba(220,38,38,.35)}
+#o3 #goBtn small,#o3 #goBtn span{font-size:11px}
+#o3 #autoBtn,#o3 #skipBtn{flex:1;font-size:13px;padding:8px 6px}
+#o3 .o3p{right:12px;top:96px;bottom:150px;max-height:none;width:340px;z-index:3;padding:12px 14px}
+#o3 .o3p .x{z-index:1}
+#o3 .o3dk{margin-top:10px}
+#o3 .o3dh{font:600 11px var(--body);letter-spacing:2px;color:#9ca3af;margin-bottom:6px;text-transform:uppercase}
+#o3 #o3pDock #brief,#o3 #o3pDock #pmCard,#o3 #o3pDock #cal,#o3 #o3pDock #sponsors,#o3 #o3pDock #rosterList,#o3 #o3pDock #staff,#o3 #o3pDock #coachTip{position:static!important;transform:none!important;width:auto!important;min-width:0!important;max-width:none!important;margin:0!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;visibility:visible!important}
+#o3 #o3pDock #brief{padding:10px 12px!important}
+:is(#o3,#o3bg) .o3fig{width:96px;padding:6px 4px 5px;text-align:center;background:rgba(10,14,14,.88);border:1px solid #14b8a6;border-radius:8px;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.5);font-family:var(--body)}
+:is(#o3,#o3bg) .o3fig img{width:56px;height:56px;image-rendering:pixelated;display:block;margin:0 auto 3px;border-radius:4px;background:#1f2937}
+:is(#o3,#o3bg) .o3fig b{display:block;font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#o3,#o3bg) .o3fig span{display:block;font:700 18px var(--head,inherit);color:#5eead4;line-height:1.1}
+:is(#o3,#o3bg) .o3fig i{display:block;height:4px;background:#27272a;border-radius:2px;margin:3px 4px 0;overflow:hidden}:is(#o3,#o3bg) .o3fig i s{display:block;height:100%}
+:is(#o3,#o3bg) .o3fig.sm{width:76px;transform:scale(.85);transform-origin:50% 100%}:is(#o3,#o3bg) .o3fig.sm img{width:40px;height:40px}
+:is(#o3,#o3bg) .o3fig.me{border-color:#f5c542;box-shadow:0 0 18px rgba(245,197,66,.55)}:is(#o3,#o3bg) .o3fig.me span{color:#f5c542}
+:is(#o3,#o3bg) .o3fig.empty{border:2px dashed #ef4444;background:rgba(40,10,12,.75);padding:16px 4px}:is(#o3,#o3bg) .o3fig.empty b{font-size:30px;color:#ef4444}:is(#o3,#o3bg) .o3fig.empty em{font-style:normal;font-size:12px;color:#fca5a5}
+:is(#o3,#o3bg) .o3fig:hover{filter:brightness(1.2)}
+@media (max-width:760px){
+ #o3 .o3hint{display:none}
+ #o3 .o3bar{padding:6px 8px 4px}
+ #o3 .o3i{padding:5px 8px;min-width:34px;font-size:12px}
+ #o3 .o3sTop{gap:4px}
+ #o3 #tMoney{font-size:12px;white-space:nowrap}#o3 #tMoney small,#o3 #tMoney .wk{font-size:10px}
+ #o3 #tFat{font-size:10px;padding:2px 5px!important;min-width:0!important}
+ #o3 #calBtn{padding:4px!important}
+ #o3 .o3info{font-size:11.5px}
+ #o3 .o3brief{font-size:11px}
+ #o3 #goBtn{font-size:16px!important;padding:8px 10px!important}
+ #o3 .o3p{left:6px;right:6px;width:auto;top:auto;bottom:118px;max-height:47%;border-radius:10px}
+ #o3.pnl .o3brief{display:none}
+}`; document.head.appendChild(st); })();
+
+/* ===== extra rooms: league / tactics / transfer, plus logos as billboards so walls and desks never hide them ===== */
+function o3LogoHTML(t,c){ t=t||{}; return `<div class="o3logo" style="--c:${c||"#fff"}">${t.logo?`<img src="${t.logo}" alt="">`:""}<b>${esc(t.name||"")}</b></div>`; }
+function o3Scr(x,y,z,w,h,html,c){ return o3Panel(x,y,z,w,h,`<div class="o3scr o3scrT" style="--c:${c}">${html}</div>`); }
+function o3Rec(){ const r=G.record||{w:0,l:0}; return `${r.w||0}${L("승","W")} ${r.l||0}${L("패","L")}`; }
+function o3Next(){ let s=""; try{ s=(G.sea&&G.sea.fx)?`${G.sea.fx.label} vs ${(T(G.sea.fx.opp)||{}).name||""}`:fxLabel(); }catch(e){} return s; }
+function o3LastScrim(){ const l=(G.log||[]).slice().reverse().find(x=>/^스크림 vs/.test(String(x))); return l?String(l).replace(/^스크림 /,""):""; }
+const O3_XF={
+  squad:r=>o3Squad(r),
+  league:r=>{ const out=[], x0=r.x, y0=r.y, B=(x,y,z,w,d,h,c)=>out.push(o3Box(x0+x,y0+y,z,w,d,h,c));
+    out.push(o3Scr(x0+30,y0+12,14,320,96,`<em>NEXT</em><b>${G.dday>0?"D-"+G.dday:"D-DAY"}</b><small>${esc(o3Next())}</small><small>${L("시즌 전적","Record")} ${o3Rec()}</small>`,r.ac));
+    for(let i=0;i<3;i++) for(let j=0;j<4;j++) B(60+j*70,150+i*44,0,52,26,20+i*6,"#1e3a4a");
+    B(W0(r)-56,20,0,36,200,70,"#0f172a");
+    return out.join(""); },
+  tactic:r=>{ const out=[], x0=r.x, y0=r.y, B=(x,y,z,w,d,h,c)=>out.push(o3Box(x0+x,y0+y,z,w,d,h,c));
+    B(70,110,0,220,120,30,"#1e1b4b"); out.push(`<b class="o3b" style="transform:translate3d(${x0+74}px,${y0+114}px,31px)"><i class="o3f o3map" style="width:212px;height:112px"></i></b>`);
+    for(let i=0;i<4;i++){ B(80+i*52,86,0,30,20,22,"#312e81"); B(80+i*52,236,0,30,20,22,"#312e81"); }
+    out.push(o3Scr(x0+40,y0+12,30,200,74,`<em>TACTICS</em><small>${L("시너지","Synergy")} ${Math.round(G.synergy||0)}</small>`,r.ac));
+    B(270,14,0,90,40,30,"#1f2937"); B(280,18,30,30,6,22,"#0b1220"); B(320,18,30,30,6,22,"#0b1220");
+    const ls=o3LastScrim(); out.push(o3Scr(x0+262,y0+12,60,104,40,`<em>SCRIM</em><small>${esc(ls||"-")}</small>`,"#a5b4fc"));
+    return out.join(""); },
+  market:r=>{ const out=[], x0=r.x, y0=r.y, B=(x,y,z,w,d,h,c)=>out.push(o3Box(x0+x,y0+y,z,w,d,h,c)), pmm=o3IsPm(), n=(G.pmOffers||[]).length;
+    B(90,120,0,200,76,30,"#7c2d12"); [0,1,2].forEach(i=>{ B(110+i*60,96,0,30,20,24,"#44403c"); B(110+i*60,200,0,30,20,24,"#44403c"); });
+    B(130,140,30,40,30,3,"#f8fafc"); B(200,150,30,36,26,5,"#e2e8f0"); B(250,136,30,14,14,8,"#facc15");
+    out.push(o3Scr(x0+40,y0+12,26,300,80,`<em>TRANSFER</em><b>${pmm?(n?L(`받은 제안 ${n}건`,`${n} offers`):L("제안 없음","No offers")):L(`예산 ${short(G.budget)}`,`Budget ${short(G.budget)}`)}</b><small>${pmm?"":L(`로스터 ${(G.roster||[]).length}명`,`${(G.roster||[]).length} players`)}</small>`,r.ac));
+    if(pmm&&n) out.push(o3BB(x0+190,y0+160,40,`<div class="o3tag hot" data-o3act="sheet:market" style="--c:${r.ac}">${L(`새 제안 ${n}`,`${n} new`)}</div>`));
+    B(W0(r)-60,230,0,40,40,60,"#166534");
+    return out.join(""); } };
+function W0(r){ return r.w; }
+const O3_XB={
+  league:(r,pmm)=>{ const ph=curPhase()||{}, hist=(G.sea&&G.sea.hist||[]).slice(-3).reverse();
+    return `<div class="o3row"><span>${L("대회","Event")}</span><b>${esc(ph.n||"")}</b></div><div class="o3row"><span>${L("다음 경기","Next")}</span><b>${esc(o3Next())}</b></div>
+      <div class="o3row"><span>D-day</span><b>${G.dday>0?"D-"+G.dday:"D-DAY"}</b></div><div class="o3row"><span>${L("시즌 전적","Record")}</span><b>${o3Rec()}</b></div>
+      ${hist.length?`<div class="o3dh" style="margin-top:10px">${L("최근 대회 결과","Recent results")}</div>${hist.map(h=>`<div class="o3row"><span>${esc(h)}</span></div>`).join("")}`:""}`; },
+  tactic:(r,pmm)=>{ const ls=o3LastScrim();
+    return `<div class="mute" style="font-size:12px;margin-bottom:6px">${pmm?L("전술과 맵별 조합은 코칭스태프가 정합니다. 요일 칸은 볼 수만 있습니다.","Staff set tactics and comps."):L("요일 칸을 눌러 스크림, 훈련, 휴식, 미디어를 바꿉니다. 맵별 조합과 공수 전술은 전술 창에서 정합니다.","Tap a day to change the plan. Comps and tactics live in the tactics window.")}</div>
+      <div class="o3row"><span>${L("팀 시너지","Synergy")}</span><b>${Math.round(G.synergy||0)}</b></div>${ls?`<div class="o3row"><span>${L("최근 스크림","Last scrim")}</span><b>${esc(ls)}</b></div>`:""}`; },
+  market:(r,pmm)=>{ if(pmm){ const me=rOf?rOf(G.me):null, n=(G.pmOffers||[]).length;
+      return `<div class="o3row"><span>${L("받은 영입 제안","Offers")}</span><b>${n}${L("건","")}</b></div>${me?`<div class="o3row"><span>${L("현재 계약","Contract")}</span><b>${short(me.salary||0)} / ${me.years||0}${L("년","y")}</b></div>`:""}
+        <div class="mute" style="font-size:12px;margin-top:6px">${L("제안을 수락하면 연봉 협상(조정)으로 넘어갑니다.","Accepting an offer starts contract talks.")}</div>`; }
+    const st=(G.roster||[]).length, emp=Math.max(0,5-Math.min(5,st));
+    return `<div class="o3row"><span>${L("구단 예산","Budget")}</span><b>${short(G.budget)}</b></div><div class="o3row"><span>${L("로스터","Roster")}</span><b>${st}${L("명","")}</b></div>
+      ${emp?`<div class="o3row"><span>${L("빈 주전 자리","Open starter spots")}</span><b style="color:#ef4444">${emp}</b></div>`:""}`; } };
+Object.assign(O3_ACT,{
+  league:{m:[["sheet:league","리그 / 순위 보기","League table"],["cal","시즌 캘린더","Calendar"]],p:[["sheet:league","리그 / 순위 보기","League table"],["cal","시즌 캘린더","Calendar"]]},
+  tactic:{m:[["sheet:tactic","전술 / 맵별 조합","Tactics and comps"],["sheet:squad","훈련 / 스크림 계획","Training plan"]],p:[["sheet:squad","맵별 조합 보기","View comps"],["act:vod","VOD 분석","VOD review"]]},
+  market:{m:[["sheet:market","이적시장 열기","Open the market"],["room:scout","스카우터실로","Scouting room"]],p:[["sheet:market","이적 / 받은 제안 보기","Transfers and offers"]]}});
+(function(){ if(document.getElementById("o3Css3")) return; const st=document.createElement("style"); st.id="o3Css3"; st.textContent=`
+:is(#o3,#o3bg) .o3room.o3hide{visibility:hidden}
+body.o3on #sheet .ph .tog{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;width:auto!important;min-width:40px;height:32px!important;padding:0 12px!important;font-size:13px!important;color:#fff!important;border-color:#ff4655!important;background:rgba(255,70,85,.12)!important;position:relative;z-index:3}
+body.o3on #sheet .ph .tog::after{content:" 닫기"}
+@media (max-width:760px){ body.o3on #sheet{top:0!important;bottom:0!important;left:0!important;right:0!important} body.o3on #sheet .ph{position:sticky;top:0;z-index:3;background:#0b0b0e} }
+#o3 .o3v{touch-action:none;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+#o3 #o3s{will-change:transform}
+#o3.o3drag .o3s *{box-shadow:none!important;animation-play-state:paused!important;transition:none!important;text-shadow:none!important}
+#o3.o3drag .o3bb{pointer-events:none}
+#o3 .o3s{will-change:transform}
+#o3.drag .o3fl,#o3.drag .o3fig,#o3.drag .o3logo{box-shadow:none!important}
+#o3.drag .o3bb{transition:none}
+@media (hover:none){ :is(#o3,#o3bg) .o3fl{box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)!important} :is(#o3,#o3bg) .o3fig,:is(#o3,#o3bg) .o3logo{box-shadow:none} }
+:is(#o3,#o3bg) .o3logo{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px 4px;background:rgba(8,8,10,.82);border:1px solid var(--c);border-radius:8px;box-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);pointer-events:none}
+:is(#o3,#o3bg) .o3logo img{width:64px;height:64px;object-fit:contain}
+:is(#o3,#o3bg) .o3logo b{font:600 11px var(--body);color:#e5e7eb;white-space:nowrap;letter-spacing:1px}
+:is(#o3,#o3bg) .o3scrT{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:4px}
+:is(#o3,#o3bg) .o3scrT em{font-style:normal;font-size:9px;letter-spacing:3px;color:var(--c)}
+:is(#o3,#o3bg) .o3scrT b{font-size:16px;color:#fff}
+:is(#o3,#o3bg) .o3scrT small{font-size:9px;color:#cbd5e1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:is(#o3,#o3bg) .o3tag{font:600 12px var(--body);padding:3px 10px;border-radius:12px;background:rgba(8,8,10,.85);border:1px solid var(--c);color:#fff;white-space:nowrap}
+:is(#o3,#o3bg) .o3tag.hot{cursor:pointer;animation:pmBlink 1.2s ease-in-out infinite;background:color-mix(in srgb,var(--c) 40%,#0a0a0a)}
+:is(#o3,#o3bg) .o3map{background:linear-gradient(#818cf833 1px,transparent 1px) 0 0/16px 16px,linear-gradient(90deg,#818cf833 1px,transparent 1px) 0 0/16px 16px,radial-gradient(circle at 25% 40%,#ef444488 6px,transparent 7px),radial-gradient(circle at 75% 60%,#22d3ee88 6px,transparent 7px),#0f1033;box-shadow:inset 0 0 0 1px #818cf8}`;
+document.head.appendChild(st); })();
+/* ===== match venues: every competition gets an importance (1-10) and its own arena ===== */
+const ARENAS=[null,
+  {n:"챌린저스 스튜디오",e:"Challengers Studio",cap:180,c:"#64748b",rows:2,scr:0.55,beams:0,fw:0},
+  {n:"챌린저스 라이브 홀",e:"Challengers Live Hall",cap:700,c:"#0ea5e9",rows:3,scr:0.65,beams:2,fw:0},
+  {n:"챌린저스 그랜드 스테이지",e:"Challengers Grand Stage",cap:1800,c:"#14b8a6",rows:4,scr:0.75,beams:3,fw:0},
+  {n:"어센션 아레나",e:"Ascension Arena",cap:3500,c:"#a855f7",rows:5,scr:0.85,beams:4,fw:1},
+  {n:"{R} 리그 아레나",e:"{R} League Arena",cap:2600,c:"#ef4444",rows:5,scr:0.85,beams:4,fw:0},
+  {n:"플레이오프 돔",e:"Playoff Dome",cap:7000,c:"#f97316",rows:6,scr:0.95,beams:5,fw:1},
+  {n:"{R} 결승 무대",e:"{R} Finals Stage",cap:12000,c:"#eab308",rows:7,scr:1.05,beams:6,fw:2},
+  {n:"마스터스 국제 아레나",e:"Masters International Arena",cap:14000,c:"#22c55e",rows:8,scr:1.1,beams:7,fw:2},
+  {n:"챔피언스 메인 아레나",e:"Champions Main Arena",cap:20000,c:"#38bdf8",rows:9,scr:1.2,beams:8,fw:3},
+  {n:"챔피언스 결승 스타디움",e:"Champions Final Stadium",cap:42000,c:"#f5c542",rows:10,scr:1.35,beams:10,fw:4}];
+function arenaLevel(st){ const lab=String((st&&st.label)||""), ph=curPhase()||{}, t2=isT2();
+  const hg=/홈그라운드|Home ?Ground/i.test(lab), gf=/결승|Final/i.test(lab)&&!/준결승|Semi|승자조|패자조|Upper|Lower/i.test(lab), decide=/승격 결정/.test(lab), po=!!(st&&st.po)||/플레이오프|Playoff|녹아웃|Knockout/i.test(lab);
+  if(hg) return gf?7:6;
+  if(t2){ if(ph.k==="CH") return (gf||decide)?4:3; if(po) return gf?3:2; return 1; }
+  if(ph.type==="intl"){ if(ph.k==="CH") return gf?10:9; return gf?9:8; }
+  if(gf) return 7; if(po) return 6; return 5; }
+function arenaOf(st){ const lv=arenaLevel(st), a=ARENAS[lv], reg=(T(G.team)||{}).region, rn=reg&&REG[reg]?REG[reg].n:"VCT";
+  const hg=/홈그라운드|Home ?Ground/i.test(String((st&&st.label)||""));
+  const o=(st&&st.opp)||(MX&&MX.o), f1=clubFame(G.team)||40, f2=o&&T(o)?clubFame(o):40, fans1=G.fans||f1*14000, fans2=f2*14000;
+  const seats=Math.max(80,Math.round(a.cap*(0.55+((f1+f2)/2)/100*0.9)/10)*10), fill=Math.max(0.3,Math.min(1,0.28+((f1+f2)/200)*0.25+Math.log10((fans1+fans2)/20000+1)*0.12+lv*0.022)), att=Math.round(seats*fill);
+  const rows=Math.max(2,Math.min(innerWidth<760?7:11,Math.round(1+Math.log2(seats/90))));
+  return Object.assign({lv},a,hg?{c:"#e11d48",n:"홈그라운드 특설 무대",e:"Home Ground Special Stage"}:{},{seats,att,fill,rows,f1,f2,fans1,fans2,gf:/결승|Final/i.test(String((st&&st.label)||""))&&!/준결승|Semi|승자조|패자조|Upper|Lower/i.test(String((st&&st.label)||"")),name:hg?L("홈그라운드 특설 무대","Home Ground Special Stage"):(lv===9&&/^M/.test((curPhase()||{}).k||""))?L("마스터스 그랜드 파이널 아레나","Masters Grand Final Arena"):L(a.n,a.e).replace("{R}",rn)}); }
+function arenaStars(lv){ return `<span class="arStars">${Array.from({length:10},(_,i)=>`<i class="${i<lv?"on":""}"></i>`).join("")}</span>`; }
+/* one arena box: x,y on the floor plan; reuse the office box helper */
+
+function arenaFig(id,c){ const p=id!=null&&P(typeof id==="object"?id.id:id); if(!p||!p.name) return ""; let img=""; try{ img=`<img src="${pixAvatar(String(p.name),p.nat)}" alt="">`; }catch(e){} return `<div class="arFig" style="--c:${c}">${img}<b>${esc(p.name)}</b></div>`; }
+function arenaScene(a,me,op,meIds,opIds){ const out=[], B=(x,y,z,w,d,h,c,o)=>out.push(o3Box(x,y,z,w,d,h,c,o)), lv=a.lv, rows=a.rows, W=440+rows*70, F=170+rows*42;
+  /* floor + aisle to the entrance */
+  out.push(`<b class="o3b" style="transform:translate3d(${-W-200}px,-420px,-2px)"><i class="o3f arFloor" style="width:${Math.ceil((2*W+400)/8)}px;height:${Math.ceil((F+900)/8)}px;transform:scale(8);--c:${a.c}"></i></b>`);
+  out.push(`<b class="o3b" style="transform:translate3d(-50px,90px,0)"><i class="o3f arAisle" style="width:100px;height:${F+140}px;--c:${a.c}"></i></b>`);
+  /* stage */
+  B(-300,-110,0,600,190,24,"#15171d"); out.push(`<b class="o3b" style="transform:translate3d(-300px,80px,0)"><i class="o3f arLed" style="width:600px;height:24px;--c:${a.c};transform:rotateX(90deg)"><span>${esc(((me&&me.name)||"")+"  VS  "+((op&&op.name)||"")+"  |  "+a.name+"  |  ")}</span></i></b>`);
+  B(-292,-104,24,584,4,3,a.c);
+  [[-260,me,meIds,a.c],[30,op,opIds,"#94a3b8"]].forEach(([x,t,ids,c],j)=>{ B(x,-60,24,230,60,30,"#0d0f14"); B(x,-2,24,230,3,30,c);
+    for(let i=0;i<5;i++){ const sx=x+14+i*44; B(sx,-58,54,34,4,24,"#05070c"); B(sx+4,-58,54,26,3,20,j?"#334155":c,0.55); out.push(o3BB(sx+17,-18,24,arenaFig((ids||[])[i],c))); }
+    out.push(o3Panel(x+40,1,32,150,20,`<span class="o3scr" style="--c:${c}">${esc((t&&t.name)||"")}</span>`)); });
+  if(a.gf){ B(-26,40,24,52,40,26,"#1c1917"); let tro=""; try{ tro=trophySVG((curPhase()||{}).k,true,G.sea&&G.sea.yr); }catch(e){} out.push(o3BB(0,60,50,`<div class="arTro">${tro}</div>`)); }
+  /* giant screen with both logos */
+  const sw=Math.round(380*a.scr), sh=Math.round(200*a.scr); B(-sw/2-12,-170,0,sw+24,16,46+sh,"#07080b");
+  out.push(o3Panel(-sw/2,-153,36,sw,sh,`<div class="arScr" style="--c:${a.c}"><div>${me&&me.logo?`<img src="${me.logo}">`:""}<b>${esc((me&&me.name)||"")}</b></div><em>VS</em><div>${op&&op.logo?`<img src="${op.logo}">`:""}<b>${esc((op&&op.name)||"")}</b></div></div>`));
+  if(lv>=4){ [-1,1].forEach(sx=>{ const x=sx<0?-sw/2-190:sw/2+50; B(x,-160,0,140,12,40+sh*0.6,"#07080b"); out.push(o3Panel(x+8,-147,34,124,sh*0.5,`<div class="arScr sm" style="--c:${a.c}"><em>LIVE</em><b>${lv}/10</b></div>`)); }); }
+  /* truss + lights */
+  if(lv>=3){ B(-W+40,-150,180+lv*8,2*W-80,10,8,"#30343c"); for(let i=0;i<a.beams;i++){ const x=-W+80+i*((2*W-160)/Math.max(1,a.beams-1)); out.push(`<b class="o3b" style="transform:translate3d(${x}px,-146px,${170+lv*8}px)"><i class="o3f arBeam" style="--c:${i%2?"#ffffff":a.c};--d:${(i%5)*0.4}s;--r:${(i%2?1:-1)*(10+i%3*8)}deg"></i></b>`); } }
+  /* stands: front block split by the aisle, plus side blocks */
+  for(let r=0;r<rows;r++){ const y=150+r*42, z=r*16, w=W-40+r*20;
+    [[-w,-56],[56,w]].forEach(([x1,x2])=>{ const ww=x2-x1; B(x1,y,0,ww,40,z+14,"#101116"); out.push(`<b class="o3b" style="transform:translate3d(${x1}px,${y+2}px,${z+14}px)"><i class="o3f arCrowd" style="width:${ww}px;height:34px;--c:${a.c};--k:${(r%3)*0.25}s"></i></b>`); });
+    if(lv>=3&&r<rows-1){ [-1,1].forEach(sx=>{ const x=sx<0?-W-20-r*40:W-20+r*40; B(x,-200,0,40,330,z+14,"#101116"); out.push(`<b class="o3b" style="transform:translate3d(${x}px,-200px,${z+14}px)"><i class="o3f arCrowd" style="width:36px;height:330px;--c:${a.c};--k:${(r%3)*0.3}s"></i></b>`); }); } }
+  /* entrance gate + tunnel at the far end of the aisle */
+  const gy=F+40; B(-90,gy,0,30,180,120,"#1b1d24"); B(60,gy,0,30,180,120,"#1b1d24"); B(-90,gy,120,180,180,16,"#23262f");
+  B(-90,gy,136,180,6,4,a.c);
+  out.push(o3Panel(-110,gy+181,150,220,46,`<div class="arGate" style="--c:${a.c}"><em>${L("입장 게이트","ENTRANCE")}</em><b>${esc(a.name)}</b></div>`));
+  out.push(`<b class="o3b" style="transform:translate3d(-60px,${gy}px,1px)"><i class="o3f arAisle" style="width:120px;height:180px;--c:${a.c}"></i></b>`);
+  return {html:out.join(""),gy,F}; }
+function arenaIntroOff(){ try{ return localStorage.getItem("vctmgr_arena")==="0"; }catch(e){ return false; } }
+function arenaKeys(g,lite){ const D=lite?[300,430,110,240,470]:[420,620,260,380,560]; return [
+  {t:0,   cx:0,cy:g.gy+700,dist:D[0],pitch:82,yaw:0},
+  {t:0.26,cx:0,cy:g.gy+40, dist:D[1],pitch:82,yaw:0},
+  {t:0.5, cx:0,cy:g.F*0.55,dist:D[2],pitch:70,yaw:-14},
+  {t:0.75,cx:0,cy:20,     dist:D[3],pitch:64,yaw:10},
+  {t:1,   cx:0,cy:-40,    dist:D[4],pitch:64,yaw:0}]; }
+function arenaCamAt(K,k){ let i=0; while(i<K.length-2&&k>K[i+1].t) i++; const a=K[i], b=K[i+1], u=Math.max(0,Math.min(1,(k-a.t)/(b.t-a.t))), e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2, o={};
+  ["cx","cy","dist","pitch","yaw"].forEach(q=>o[q]=a[q]+(b[q]-a[q])*e); return o; }
+function arenaIntro(){ if(!MX||!G) return; const a=arenaOf(MX.st); MX.arena=a; arenaTag(); if(arenaIntroOff()) return;
+  const me=T(G.team), op=T(MX.o), lab=(MX.st&&MX.st.label)||"", meIds=(G.roster||[]).slice(0,5).map(r=>r.id), opIds=(G.rosters&&G.rosters[MX.o]||[]).slice(0,5);
+  let el=$("#arIntro"); if(!el){ el=document.createElement("div"); el.id="arIntro"; document.body.appendChild(el); }
+  const g=arenaScene(a,me,op,meIds,opIds), lite=innerWidth<760;
+  el.innerHTML=`<div class="arV"><div class="o3s arS" id="arS">${g.html}</div></div>
+    ${a.fw?`<div class="arConf">${Array.from({length:a.fw*(lite?6:10)},(_,i)=>`<i style="--x:${(Math.random()*98).toFixed(1)}%;--d:${(Math.random()*2.6).toFixed(2)}s;--s:${(2.4+Math.random()*1.6).toFixed(2)}s;--c:${i%3?a.c:"#ffffff"}"></i>`).join("")}</div>`:""}
+    <div class="arInfo"><div class="arKick" style="color:${a.c}">${L("경기장 입장","ENTERING THE ARENA")}</div><div class="arName">${esc(a.name)}</div>
+      <div class="arEv">${esc(lab)}</div><div class="arImp">${L("중요도","Stakes")} ${arenaStars(a.lv)} <b>${a.lv}/10</b></div>
+      <div class="arCap">${L("관중","Crowd")} <b id="arCnt">0</b>${L("명","")} / ${L("좌석","Seats")} ${a.seats.toLocaleString()}${L("석","")} <span class="arFill">${Math.round(a.fill*100)}%</span></div>
+      <div class="arTeams">${me&&me.logo?`<img src="${me.logo}">`:""}<b>${esc(me?me.name:"")}</b><span>VS</span><b>${esc(op?op.name:"")}</b>${op&&op.logo?`<img src="${op.logo}">`:""}</div></div>
+    <div class="arBtns"><label><input type="checkbox" onchange="try{localStorage.setItem('vctmgr_arena',this.checked?'0':'1')}catch(e){}"> ${L("다음부터 입장 연출 건너뛰기","Skip this next time")}</label><button class="go" onclick="arenaClose()">${L("경기 시작","Start the match")}</button></div>`;
+  el.style.setProperty("--c",a.c); el.className="on lv"+a.lv+(lite?" lite":"");
+  const s=$("#arS"), K=arenaKeys(g,lite), DUR=7600, t0=performance.now(), sc=lite?Math.max(0.42,innerWidth/900):Math.max(0.55,Math.min(1,innerWidth/1400));
+  const info=el.querySelector(".arInfo"); info.style.opacity=0;
+  const step=t=>{ const box=$("#arIntro"); if(!box||!box.classList.contains("on")) return; const k=Math.min(1,(t-t0)/DUR);
+    o3CamOn(s,arenaCamAt(K,k),sc,lite?-40:20); if(k>0.62) info.style.opacity=Math.min(1,(k-0.62)*4); if(k>0.7) box.classList.add("arCf");
+    const n=$("#arCnt"); if(n) n.textContent=Math.round(a.att*Math.min(1,Math.max(0,(k-0.2)/0.6))).toLocaleString(); if(k<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step); clearTimeout(MX.arT); MX.arT=setTimeout(arenaClose,DUR+2600);
+  try{ arenaSfx(a.lv); }catch(e){} }
+function arenaClose(){ const el=$("#arIntro"); if(el){ el.className=""; el.innerHTML=""; } if(MX) clearTimeout(MX.arT); }
+function arenaSfx(lv){ const A=window.AudioContext||window.webkitAudioContext; if(!A) return; const c=new A(), t=c.currentTime, len=1.6+lv*0.15;
+  const buf=c.createBuffer(1,c.sampleRate*len,c.sampleRate), d=buf.getChannelData(0); for(let i=0;i<d.length;i++){ const k=i/d.length; d[i]=(Math.random()*2-1)*Math.sin(Math.PI*k)*0.5; }
+  const src=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); src.buffer=buf; f.type="bandpass"; f.frequency.value=900; f.Q.value=0.6; g.gain.value=0.04+lv*0.012; src.connect(f).connect(g).connect(c.destination); src.start(t); }
+/* small venue badge while the match screen is open, plus arena lighting on the match background */
+/* the venue now only tints the match screen; no badge stays on screen */
+function arenaTag(){ const a=MX&&MX.arena, tg=$("#arTag"); if(tg) tg.remove(); const mt=$("#mt"); if(!mt||!a) return; for(let i=1;i<=10;i++) mt.classList.remove("arL"+i); mt.classList.add("arL"+a.lv); mt.style.setProperty("--arc",a.c); }
+(function(){ const mt=$("#mt"); if(mt&&typeof MutationObserver!=="undefined") new MutationObserver(()=>{ if(!mt.classList.contains("on")) arenaClose(); }).observe(mt,{attributes:true,attributeFilter:["class"]}); })();
+(function(){ if(document.getElementById("arCss")) return; const st=document.createElement("style"); st.id="arCss"; st.textContent=`
+#arIntro{position:fixed;inset:0;z-index:260;display:none;background:#050507;color:#fff;overflow:hidden}
+#arIntro.on{display:block;animation:fxIn .3s ease-out}
+#arIntro .arV{position:absolute;inset:0;perspective:1400px;perspective-origin:50% 40%}
+#arIntro .arS{position:absolute;left:50%;top:48%;width:0;height:0;transform-style:preserve-3d}
+#arIntro .arS *{transform-style:preserve-3d}
+#arIntro .o3b{position:absolute;left:0;top:0;display:block}
+#arIntro .o3f{position:absolute;left:0;top:0;display:block;transform-origin:0 0}
+#arIntro .o3scr{display:flex;align-items:center;justify-content:center;flex-direction:column;width:100%;height:100%;background:linear-gradient(160deg,#0b1220,#111827);border:2px solid var(--c);font:700 13px var(--body);letter-spacing:1px;color:#fff;text-shadow:0 0 10px var(--c);box-shadow:inset 0 0 30px color-mix(in srgb,var(--c) 50%,transparent);overflow:hidden;text-align:center;line-height:1.2}
+#arIntro .arScr{font-size:22px}#arIntro .arScr small{font-size:13px;color:var(--c)}
+#arIntro .arCrowd{background:radial-gradient(circle at 6px 9px,#2b2b33 4px,transparent 5px) 0 0/14px 18px,radial-gradient(circle at 6px 9px,color-mix(in srgb,var(--c) 70%,#fff) 1.2px,transparent 2px) 7px 4px/23px 19px,#0d0d11;animation:arFlash 1.3s steps(2) infinite}
+@keyframes arFlash{50%{filter:brightness(1.5)}}
+#arIntro .arBeam{background:linear-gradient(to top,color-mix(in srgb,var(--c) 55%,transparent),transparent);opacity:.45;filter:blur(3px);animation:arSweep 2.6s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes arSweep{from{opacity:.2}to{opacity:.6}}
+#arIntro .arFw i{position:absolute;left:var(--x);top:var(--y);width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 0 var(--c);opacity:0;animation:arBoom 1.6s ease-out infinite;animation-delay:var(--d)}
+@keyframes arBoom{0%{opacity:1;box-shadow:0 0 0 0 var(--c)}100%{opacity:0;box-shadow:0 0 0 60px transparent,0 0 30px 40px transparent}}
+#arIntro .arInfo{position:absolute;left:28px;bottom:84px;max-width:min(560px,90vw);text-shadow:0 2px 12px #000}
+#arIntro .arKick{font:600 12px var(--body);letter-spacing:6px}
+#arIntro .arName{font:400 clamp(30px,6vw,64px)/1.05 Anton,var(--head),sans-serif;letter-spacing:2px;margin:4px 0}
+#arIntro .arEv{font-size:15px;color:#d1d5db;margin-bottom:8px}
+#arIntro .arImp,#arIntro .arCap{font-size:13px;color:#9ca3af;margin:3px 0;display:flex;align-items:center;gap:8px}
+#arIntro .arImp b,#arIntro .arCap b{color:#fff}
+.arStars{display:inline-flex;gap:3px}.arStars i{width:9px;height:9px;transform:rotate(45deg);background:#333;display:inline-block}.arStars i.on{background:var(--c,#f5c542);box-shadow:0 0 6px var(--c,#f5c542)}
+#arIntro .arTeams{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:18px}#arIntro .arTeams img{width:34px;height:34px;object-fit:contain}#arIntro .arTeams span{color:var(--c);font-weight:700}
+#arIntro .arBtns{position:absolute;right:20px;bottom:24px;display:flex;gap:14px;align-items:center;font-size:12px;color:#9ca3af;flex-wrap:wrap;justify-content:flex-end}
+#arTag{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:251;display:none;align-items:center;gap:8px;font-size:12px;background:rgba(8,8,10,.8);border:1px solid var(--c);border-radius:14px;padding:3px 12px;pointer-events:none;white-space:nowrap}
+#mt[class*="arL"]{background:radial-gradient(ellipse at 50% -15%,color-mix(in srgb,var(--arc) 30%,transparent) 0%,transparent 55%),radial-gradient(circle at 6px 9px,#1c1c22 4px,transparent 5px) 0 100%/14px 18px repeat-x,#0A0A0A;background-attachment:fixed}
+#mt.arL9,#mt.arL10{background:radial-gradient(ellipse at 20% -10%,color-mix(in srgb,var(--arc) 35%,transparent) 0%,transparent 45%),radial-gradient(ellipse at 80% -10%,color-mix(in srgb,var(--arc) 35%,transparent) 0%,transparent 45%),#0A0A0A;background-attachment:fixed}
+@media (max-width:700px){ #arIntro .arInfo{left:14px;right:14px;bottom:110px} #arIntro .arBtns{left:14px;right:14px;justify-content:space-between} #arTag{top:auto;bottom:6px;font-size:11px} }`;
+document.head.appendChild(st); })();
+(function(){ if(document.getElementById("arCss2")) return; const st=document.createElement("style"); st.id="arCss2"; st.textContent=`
+#arIntro .arFloor{background:radial-gradient(ellipse at 50% 22%,color-mix(in srgb,var(--c) 26%,transparent),transparent 55%),#06070a}
+#arIntro .arAisle{background:repeating-linear-gradient(0deg,color-mix(in srgb,var(--c) 70%,transparent) 0 6px,transparent 6px 40px),#0c0d12;box-shadow:inset 3px 0 0 color-mix(in srgb,var(--c) 60%,transparent),inset -3px 0 0 color-mix(in srgb,var(--c) 60%,transparent)}
+#arIntro .arLed{background:#050608;overflow:hidden;transform-origin:0 0;border-top:1px solid var(--c);border-bottom:1px solid var(--c)}
+#arIntro .arLed span{display:block;white-space:nowrap;font:700 15px/24px var(--body);color:var(--c);text-shadow:0 0 6px var(--c);transform:scaleY(-1);animation:arTick 9s linear infinite;width:max-content}
+@keyframes arTick{from{transform:scaleY(-1) translateX(0)}to{transform:scaleY(-1) translateX(-50%)}}
+#arIntro .arScr{display:flex;align-items:center;justify-content:space-around;width:100%;height:100%;background:radial-gradient(ellipse at 50% 120%,color-mix(in srgb,var(--c) 45%,transparent),#05070d 70%);border:3px solid var(--c);color:#fff;font-family:var(--body);box-shadow:0 0 40px color-mix(in srgb,var(--c) 55%,transparent)}
+#arIntro .arScr div{display:flex;flex-direction:column;align-items:center;gap:6px;width:40%}
+#arIntro .arScr img{width:46%;max-height:90px;object-fit:contain}
+#arIntro .arScr b{font-size:16px;letter-spacing:1px;text-align:center}
+#arIntro .arScr em{font-style:normal;font-weight:800;font-size:26px;color:var(--c);text-shadow:0 0 12px var(--c)}
+#arIntro .arScr.sm{flex-direction:column;justify-content:center}#arIntro .arScr.sm em{font-size:13px;letter-spacing:4px}#arIntro .arScr.sm b{font-size:22px}
+#arIntro .arFig{display:flex;flex-direction:column;align-items:center;width:40px;font-family:var(--body)}
+#arIntro .arFig img{width:30px;height:30px;image-rendering:pixelated;border-radius:3px;box-shadow:0 0 0 1px var(--c)}
+#arIntro .arFig b{font-size:8px;color:#fff;background:rgba(0,0,0,.7);padding:0 3px;border-radius:2px;margin-top:1px;white-space:nowrap;max-width:60px;overflow:hidden;text-overflow:ellipsis}
+#arIntro .arTro{width:64px;height:84px;filter:drop-shadow(0 0 12px #f5c542)}#arIntro .arTro img,#arIntro .arTro svg{width:100%;height:100%;object-fit:contain}
+#arIntro .arBeam{width:34px;height:420px;transform-origin:50% 0;transform:rotateX(-90deg) rotateY(var(--r));background:linear-gradient(color-mix(in srgb,var(--c) 70%,transparent),transparent 85%);opacity:.35;animation:arSweep2 3s ease-in-out infinite alternate;animation-delay:var(--d);filter:none}
+@keyframes arSweep2{from{opacity:.15}to{opacity:.5}}
+#arIntro .arCrowd{background:radial-gradient(circle at 5px 8px,#2a2b33 3.6px,transparent 4.4px) 0 0/12px 16px,radial-gradient(circle at 5px 8px,color-mix(in srgb,var(--c) 75%,#fff) 1.1px,transparent 1.8px) 6px 3px/19px 17px,#0c0d11;animation:arWave 1.1s ease-in-out infinite alternate;animation-delay:var(--k)}
+@keyframes arWave{from{filter:brightness(.85)}to{filter:brightness(1.45)}}
+#arIntro .arCrowd{animation:none!important}
+#arIntro .arGate{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:#07080b;border:2px solid var(--c);color:#fff;font-family:var(--body);box-shadow:0 0 30px color-mix(in srgb,var(--c) 60%,transparent)}
+#arIntro .arGate em{font-style:normal;font-size:9px;letter-spacing:5px;color:var(--c)}#arIntro .arGate b{font-size:14px;white-space:nowrap}
+#arIntro .arInfo{transition:opacity .3s}
+#arIntro .arFill{color:var(--c);font-weight:700}
+#arTag{display:none!important}
+#arIntro .o3bb{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap}`; document.head.appendChild(st); })();
+(function(){ const _om=openMatch; openMatch=function(){ const r=_om.apply(this,arguments); try{ if(MX&&$("#mt").classList.contains("on")) arenaIntro(); }catch(e){ console.error(e); } return r; }; })();
+
+(function(){ if(document.getElementById("arCss3")) return; const st=document.createElement("style"); st.id="arCss3"; st.textContent=`
+#arIntro .arFw{display:none}
+#arIntro .arConf{position:absolute;inset:0;pointer-events:none;overflow:hidden;display:none}
+#arIntro.arCf .arConf{display:block}
+#arIntro .arConf i{position:absolute;top:-24px;left:var(--x);width:7px;height:13px;background:var(--c);opacity:0;will-change:transform;animation:arFall var(--s) linear infinite;animation-delay:var(--d)}
+@keyframes arFall{0%{opacity:1;transform:translate3d(0,0,0) rotate(0)}100%{opacity:.85;transform:translate3d(30px,110vh,0) rotate(600deg)}}`; document.head.appendChild(st); })();
+
+(function(){ const st=document.createElement("style"); st.id="arCss4"; st.textContent=`
+#arIntro .arTro{filter:none!important}
+#arIntro .arBeam{filter:none!important}
+#arIntro.lite .arCrowd{background-size:12px 16px,19px 17px}
+body.mton #o3 .o3v,body.mton #o3bg{display:none!important}`; document.head.appendChild(st); })();
+/* the building scene is hidden while a match is on screen so the phone does not hold both 3D scenes in memory */
+(function(){ const mt=$("#mt"); if(!mt||typeof MutationObserver==="undefined") return; const f=()=>document.body.classList.toggle("mton",mt.classList.contains("on")); new MutationObserver(f).observe(mt,{attributes:true,attributeFilter:["class"]}); f(); })();
 </script>
 </body>
 </html>
