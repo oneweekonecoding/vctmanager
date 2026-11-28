@@ -6718,7 +6718,7 @@ function buildGrid(name){
   (sp.feat.ropes||[]).forEach(([a,b])=>feat.ropes.push(...linkCells(a,b)));
   return MAPGRID[name]={g0:g.map(r=>r.slice()),g,zone,sp,cells,feat};
 }
-function bfs(M,from,to){
+function bfs0(M,from,to){
   if(!to) return [];
   const key=from[0]+","+from[1], prev=new Map([[key,null]]), q=[from];
   while(q.length){ const c=q.shift(); if(c[0]===to[0]&&c[1]===to[1]) break;
@@ -10220,6 +10220,39 @@ document.head.appendChild(st); })();
   const b=$("#o3brief"); if(b){ if(b._v!==undefined&&b._v!==b.textContent){ b.classList.remove("tick"); void b.offsetWidth; b.classList.add("tick"); } b._v=b.textContent; }
   const s=$("#o3s"); if(s) s.querySelectorAll(".o3room").forEach(el=>{ el.classList.toggle("o3cur",el.dataset.room===O3.room); const rr=O3_ROOMS.find(x=>x.k===el.dataset.room); if(rr) el.style.setProperty("--ac",rr.ac); });
 } catch(e){} return r; }; })();
+
+/* ---------- performance: freeze the 3D building while auto-advancing or skipping ---------- */
+function o3Busy(){ try{ if(typeof AUTO!=="undefined"&&AUTO) return true; }catch(e){} try{ if(FAST) return true; }catch(e){} return document.body.classList.contains("autoRun"); }
+function o3BusyOn(){ document.body.classList.add("autoRun"); }
+function o3BusyOff(){ document.body.classList.remove("autoRun"); setTimeout(()=>{ try{ O3.sig=""; o3Refresh(); }catch(e){} try{ O3B.sig=""; o3BgSync(); }catch(e){} },60); }
+(function(){ const wrapSkip=(name)=>{ try{ const f=window[name]; if(typeof f!=="function"||f._busy) return; const g=function(){ if(o3Busy()) return; return f.apply(this,arguments); }; g._busy=1; window[name]=g; }catch(e){} };
+  wrapSkip("o3Refresh"); wrapSkip("o3BgSync");
+  try{ o3Refresh=window.o3Refresh; o3BgSync=window.o3BgSync; }catch(e){}
+  const a0=window.autoFxOpen; if(typeof a0==="function"&&!a0._busy){ const g=function(){ o3BusyOn(); return a0.apply(this,arguments); }; g._busy=1; window.autoFxOpen=g; try{ autoFxOpen=g; }catch(e){} }
+  const c0=window.autoFxClose; if(typeof c0==="function"&&!c0._busy){ const g=function(){ const r=c0.apply(this,arguments); o3BusyOff(); return r; }; g._busy=1; window.autoFxClose=g; try{ autoFxClose=g; }catch(e){} }
+  const m0=window.autoMatch; if(typeof m0==="function"&&!m0._busy){ const g=function(){ const solo=!document.body.classList.contains("autoRun"); if(solo) o3BusyOn(); try{ return m0.apply(this,arguments); } finally { if(solo) o3BusyOff(); } }; g._busy=1; window.autoMatch=g; try{ autoMatch=g; }catch(e){} }
+  const st=document.createElement("style"); st.id="o3BusyCss"; st.textContent=`
+body.autoRun #o3s,body.autoRun #o3bgs{display:none!important}
+body.autoRun #o3 *,body.autoRun #o3bg *,body.autoRun #lobby *{animation-play-state:paused!important;transition:none!important}
+#autoFx{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(5,5,8,.92)!important}`; document.head.appendChild(st); })();
+
+/* faster path search: same visiting order and same paths as before, with typed arrays instead of string keys */
+function bfs(M,from,to){
+  if(!to) return [];
+  const g=M.g, H=g.length; let W=M._bW; if(!W||M._bWg!==g){ W=0; for(let i=0;i<H;i++) if(g[i]&&g[i].length>W) W=g[i].length; M._bW=W; M._bWg=g; }
+  const fx=from[0], fy=from[1], tx=to[0], ty=to[1];
+  if(fx<0||fy<0||fx>=W||fy>=H){ return bfs0(M,from,to); }
+  const N=W*H, prev=new Int32Array(N).fill(-2), qx=new Int32Array(N+8), qy=new Int32Array(N+8); let qh=0, qt=0;
+  prev[fy*W+fx]=-1; qx[qt]=fx; qy[qt]=fy; qt++;
+  const D=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]], tp=M.tp;
+  while(qh<qt){ const cx=qx[qh], cy=qy[qh]; qh++; if(cx===tx&&cy===ty) break; const ci=cy*W+cx;
+    for(let d=0;d<8;d++){ const nx=cx+D[d][0], ny=cy+D[d][1]; if(nx<0||ny<0||nx>=W||ny>=H) continue; if(!stepOK(M,cx,cy,nx,ny)) continue; const k=ny*W+nx; if(prev[k]!==-2) continue; prev[k]=ci; qx[qt]=nx; qy[qt]=ny; qt++; }
+    if(tp){ const t=tp[cx+","+cy]; if(t&&t[0]>=0&&t[1]>=0&&t[0]<W&&t[1]<H){ const k=t[1]*W+t[0]; if(prev[k]===-2){ prev[k]=ci; qx[qt]=t[0]; qy[qt]=t[1]; qt++; } } } }
+  if(tx<0||ty<0||tx>=W||ty>=H||prev[ty*W+tx]===-2) return [];
+  const out=[]; if(tx===fx&&ty===fy) return out; out.push(to); let k=prev[ty*W+tx];
+  while(k>=0){ const x=k%W, y=(k-x)/W; if(x===fx&&y===fy) break; out.push([x,y]); k=prev[k]; }
+  out.reverse(); return out;
+}
 /* ===== match venues: every competition gets an importance (1-10) and its own arena ===== */
 const ARENAS=[null,
   {n:"챌린저스 스튜디오",e:"Challengers Studio",j:"チャレンジャーズ スタジオ",z:"挑战者赛演播室",cap:180,c:"#64748b",rows:2,scr:0.55,beams:0,fw:0},
