@@ -10384,7 +10384,7 @@ document.head.appendChild(st); })();
 body.mton #o3 .o3v,body.mton #o3bg{display:none!important}`; document.head.appendChild(st); })();
 /* the building scene is hidden while a match is on screen so the phone does not hold both 3D scenes in memory */
 (function(){ const mt=$("#mt"); if(!mt||typeof MutationObserver==="undefined") return; const f=()=>document.body.classList.toggle("mton",mt.classList.contains("on")); new MutationObserver(f).observe(mt,{attributes:true,attributeFilter:["class"]}); f(); })();
-
+/* ===== sound effects: built-in synth only (sound file import and Openverse lookup removed) ===== */
 /* ===== sound effects: your own files (e.g. from the Earshot or Real SFX packs) > Openverse CC0 sounds > built-in synth ===== */
 const SFX_SLOTS=[
   ["click","버튼","Button","ボタン","按钮","ui click"],
@@ -10404,9 +10404,8 @@ const SFX_SLOTS=[
   ["win","시리즈 승리","Series win","シリーズ勝利","系列赛胜利","victory fanfare"],
   ["lose","시리즈 패배","Series loss","シリーズ敗北","系列赛失利","fail trumpet"],
   ["trophy","우승","Title","優勝","夺冠","applause"]];
-const SFX={ctx:null,buf:{},ov:{},ovOff:false,last:{},vol:0.6,on:true};
+const SFX={ctx:null,buf:{},ov:{},ovOff:true,last:{},vol:0.6,on:true};
 try{ const c=JSON.parse(localStorage.getItem("vctsfx_cfg")||"{}"); if(c.vol!=null) SFX.vol=c.vol; if(c.on!=null) SFX.on=c.on; if(c.ov===false) SFX.ovOff=true; }catch(e){}
-try{ SFX.ov=JSON.parse(localStorage.getItem("vctsfx_ov")||"{}"); }catch(e){ SFX.ov={}; }
 function sfxCfgSave(){ try{ localStorage.setItem("vctsfx_cfg",JSON.stringify({vol:SFX.vol,on:SFX.on,ov:!SFX.ovOff})); }catch(e){} }
 function sfxCtx(){ if(SFX.ctx) return SFX.ctx; const A=window.AudioContext||window.webkitAudioContext; if(!A) return null; try{ SFX.ctx=new A(); }catch(e){ return null; } return SFX.ctx; }
 function sfxLabel(s){ return L(s[1],s[2],s[3],s[4]); }
@@ -10433,20 +10432,8 @@ function sfxSynth(k,c,out){ const t=c.currentTime, O=(type,f0,f1,d,v,st)=>{ cons
     case "lose": [392,349,311,262].forEach((f,i)=>O("triangle",f,0,0.35,0.16,i*0.2)); break;
     case "trophy": try{ champSound(); }catch(e){} return;
   } }
-/* ---------- Openverse (CC0, Freesound): looked up at runtime where the page is allowed to reach the API ---------- */
-async function sfxOvFind(k){ if(SFX.ovOff) return null; const s=SFX_SLOTS.find(x=>x[0]===k); if(!s) return null; if(SFX.ov[k]!==undefined) return SFX.ov[k];
-  try{ const long=k==="crowd"||k==="cheer"||k==="trophy"; const u=`https://api.openverse.org/v1/audio/?q=${encodeURIComponent(s[5])}&license=cc0&category=sound_effect&page_size=12`;
-    const r=await fetch(u,{headers:{Accept:"application/json"}}); if(!r.ok) throw 0; const j=await r.json();
-    const pick=(j.results||[]).filter(x=>x.url&&(x.duration==null||x.duration<=(long?12000:4000))&&/mp3|mpeg|ogg|wav/i.test((x.filetype||"")+x.url))[0];
-    SFX.ov[k]=pick?{u:pick.url,t:pick.title||"",c:pick.creator||"",l:(pick.license||"cc0").toUpperCase(),p:pick.foreign_landing_url||""}:null;
-  }catch(e){ SFX.ovOff=true; return null; }
-  try{ localStorage.setItem("vctsfx_ov",JSON.stringify(SFX.ov)); }catch(e){} return SFX.ov[k]; }
-async function sfxLoad(k){ if(SFX.buf[k]!==undefined) return SFX.buf[k]; const c=sfxCtx(); if(!c) return null; SFX.buf[k]=null;
-  let src=null; try{ src=bigGet("vctsfx_"+k); }catch(e){}
-  if(!src){ const o=await sfxOvFind(k); if(o) src=o.u; }
-  if(!src) return null;
-  try{ let ab; if(String(src).startsWith("data:")){ const b64=String(src).split(",")[1]||"", bin=atob(b64), u8=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i); ab=u8.buffer; } else { const r=await fetch(src); ab=await r.arrayBuffer(); } SFX.buf[k]=await new Promise((ok,no)=>c.decodeAudioData(ab,ok,no)); }catch(e){ SFX.buf[k]=null; if(!String(src).startsWith("data:")) { SFX.ov[k]=null; } }
-  return SFX.buf[k]; }
+function sfxOvFind(){ return null; }
+async function sfxLoad(k){ SFX.buf[k]=null; return null; }
 function sfx(k,opt){ if(!SFX.on) return; const now=performance.now(); if(SFX.last[k]&&now-SFX.last[k]<(k==="click"?60:180)) return; SFX.last[k]=now;
   const c=sfxCtx(); if(!c) return; if(c.state==="suspended") c.resume().catch(()=>{});
   const out=c.createGain(); out.gain.value=SFX.vol*((opt&&opt.v)||1)*(k==="click"?0.5:1); out.connect(c.destination);
@@ -10454,35 +10441,12 @@ function sfx(k,opt){ if(!SFX.on) return; const now=performance.now(); if(SFX.las
   if(b){ const s=c.createBufferSource(); s.buffer=b; s.connect(out); s.start(); if(opt&&opt.max) s.stop(c.currentTime+opt.max); return; }
   if(b===undefined) sfxLoad(k);
   sfxSynth(k,c,out); }
-/* ---------- importing your own files (Earshot, Real SFX or any pack you downloaded) ---------- */
-const SFX_KEYS={click:/click|button|tap|select|ui_?press/i,open:/whoosh|swoosh|open|swish|woosh/i,close:/close|back|cancel/i,confirm:/confirm|success|save|accept|ok\b/i,error:/error|deny|wrong|fail_?ui|buzz/i,
-  next:/page|paper|flip|turn|tick/i,money:/coin|cash|money|register|kaching/i,upgrade:/level|upgrade|power_?up|rise/i,sign:/pen|sign|write|scribble|stamp/i,notify:/notif|ding|bell|alert|chime/i,
-  horn:/horn|siren|start/i,crowd:/crowd|ambien|stadium|arena|audience/i,cheer:/cheer|applause|clap|yay/i,groan:/groan|aww|boo|disappoint/i,win:/win|victory|fanfare|triumph/i,lose:/lose|loss|defeat|sad|fail/i,trophy:/trophy|champion|celebrat|confetti/i};
-function sfxReadFile(f){ return new Promise((ok,no)=>{ if(!f) return no(); if(f.size>2.5e6) return no("big"); const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=no; r.readAsDataURL(f); }); }
-async function sfxSetFile(k,f){ try{ const d=await sfxReadFile(f); bigSet("vctsfx_"+k,d); SFX.buf[k]=undefined; await sfxLoad(k); sfx(k); toast(L(`${sfxLabel(SFX_SLOTS.find(s=>s[0]===k))}: ${f.name}`,`${sfxLabel(SFX_SLOTS.find(s=>s[0]===k))}: ${f.name}`)); }
-  catch(e){ toast(e==="big"?L("2.5MB 이하 파일만 넣을 수 있습니다.","Files must be 2.5MB or smaller.","2.5MB以下のファイルのみ使えます。","仅支持2.5MB以下的文件。"):L("이 파일을 읽지 못했습니다.","Couldn't read that file.","このファイルを読み込めませんでした。","无法读取该文件。")); } sfxPanelRender(); }
-async function sfxImportMany(files){ let n=0; const used=new Set(); for(const f of [...files]){ const nm=f.name.replace(/\.[a-z0-9]+$/i,""); const k=Object.keys(SFX_KEYS).find(k=>!used.has(k)&&SFX_KEYS[k].test(nm)); if(!k) continue; try{ bigSet("vctsfx_"+k,await sfxReadFile(f)); SFX.buf[k]=undefined; used.add(k); n++; }catch(e){} }
-  toast(L(`${n}개 효과음을 파일 이름에 맞춰 넣었습니다.`,`Placed ${n} sounds by file name.`,`ファイル名に合わせて${n}個の効果音を設定しました。`,`已按文件名放入${n}个音效。`)); sfxPanelRender(); }
-function sfxReset(k){ try{ bigDel("vctsfx_"+k); }catch(e){} SFX.buf[k]=undefined; sfxPanelRender(); }
-function sfxSrcOf(k){ let mine=null; try{ mine=bigGet("vctsfx_"+k); }catch(e){} if(mine) return ["mine",L("내 파일","My file","自分のファイル","我的文件")];
-  const o=SFX.ov[k]; if(o&&!SFX.ovOff) return ["ov","Openverse"]; return ["syn",L("기본음","Built-in","内蔵音","内置音")]; }
-function sfxPanelHTML(){ const rows=SFX_SLOTS.map(s=>{ const [cls,lab]=sfxSrcOf(s[0]); return `<div class="sfxRow"><span class="sfxN">${sfxLabel(s)}</span><span class="sfxS ${cls}">${lab}</span>
-    <button class="sbtn" onclick="SFX.last['${s[0]}']=0;sfx('${s[0]}')">${L("듣기","Play","再生","试听")}</button>
-    <label class="sbtn sfxF">${L("파일","File","ファイル","文件")}<input type="file" accept="audio/*" onchange="sfxSetFile('${s[0]}',this.files[0])"></label>
-    ${cls==="mine"?`<button class="sbtn red" onclick="sfxReset('${s[0]}')">x</button>`:""}</div>`; }).join("");
-  const cred=Object.entries(SFX.ov).filter(([k,o])=>o).map(([k,o])=>`<div class="mute" style="font-size:11px">${esc(sfxLabel(SFX_SLOTS.find(s=>s[0]===k)))}: ${o.p?`<a href="${esc(o.p)}" target="_blank" rel="noopener">${esc(o.t||"sound")}</a>`:esc(o.t)} / ${esc(o.c)} / ${esc(o.l)}</div>`).join("");
-  return `<div class="sfxTop"><span><b>${L("효과음","Sound effects","効果音","音效")}</b><br><small class="mute">${L("우선순위: 내 파일 > Openverse(CC0) > 기본음","Order: your files > Openverse (CC0) > built-in","優先順位: 自分のファイル > Openverse(CC0) > 内蔵音","优先级: 我的文件 > Openverse(CC0) > 内置音")}</small></span>
+function sfxPanelHTML(){ return `<div class="sfxTop"><span><b>${L("효과음","Sound effects","効果音","音效")}</b></span>
     <span style="display:flex;gap:6px;align-items:center"><button class="sbtn ${SFX.on?"on":""}" onclick="SFX.on=!SFX.on;sfxCfgSave();sfxPanelRender()">${SFX.on?"ON":"OFF"}</button>
-    <input type="range" min="0" max="1" step="0.05" value="${SFX.vol}" oninput="SFX.vol=+this.value;sfxCfgSave()" onchange="SFX.last.confirm=0;sfx('confirm')" style="width:110px"></span></div>
-    <div class="sfxTop" style="padding-top:4px"><small class="mute">${L("Earshot SFX, Real SFX 같은 팩에서 받은 파일을 넣을 수 있습니다. 여러 개를 고르면 파일 이름(click, whoosh, coin, cheer, horn, victory 등)으로 자리를 찾아 넣습니다.","Add files from packs like Earshot SFX or Real SFX. Pick several and they are placed by file name (click, whoosh, coin, cheer, horn, victory...).","Earshot SFX や Real SFX などのファイルを入れられます。複数選ぶとファイル名(click, whoosh, coin, cheer, horn, victory など)で配置します。","可放入 Earshot SFX、Real SFX 等音效包的文件。多选时按文件名(click、whoosh、coin、cheer、horn、victory 等)自动放置。")}</small>
-    <label class="sbtn on sfxF">${L("여러 파일 가져오기","Import files","まとめて読み込む","批量导入")}<input type="file" accept="audio/*" multiple onchange="sfxImportMany(this.files)"></label></div>
-    <div class="sfxTop" style="padding-top:2px"><small class="mute">Openverse: ${SFX.ovOff?L("이 화면에서는 연결할 수 없어 기본음을 씁니다 (GitHub Pages 버전에서는 자동 연결)","not reachable here; built-in sounds are used (works on the GitHub Pages version)","この画面では接続できないため内蔵音を使います (GitHub Pages版では自動接続)","此处无法连接，使用内置音 (GitHub Pages 版本会自动连接)"):L("연결됨 (CC0 효과음을 처음 쓸 때 찾아 옵니다)","connected (CC0 sounds are fetched on first use)","接続中 (CC0効果音を初回使用時に取得)","已连接 (首次使用时获取CC0音效)")}</small>
-    ${!SFX.ovOff?`<button class="sbtn" onclick="SFX.ov={};SFX.buf={};try{localStorage.removeItem('vctsfx_ov')}catch(e){};sfxPanelRender()">${L("다른 소리 찾기","Find other sounds","別の音を探す","换一批音效")}</button>`:""}</div>
-    <div class="sfxList">${rows}</div>${cred?`<details style="margin-top:6px"><summary class="mute" style="font-size:12px;cursor:pointer">${L("Openverse 출처","Openverse credits","Openverse 出典","Openverse 来源")}</summary>${cred}</details>`:""}`; }
+    <input type="range" min="0" max="1" step="0.05" value="${SFX.vol}" oninput="SFX.vol=+this.value;sfxCfgSave()" onchange="SFX.last.confirm=0;sfx('confirm')" style="width:110px"></span></div>`; }
 function sfxPanelRender(){ const el=document.getElementById("sfxPanel"); if(el) el.innerHTML=sfxPanelHTML(); }
 (function(){ const _os=openSettings; openSettings=function(){ const r=_os.apply(this,arguments); try{ const box=$("#stBox"); if(box&&!box.querySelector("#sfxPanel")){ const d=document.createElement("div"); d.id="sfxPanel"; d.className="sfxBox"; const first=box.querySelector(".setopt"); if(first) first.parentNode.insertBefore(d,first); else box.appendChild(d); sfxPanelRender(); } }catch(e){ console.error(e); } return r; }; })();
-/* probe Openverse once so the settings panel can say whether it is reachable */
-setTimeout(()=>{ if(!SFX.ovOff&&!Object.keys(SFX.ov).length) sfxOvFind("click"); },2500);
+try{ localStorage.removeItem("vctsfx_ov"); }catch(e){}
 /* ---------- hooks ---------- */
 (function(){ const W=(name,fn)=>{ try{ const f=window[name]; if(typeof f!=="function") return; window[name]=function(){ try{ fn.apply(this,arguments); }catch(e){} return f.apply(this,arguments); }; }catch(e){} };
   const A=(name,fn)=>{ try{ const f=window[name]; if(typeof f!=="function") return; window[name]=function(){ const r=f.apply(this,arguments); try{ fn.call(this,r,arguments); }catch(e){} return r; }; }catch(e){} };
